@@ -2053,13 +2053,13 @@ DLL_EXPORT void           tmq_conf_set_auto_commit_cb(tmq_conf_t *conf, tmq_comm
 
 这些 API 的文档请见 [C/C++ Connector](https://docs.taosdata.com/connector/cpp/)，下面介绍一下它们的具体用法（超级表和子表结构请参考“数据建模”一节），完整的示例代码请见下面 C 语言的示例代码。
 
-## 写入数据
+### 写入数据
 
 首先完成建库、建一张超级表和多张子表操作，然后就可以写入数据了，比如：
 
 ```sql
 DROP DATABASE IF EXISTS tmqdb;
-CREATE DATABASE tmqdb WAL_RETENTION_PERIOD 3600;
+CREATE DATABASE tmqdb WAL_RETENTION_PERIOD 3600;  # wal保留期
 CREATE TABLE tmqdb.stb (ts TIMESTAMP, c1 INT, c2 FLOAT, c3 VARCHAR(16)) TAGS(t1 INT, t3 VARCHAR(16));
 CREATE TABLE tmqdb.ctb0 USING tmqdb.stb TAGS(0, "subtable0");
 CREATE TABLE tmqdb.ctb1 USING tmqdb.stb TAGS(1, "subtable1");       
@@ -2067,7 +2067,7 @@ INSERT INTO tmqdb.ctb0 VALUES(now, 0, 0, 'a0')(now+1s, 0, 0, 'a00');
 INSERT INTO tmqdb.ctb1 VALUES(now, 1, 1, 'a1')(now+1s, 11, 11, 'a11');
 ```
 
-## 创建 *topic*
+### 创建 *topic*
 
 TDengine 使用 SQL 创建一个 topic：
 
@@ -2075,9 +2075,9 @@ TDengine 使用 SQL 创建一个 topic：
 CREATE TOPIC topic_name AS SELECT ts, c1, c2, c3 FROM tmqdb.stb WHERE c1 > 1;
 ```
 
-TMQ 支持多种订阅类型：
+### **TMQ 支持多种订阅类型**
 
-### 列订阅
+#### 列订阅
 
 语法：
 
@@ -2091,7 +2091,7 @@ CREATE TOPIC topic_name as subquery
 - 被订阅或用于计算的列或标签不可被删除（`ALTER table DROP`）、修改（`ALTER table MODIFY`）。
 - 若发生表结构变更，新增的列不出现在结果中。
 
-### 超级表订阅
+#### 超级表订阅
 
 语法：
 
@@ -2106,7 +2106,7 @@ CREATE TOPIC topic_name AS STABLE stb_name
 - 用户对于要处理的每一个数据块都可能有不同的表结构。
 - 返回数据不包含标签。
 
-### 数据库订阅
+#### 数据库订阅
 
 语法：
 
@@ -2116,7 +2116,7 @@ CREATE TOPIC topic_name AS DATABASE db_name;
 
 通过该语句可创建一个包含数据库所有表数据的订阅
 
-## 创建消费者 *consumer*
+### 创建消费者 *consumer*
 
 消费者需要通过一系列配置选项创建，基础配置项如下表所示：
 
@@ -2156,7 +2156,7 @@ tmq_conf_destroy(conf);
 
 上述配置中包括 consumer group ID，如果多个 consumer 指定的 consumer group ID 一样，则自动形成一个 consumer group，共享消费进度。
 
-## 订阅 *topics*
+### 订阅 *topics*
 
 一个 consumer 支持同时订阅多个 topic。
 
@@ -2167,14 +2167,11 @@ tmq_list_append(topicList, "topicName");
 // 启动订阅
 tmq_subscribe(tmq, topicList);
 tmq_list_destroy(topicList);
-  
 ```
 
-## 消费
+### 消费
 
 以下代码展示了不同语言下如何对 TMQ 消息进行消费。
-
-
 
 ```c
 // 消费数据
@@ -2186,30 +2183,28 @@ while (running) {
 
 这里是一个 **while** 循环，每调用一次 tmq_consumer_poll()，获取一个消息，该消息与普通查询返回的结果集完全相同，可以使用相同的解析 API 完成消息内容的解析。
 
-## 结束消费
+### 结束消费
 
 消费结束后，应当取消订阅。
 
-
-
 ```c
 /* 取消订阅 */
-tmq_unsubscribe(tmq);
+tmq_unsubscribe(tmq);  //与tmq_subscribe对应
 
 /* 关闭消费者对象 */
 tmq_consumer_close(tmq);
 ```
 
-## 删除 *topic*
+### 删除 *topic*
 
-如果不再需要订阅数据，可以删除 topic，需要注意：只有当前未在订阅中的 TOPIC 才能被删除。
+如果不再需要订阅数据，可以删除 topic，需要注意：**只有当前未在订阅中的 TOPIC 才能被删除。**
 
 ```sql
 /* 删除 topic */
 DROP TOPIC topic_name;
 ```
 
-## 状态查看
+### 状态查看
 
 1、*topics*：查询已经创建的 topic
 
@@ -2229,7 +2224,7 @@ SHOW CONSUMERS;
 SHOW SUBSCRIPTIONS;
 ```
 
-## 示例代码
+### 示例代码
 
 以下是各语言的完整示例代码。
 
@@ -2306,7 +2301,7 @@ static int32_t init_env() {
   taos_free_result(pRes);
 
   // create database
-  pRes = taos_query(pConn, "create database tmqdb wal_retention_period 3600");
+  pRes = taos_query(pConn, "create database tmqdb wal_retention_period 3600"); //wal_retention_period 设置为 3600
   if (taos_errno(pRes) != 0) {
     printf("error in create tmqdb, reason:%s\n", taos_errstr(pRes));
     return -1;
@@ -2321,7 +2316,7 @@ static int32_t init_env() {
     printf("failed to create super table stb, reason:%s\n", taos_errstr(pRes));
     return -1;
   }
-  taos_free_result(pRes);
+  taos_free_result(pRes);  //每次执行后都要free掉结果
 
   // create sub tables
   printf("create sub tables\n");
@@ -2383,13 +2378,13 @@ static int32_t init_env() {
   }
   taos_free_result(pRes);
 
-  taos_close(pConn);
+  taos_close(pConn);  //关闭连接
   return 0;
 }
 
 int32_t create_topic() {
   printf("create topic\n");
-  TAOS_RES* pRes;
+  TAOS_RES* pRes; 
   TAOS*     pConn = taos_connect("localhost", "root", "taosdata", NULL, 0);
   if (pConn == NULL) {
     return -1;
@@ -2402,7 +2397,7 @@ int32_t create_topic() {
   }
   taos_free_result(pRes);
 
-  pRes = taos_query(pConn, "create topic topicname as select ts, c1, c2, c3, tbname from tmqdb.stb where c1 > 1");
+  pRes = taos_query(pConn, "create topic topicname as select ts, c1, c2, c3, tbname from tmqdb.stb where c1 > 1"); //查询超级表，即在所有的子表中聚合查询
   if (taos_errno(pRes) != 0) {
     printf("failed to create topic topicname, reason:%s\n", taos_errstr(pRes));
     return -1;
@@ -2506,15 +2501,15 @@ void basic_consume_loop(tmq_t* tmq) {
 int main(int argc, char* argv[]) {
   int32_t code;
 
-  if (init_env() < 0) {
+  if (init_env() < 0) {  //创建数据库、超级表、子表并插入数据
     return -1;
   }
 
-  if (create_topic() < 0) {
+  if (create_topic() < 0) {//创建topic
     return -1;
   }
 
-  tmq_t* tmq = build_consumer();
+  tmq_t* tmq = build_consumer(); /
   if (NULL == tmq) {
     fprintf(stderr, "%% build_consumer() fail!\n");
     return -1;
@@ -2545,11 +2540,11 @@ int main(int argc, char* argv[]) {
 
 [查看源码](https://github.com/taosdata/TDengine/blob/3.0/docs/examples/c/tmq_example.c)
 
-# 缓存
+## 缓存
 
 为了实现高效的写入和查询，TDengine 充分利用了各种缓存技术，本节将对 TDengine 中对缓存的使用做详细的说明。
 
-## 写缓存
+### 写缓存
 
 TDengine  采用时间驱动缓存管理策略（First-In-First-Out，FIFO），又称为写驱动的缓存管理机制。这种策略有别于读驱动的数据缓存模式（Least-Recent-Used，LRU），直接将最近写入的数据保存在系统的缓存中。当缓存达到临界值的时候，将最早的数据批量写入磁盘。一般意义上来说，对于物联网数据的使用，用户最为关心最近产生的数据，即当前状态。TDengine 充分利用了这一特性，将最近到达的（当前状态）数据保存在缓存中。
 
@@ -2561,7 +2556,7 @@ create database db0 vgroups 100 buffer 16MB
 
 理论上缓存越大越好，但超过一定阈值后再增加缓存对写入性能提升并无帮助，一般情况下使用默认值即可。
 
-## 读缓存
+### 读缓存
 
 在创建数据库时可以选择是否缓存该数据库中每个子表的最新数据。由参数 cachemodel 设置，分为四种情况：
 
@@ -2570,7 +2565,7 @@ create database db0 vgroups 100 buffer 16MB
 - last_value: 缓存子表每一列最近的非 NULL 值，这将显著改善无特殊影响（比如 WHERE, ORDER BY, GROUP BY, INTERVAL）时的 last 函数的性能
 - both: 同时缓存最近的行和列，即等同于上述 cachemodel 值为 last_row 和 last_value 的行为同时生效
 
-## 元数据缓存
+### 元数据缓存
 
 为了更高效地处理查询和写入，每个 vnode 都会缓存自己曾经获取到的元数据。元数据缓存由创建数据库时的两个参数 pages 和 pagesize 决定。
 
@@ -2580,14 +2575,14 @@ create database db0 pages 128 pagesize 16kb
 
 上述语句会为数据库 db0 的每个 vnode 创建 128 个 page，每个 page 16kb 的元数据缓存。
 
-## 文件系统缓存
+### 文件系统缓存
 
 TDengine 利用 WAL 技术来提供基本的数据可靠性。写入 WAL 本质上是以顺序追加的方式写入磁盘文件。此时文件系统缓存在写入性能中也会扮演关键角色。在创建数据库时可以利用 wal 参数来选择性能优先或者可靠性优先。
 
 - 1: 写 WAL 但不执行 fsync ，新写入 WAL 的数据保存在文件系统缓存中但并未写入磁盘，这种方式性能优先
 - 2: 写 WAL 且执行 fsync，新写入 WAL 的数据被立即同步到磁盘上，可靠性更高
 
-## 客户端缓存
+### 客户端缓存
 
 为了进一步提升整个系统的处理效率，除了以上提到的服务端缓存技术之外，在 TDengine 的所有客户端都要调用的核心库 libtaos.so （也称为 taosc ）中也充分利用了缓存技术。在 taosc  中会缓存所访问过的各个数据库、超级表以及子表的元数据，集群的拓扑结构等关键元数据。
 
@@ -2595,7 +2590,7 @@ TDengine 利用 WAL 技术来提供基本的数据可靠性。写入 WAL 本质�
 
 
 
-# UDF（用户定义函数）
+## UDF（用户定义函数）
 
 在有些应用场景中，应用逻辑需要的查询无法直接使用系统内置的函数来表示。利用 UDF(User Defined Function) 功能，TDengine  可以插入用户编写的处理代码并在查询中使用它们，就能够很方便地解决特殊应用场景中的使用需求。 UDF  通常以数据表中的一列数据做为输入，同时支持以嵌套子查询的结果作为输入。
 
@@ -2603,7 +2598,7 @@ TDengine 利用 WAL 技术来提供基本的数据可靠性。写入 WAL 本质�
 
 TDengine 支持通过 C/Python 语言进行 UDF 定义。接下来结合示例讲解 UDF 的使用方法。
 
-## 用 C 语言实现 UDF
+### 用 C 语言实现 UDF
 
 使用 C 语言实现 UDF 时，需要实现规定的接口函数
 
@@ -2613,7 +2608,7 @@ TDengine 支持通过 C/Python 语言进行 UDF 定义。接下来结合示例�
 
 接口函数的名称是 UDF 名称，或者是 UDF 名称和特定后缀（_start, _finish, _init, _destroy)的连接。列表中的scalarfn，aggfn, udf需要替换成udf函数名。
 
-### 用 C 语言实现标量函数
+#### 用 C 语言实现标量函数
 
 标量函数实现模板如下
 
@@ -2648,7 +2643,7 @@ int32_t scalarfn_destroy() {
 
 scalarfn 为函数名的占位符，需要替换成函数名，如bit_and。
 
-### 用 C 语言实现聚合函数
+#### 用 C 语言实现聚合函数
 
 聚合函数的实现模板如下
 
@@ -2701,7 +2696,7 @@ int32_t aggfn_destroy() {
 
 aggfn为函数名的占位符，需要修改为自己的函数名，如l2norm。
 
-### C 语言 UDF 接口函数定义
+#### C 语言 UDF 接口函数定义
 
 接口函数的名称是 udf 名称，或者是 udf 名称和特定后缀（_start, _finish, _init, _destroy)的连接。以下描述中函数名称中的 scalarfn，aggfn, udf 需要替换成udf函数名。
 
@@ -2709,7 +2704,7 @@ aggfn为函数名的占位符，需要修改为自己的函数名，如l2norm。
 
 接口函数参数类型见数据结构定义。
 
-#### 标量函数接口
+##### 标量函数接口
 
  `int32_t scalarfn(SUdfDataBlock* inputDataBlock, SUdfColumn *resultColumn)` 
 
@@ -2720,7 +2715,7 @@ aggfn为函数名的占位符，需要修改为自己的函数名，如l2norm。
 - inputDataBlock: 输入的数据块
 - resultColumn: 输出列 
 
-#### 聚合函数接口
+##### 聚合函数接口
 
 ```
 int32_t aggfn_start(SUdfInterBuf *interBuf)
@@ -2746,7 +2741,7 @@ int32_t udf_destroy()
 
 其中 udf 是函数名的占位符。udf_init 完成初始化工作。 udf_destroy 完成清理工作。如果没有初始化工作，无需定义udf_init函数。如果没有清理工作，无需定义udf_destroy函数。
 
-### C 语言 UDF 数据结构
+#### C 语言 UDF 数据结构
 
 ```c
 typedef struct SUdfColumnMeta {
@@ -2806,7 +2801,7 @@ typedef struct SUdfInterBuf {
 
 为了更好的操作以上数据结构，提供了一些便利函数，定义在 taosudf.h。
 
-### 编译 C UDF
+#### 编译 C UDF
 
 用户定义函数的 C 语言源代码无法直接被 TDengine 系统使用，而是需要先编译为 动态链接库，之后才能载入 TDengine 系统。
 
@@ -2818,162 +2813,143 @@ gcc -g -O0 -fPIC -shared bit_and.c -o libbitand.so
 
 这样就准备好了动态链接库 libbitand.so 文件，可以供后文创建 UDF 时使用了。为了保证可靠的系统运行，编译器 GCC 推荐使用 7.5 及以上版本。
 
-### C UDF 示例代码
+#### C UDF 示例代码
 
-#### 标量函数示例 [bit_and](https://github.com/taosdata/TDengine/blob/3.0/tests/script/sh/bit_and.c)
+##### 标量函数示例 [bit_and](https://github.com/taosdata/TDengine/blob/3.0/tests/script/sh/bit_and.c)
 
 bit_add 实现多列的按位与功能。如果只有一列，返回这一列。bit_add 忽略空值。
 
-<details class="details_lb9f isBrowser_bmU9 alert alert--info details_b_Ee" data-collapsed="true"><summary>bit_and.c</summary></details>
+```c++
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "taosudf.h"
 
-#### 聚合函数示例1 返回值为数值类型 [l2norm](https://github.com/taosdata/TDengine/blob/3.0/tests/script/sh/l2norm.c)
+DLL_EXPORT int32_t bit_and_init() { return 0; } //实现初始化
+
+DLL_EXPORT int32_t bit_and_destroy() { return 0; } //实现清理工作
+
+DLL_EXPORT int32_t bit_and(SUdfDataBlock* block, SUdfColumn* resultCol) { //标量函数接口
+  if (block->numOfCols < 2) {
+    return TSDB_CODE_UDF_INVALID_INPUT;
+  }
+
+  for (int32_t i = 0; i < block->numOfCols; ++i) {
+    SUdfColumn* col = block->udfCols[i];
+    if (!(col->colMeta.type == TSDB_DATA_TYPE_INT)) {
+      return TSDB_CODE_UDF_INVALID_INPUT;
+    }
+  }
+
+  SUdfColumnData* resultData = &resultCol->colData;
+
+  for (int32_t i = 0; i < block->numOfRows; ++i) {
+    if (udfColDataIsNull(block->udfCols[0], i)) {
+      udfColDataSetNull(resultCol, i);
+      continue;
+    }
+    int32_t result = *(int32_t*)udfColDataGetData(block->udfCols[0], i);
+    int     j = 1;
+    for (; j < block->numOfCols; ++j) {
+      if (udfColDataIsNull(block->udfCols[j], i)) {
+        udfColDataSetNull(resultCol, i);
+        break;
+      }
+
+      char* colData = udfColDataGetData(block->udfCols[j], i);
+      result &= *(int32_t*)colData;
+    }
+    if (j == block->numOfCols) {
+      udfColDataSet(resultCol, i, (char*)&result, false);
+    }
+  }
+  resultData->numOfRows = block->numOfRows;
+
+  return TSDB_CODE_SUCCESS;
+}
+```
+
+##### 聚合函数示例1 返回值为数值类型 [l2norm](https://github.com/taosdata/TDengine/blob/3.0/tests/script/sh/l2norm.c)
 
 l2norm 实现了输入列的所有数据的二阶范数，即对每个数据先平方，再累加求和，最后开方。
 
-<details class="details_lb9f isBrowser_bmU9 alert alert--info details_b_Ee" data-collapsed="true"><summary>l2norm.c</summary></details>
+```c++
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
 
-#### 聚合函数示例2 返回值为字符串类型 [max_vol](https://github.com/taosdata/TDengine/blob/3.0/tests/script/sh/max_vol.c)
+#include "taosudf.h"
 
-max_vol 实现了从多个输入的电压列中找到最大电压，返回由设备ID + 最大电压所在（行，列）+ 最大电压值 组成的组合字符串值
+DLL_EXPORT int32_t l2norm_init() {
+  return 0;
+}
 
-创建表：
+DLL_EXPORT int32_t l2norm_destroy() {
+  return 0;
+}
 
-```bash
-create table battery(ts timestamp, vol1 float, vol2 float, vol3 float, deviceId varchar(16));
+DLL_EXPORT int32_t l2norm_start(SUdfInterBuf *buf) {
+  *(int64_t*)(buf->buf) = 0;
+  buf->bufLen = sizeof(double);
+  buf->numOfResult = 1;
+  return 0;
+}
+
+DLL_EXPORT int32_t l2norm(SUdfDataBlock* block, SUdfInterBuf *interBuf, SUdfInterBuf *newInterBuf) {
+  double sumSquares = *(double*)interBuf->buf;
+  int8_t numNotNull = 0;
+  for (int32_t i = 0; i < block->numOfCols; ++i) {
+    SUdfColumn* col = block->udfCols[i];
+    if (!(col->colMeta.type == TSDB_DATA_TYPE_INT || 
+          col->colMeta.type == TSDB_DATA_TYPE_DOUBLE)) {
+      return TSDB_CODE_UDF_INVALID_INPUT;
+    }
+  }
+  for (int32_t i = 0; i < block->numOfCols; ++i) {
+    for (int32_t j = 0; j < block->numOfRows; ++j) {
+      SUdfColumn* col = block->udfCols[i];
+      if (udfColDataIsNull(col, j)) {
+        continue;
+      }
+      switch (col->colMeta.type) {
+        case TSDB_DATA_TYPE_INT: {
+          char* cell = udfColDataGetData(col, j);
+          int32_t num = *(int32_t*)cell;
+          sumSquares += (double)num * num;
+          break;
+        }
+        case TSDB_DATA_TYPE_DOUBLE: {
+          char* cell = udfColDataGetData(col, j);
+          double num = *(double*)cell;
+          sumSquares += num * num;
+          break;
+        }
+        default: 
+          break;
+      }
+      ++numNotNull;
+    }
+  }
+
+  *(double*)(newInterBuf->buf) = sumSquares;
+  newInterBuf->bufLen = sizeof(double);
+  newInterBuf->numOfResult = 1;
+  return 0;
+}
+
+DLL_EXPORT int32_t l2norm_finish(SUdfInterBuf* buf, SUdfInterBuf *resultData) {
+  double sumSquares = *(double*)(buf->buf);
+  *(double*)(resultData->buf) = sqrt(sumSquares);
+  resultData->bufLen = sizeof(double);
+  resultData->numOfResult = 1;
+  return 0;
+}
 ```
 
-创建自定义函数：
-
-```bash
-create aggregate function max_vol as '/root/udf/libmaxvol.so' outputtype binary(64) bufsize 10240 language 'C'; 
-```
-
-使用自定义函数：
-
-```bash
-select max_vol(vol1,vol2,vol3,deviceid) from battery;
-```
-
-<details class="details_lb9f isBrowser_bmU9 alert alert--info details_b_Ee" data-collapsed="true"><summary>max_vol.c</summary></details>
-
-## 用 Python 语言实现 UDF
-
-使用 Python 语言实现 UDF 时，需要实现规定的接口函数
-
-- 标量函数需要实现标量接口函数 process 。
-- 聚合函数需要实现聚合接口函数 start ，reduce ，finish。
-- 如果需要初始化，实现 init；如果需要清理工作，实现 destroy。
-
-### 用 Python 实现标量函数
-
-标量函数实现模版如下
-
-```Python
-def init():
-    # initialization
-def destroy():
-    # destroy
-def process(input: datablock) -> tuple[output_type]:
-    # process input datablock, 
-    # datablock.data(row, col) is to access the python object in location(row,col)
-    # return tuple object consisted of object of type outputtype   
-```
-
-### 用 Python 实现聚合函数
-
-聚合函数实现模版如下
-
-```Python
-def init():
-    #initialization
-def destroy():
-    #destroy
-def start() -> bytes:
-    #return serialize(init_state)
-def reduce(inputs: datablock, buf: bytes) -> bytes
-    # deserialize buf to state
-    # reduce the inputs and state into new_state. 
-    # use inputs.data(i,j) to access python ojbect of location(i,j)
-    # serialize new_state into new_state_bytes
-    return new_state_bytes   
-def finish(buf: bytes) -> output_type:
-    #return obj of type outputtype   
-```
-
-### Python UDF 接口函数定义
-
-#### 标量函数接口
-
-```Python
-def process(input: datablock) -> tuple[output_type]:
-```
-
-- input:datablock 类似二维矩阵，通过成员方法 data(row,col)返回位于 row 行，col 列的 python 对象
-- 返回值是一个 Python 对象元组，每个元素类型为输出类型。
-
-#### 聚合函数接口
-
-```Python
-def start() -> bytes:
-def reduce(inputs: datablock, buf: bytes) -> bytes
-def finish(buf: bytes) -> output_type:
-```
-
-首先调用 start 生成最初结果 buffer，然后输入数据会被分为多个行数据块，对每个数据块 inputs 和当前中间结果 buf 调用  reduce，得到新的中间结果，最后再调用 finish 从中间结果 buf 产生最终输出，最终输出只能含 0 或 1 条数据。
-
-#### 初始化和销毁接口
-
-```Python
-def init()
-def destroy()
-```
-
-其中 init 完成初始化工作。 destroy 完成清理工作。如果没有初始化工作，无需定义 init 函数。如果没有清理工作，无需定义 destroy 函数。
-
-### Python 和 TDengine之间的数据类型映射
-
-下表描述了TDengine SQL数据类型和Python数据类型的映射。任何类型的NULL值都映射成Python的None值。
-
-| **TDengine SQL数据类型**                                     | **Python数据类型** |
-| ------------------------------------------------------------ | ------------------ |
-| TINYINT / SMALLINT / INT  / BIGINT                           | int                |
-| TINYINT UNSIGNED / SMALLINT UNSIGNED / INT UNSIGNED / BIGINT UNSIGNED | int                |
-| FLOAT / DOUBLE                                               | float              |
-| BOOL                                                         | bool               |
-| BINARY / VARCHAR / NCHAR                                     | bytes              |
-| TIMESTAMP                                                    | int                |
-| JSON and other types                                         | 不支持             |
-
-### Python UDF 环境的安装
-
-1. 安装 taospyudf 包。此包执行Python UDF程序。
-
-```bash
-sudo pip install taospyudf
-ldconfig
-```
-
-1. 如果 Python UDF 程序执行时，通过 PYTHONPATH 引用其它的包，可以设置 taos.cfg 的 UdfdLdLibPath 变量为PYTHONPATH的内容
-
-### Python UDF 示例代码
-
-#### 标量函数示例 [pybitand](https://github.com/taosdata/TDengine/blob/3.0/tests/script/sh/pybitand.py)
-
-pybitand 实现多列的按位与功能。如果只有一列，返回这一列。pybitand 忽略空值。
-
-<details class="details_lb9f isBrowser_bmU9 alert alert--info details_b_Ee" data-collapsed="true"><summary>pybitand.py</summary></details>
-
-#### 聚合函数示例 [pyl2norm](https://github.com/taosdata/TDengine/blob/3.0/tests/script/sh/pyl2norm.py)
-
-pyl2norm 实现了输入列的所有数据的二阶范数，即对每个数据先平方，再累加求和，最后开方。
-
-<details class="details_lb9f isBrowser_bmU9 alert alert--info details_b_Ee" data-collapsed="true"><summary>pyl2norm.py</summary></details>
-
-## 管理和使用 UDF
+### 管理和使用 UDF
 
 在使用 UDF 之前需要先将其加入到 TDengine 系统中。关于如何管理和使用 UDF，请参考[管理和使用 UDF](https://docs.taosdata.com/taos-sql/udf/)
-
-
 
 # 连接器
 
@@ -3022,8 +2998,6 @@ TDengine 版本更新往往会增加新的功能特性，列表中的连接器�
 | **Schemaless**      | 支持     | 支持       | 支持   | 支持   | 支持        | 支持     |
 | **DataFrame**       | 不支持   | 支持       | 不支持 | 不支持 | 不支持      | 不支持   |
 
-##### 
-
 ##### info
 
 由于不同编程语言数据库框架规范不同，并不意味着所有 C/C++ 接口都需要对应封装支持。
@@ -3040,15 +3014,11 @@ TDengine 版本更新往往会增加新的功能特性，列表中的连接器�
 | **批量拉取（基于 WebSocket）** | 支持     | 支持       | 支持     | 支持     | 支持        | 支持     |
 | **DataFrame**                  | 不支持   | 支持       | 不支持   | 不支持   | 不支持      | 不支持   |
 
-##### 
-
 ##### warning
 
 - 无论选用何种编程语言的连接器，2.0 及以上版本的 TDengine 推荐数据库应用的每个线程都建立一个独立的连接，或基于线程建立连接池，以避免连接内的“USE statement”状态量在线程之间相互干扰（但连接的查询和写入操作都是线程安全的）。
 
 ## 安装客户端驱动
-
-##### 
 
 ##### info
 
@@ -3116,7 +3086,7 @@ Query OK, 3 rows in database (0.019154s)
 taos>
 ```
 
-# C/C++ Connector
+## C/C++ Connector
 
 C/C++ 开发人员可以使用 TDengine  的客户端驱动，即 C/C++连接器 （以下都用 TDengine 客户端驱动表示），开发自己的应用来连接 TDengine  集群完成数据存储、查询以及其他功能。TDengine 客户端驱动的 API 类似于 MySQL 的 C API。应用程序使用时，需要包含  TDengine 头文件 *taos.h*，里面列出了提供的 API 的函数原型；应用程序还要链接到所在平台上对应的动态库。
 
@@ -3136,19 +3106,19 @@ TDengine 客户端驱动的动态库位于：
 - Windows: `C:\TDengine\taos.dll`
 - macOS: `/usr/local/lib/libtaos.dylib`
 
-## 支持的平台
+### 支持的平台
 
 请参考[支持的平台列表](https://docs.taosdata.com/connector/#支持的平台)
 
-## 支持的版本
+### 支持的版本
 
 TDengine 客户端驱动的版本号与 TDengine 服务端的版本号是一一对应的强对应关系，建议使用与 TDengine  服务端完全相同的客户端驱动。虽然低版本的客户端驱动在前三段版本号一致（即仅第四段版本号不同）的情况下也能够与高版本的服务端相兼容，但这并非推荐用法。强烈不建议使用高版本的客户端驱动访问低版本的服务端。
 
-## 安装步骤
+### 安装步骤
 
 TDengine 客户端驱动的安装请参考 [安装指南](https://docs.taosdata.com/connector/#安装步骤)
 
-## 建立连接
+### 建立连接
 
 使用客户端驱动访问 TDengine 集群的基本过程为：建立连接、查询和写入、关闭连接、清除资源。
 
@@ -3169,48 +3139,1212 @@ TDengine 客户端驱动的安装请参考 [安装指南](https://docs.taosdata.
 
 在上面的示例代码中， `taos_connect()` 建立到客户端程序所在主机的 6030 端口的连接，`taos_close()`关闭当前连接，`taos_cleanup()`清除客户端驱动所申请和使用的资源。
 
-##### 
-
 ##### note
 
 - 如未特别说明，当 API 的返回值是整数时，*0* 代表成功，其它是代表失败原因的错误码，当返回值是指针时， *NULL* 表示失败。
 - 所有的错误码以及对应的原因描述在 `taoserror.h` 文件中。
 
-## 示例程序
+### 示例程序
 
 本节展示了使用客户端驱动访问 TDengine 集群的常见访问方式的示例代码。
 
-### 同步查询示例
+#### 同步查询示例
 
-<details class="details_lb9f isBrowser_bmU9 alert alert--info details_b_Ee" data-collapsed="true"><summary>同步查询</summary></details>
+```c++
+/*
+ * Copyright (c) 2019 TAOS Data, Inc. <jhtao@taosdata.com>
+ *
+ * This program is free software: you can use, redistribute, and/or modify
+ * it under the terms of the GNU Affero General Public License, version 3
+ * or later ("AGPL"), as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 
-### 异步查询示例
+// TAOS standard API example. The same syntax as MySQL, but only a subset
+// to compile: gcc -o demo demo.c -ltaos
 
-<details class="details_lb9f isBrowser_bmU9 alert alert--info details_b_Ee" data-collapsed="true"><summary>异步查询</summary></details>
+#include <inttypes.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "taos.h"  // TAOS header file
 
-### 参数绑定示例
+static void queryDB(TAOS *taos, char *command) {
+  int i;
+  TAOS_RES *pSql = NULL;
+  int32_t   code = -1;
 
-<details class="details_lb9f isBrowser_bmU9 alert alert--info details_b_Ee" data-collapsed="true"><summary>参数绑定</summary></details>
+  for (i = 0; i < 5; i++) {
+    if (NULL != pSql) {
+      taos_free_result(pSql);
+      pSql = NULL;
+    }
+    
+    pSql = taos_query(taos, command);
+    code = taos_errno(pSql);
+    if (0 == code) {
+      break;
+    }    
+  }
 
-### 无模式写入示例
+  if (code != 0) {
+    fprintf(stderr, "Failed to run %s, reason: %s\n", command, taos_errstr(pSql));
+    taos_free_result(pSql);
+    taos_close(taos);
+    exit(EXIT_FAILURE);
+  }
 
-<details class="details_lb9f isBrowser_bmU9 alert alert--info details_b_Ee" data-collapsed="true"><summary>无模式写入</summary></details>
+  taos_free_result(pSql);
+}
 
-### 订阅和消费示例
+void Test(TAOS *taos, char *qstr, int i);
 
-<details class="details_lb9f isBrowser_bmU9 alert alert--info details_b_Ee" data-collapsed="true"><summary>订阅和消费</summary></details>
+int main(int argc, char *argv[]) {
+  char      qstr[1024];
 
-##### 
+  // connect to server
+  if (argc < 2) {
+    printf("please input server-ip \n");
+    return 0;
+  }
+
+  TAOS *taos = taos_connect(argv[1], "root", "taosdata", NULL, 0);
+  if (taos == NULL) {
+    printf("failed to connect to server, reason:%s\n", "null taos"/*taos_errstr(taos)*/);
+    exit(1);
+  }
+  for (int i = 0; i < 100; i++) {
+    Test(taos, qstr, i);
+  }
+  taos_close(taos);
+  taos_cleanup();
+}
+void Test(TAOS *taos, char *qstr, int index)  {
+  printf("==================test at %d\n================================", index);
+  queryDB(taos, "drop database if exists demo");
+  queryDB(taos, "create database demo");
+  TAOS_RES *result;
+  queryDB(taos, "use demo");
+
+  queryDB(taos, "create table m1 (ts timestamp, ti tinyint, si smallint, i int, bi bigint, f float, d double, b binary(10))");
+  printf("success to create table\n");
+
+  int i = 0;
+  for (i = 0; i < 10; ++i) {
+    sprintf(qstr, "insert into m1 values (%" PRId64 ", %d, %d, %d, %d, %f, %lf, '%s')", (uint64_t)(1546300800000 + i * 1000), i, i, i, i*10000000, i*1.0, i*2.0, "hello");
+    printf("qstr: %s\n", qstr);
+    
+    // note: how do you wanna do if taos_query returns non-NULL
+    // if (taos_query(taos, qstr)) {
+    //   printf("insert row: %i, reason:%s\n", i, taos_errstr(taos));
+    // }
+    TAOS_RES *result1 = taos_query(taos, qstr);
+    if (result1 == NULL || taos_errno(result1) != 0) {
+      printf("failed to insert row, reason:%s\n", taos_errstr(result1));    
+      taos_free_result(result1);
+      exit(1);
+    } else {
+      printf("insert row: %i\n", i);
+    }
+    taos_free_result(result1);
+  }
+  printf("success to insert rows, total %d rows\n", i);
+
+  // query the records
+  sprintf(qstr, "SELECT * FROM m1");
+  result = taos_query(taos, qstr);
+  if (result == NULL || taos_errno(result) != 0) {
+    printf("failed to select, reason:%s\n", taos_errstr(result));    
+    taos_free_result(result);
+    exit(1);
+  }
+
+  TAOS_ROW    row;
+  int         rows = 0;
+  int         num_fields = taos_field_count(result);  //这个应该是获取列数
+  TAOS_FIELD *fields = taos_fetch_fields(result); //获取每一列的字段
+
+  printf("num_fields = %d\n", num_fields);
+  printf("select * from table, result:\n");
+  // fetch the records row by row
+  while ((row = taos_fetch_row(result))) {
+    char temp[1024] = {0};
+    rows++;
+    taos_print_row(temp, row, fields, num_fields);
+    printf("%s\n", temp);
+  }
+
+  taos_free_result(result);
+  printf("====demo end====\n\n");
+}
+
+int taos_print_row(char *str, TAOS_ROW row, TAOS_FIELD *fields, int num_fields) {
+  int32_t len = 0;
+  for (int i = 0; i < num_fields; ++i) {
+    if (i > 0) {
+      str[len++] = ' ';
+    }
+
+    if (row[i] == NULL) {
+      len += sprintf(str + len, "%s", TSDB_DATA_NULL_STR);
+      continue;
+    }
+
+    switch (fields[i].type) {
+      case TSDB_DATA_TYPE_TINYINT:
+        len += sprintf(str + len, "%d", *((int8_t *)row[i]));
+        break;
+
+      case TSDB_DATA_TYPE_UTINYINT:
+        len += sprintf(str + len, "%u", *((uint8_t *)row[i]));
+        break;
+
+      case TSDB_DATA_TYPE_SMALLINT:
+        len += sprintf(str + len, "%d", *((int16_t *)row[i]));
+        break;
+
+      case TSDB_DATA_TYPE_USMALLINT:
+        len += sprintf(str + len, "%u", *((uint16_t *)row[i]));
+        break;
+
+      case TSDB_DATA_TYPE_INT:
+        len += sprintf(str + len, "%d", *((int32_t *)row[i]));
+        break;
+
+      case TSDB_DATA_TYPE_UINT:
+        len += sprintf(str + len, "%u", *((uint32_t *)row[i]));
+        break;
+
+      case TSDB_DATA_TYPE_BIGINT:
+        len += sprintf(str + len, "%" PRId64, *((int64_t *)row[i]));
+        break;
+
+      case TSDB_DATA_TYPE_UBIGINT:
+        len += sprintf(str + len, "%" PRIu64, *((uint64_t *)row[i]));
+        break;
+
+      case TSDB_DATA_TYPE_FLOAT: {
+        float fv = 0;
+        fv = GET_FLOAT_VAL(row[i]);
+        len += sprintf(str + len, "%f", fv);
+      } break;
+
+      case TSDB_DATA_TYPE_DOUBLE: {
+        double dv = 0;
+        dv = GET_DOUBLE_VAL(row[i]);
+        len += sprintf(str + len, "%lf", dv);
+      } break;
+
+      case TSDB_DATA_TYPE_BINARY:
+      case TSDB_DATA_TYPE_NCHAR: {
+        int32_t charLen = varDataLen((char *)row[i] - VARSTR_HEADER_SIZE);
+        if (fields[i].type == TSDB_DATA_TYPE_BINARY) {
+          assert(charLen <= fields[i].bytes && charLen >= 0);
+        } else {
+          assert(charLen <= fields[i].bytes * TSDB_NCHAR_SIZE && charLen >= 0);
+        }
+
+        memcpy(str + len, row[i], charLen);
+        len += charLen;
+      } break;
+
+      case TSDB_DATA_TYPE_TIMESTAMP:
+        len += sprintf(str + len, "%" PRId64, *((int64_t *)row[i]));
+        break;
+
+      case TSDB_DATA_TYPE_BOOL:
+        len += sprintf(str + len, "%d", *((int8_t *)row[i]));
+      default:
+        break;
+    }
+  }
+  str[len] = 0;
+
+  return len;
+}
+```
+
+#### 异步查询示例
+
+```c++
+/*
+ * Copyright (c) 2019 TAOS Data, Inc. <jhtao@taosdata.com>
+ *
+ * This program is free software: you can use, redistribute, and/or modify
+ * it under the terms of the GNU Affero General Public License, version 3
+ * or later ("AGPL"), as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+// TAOS asynchronous API example
+// this example opens multiple tables, insert/retrieve multiple tables
+// it is used by TAOS internally for one performance testing
+// to compiple: gcc -o asyncdemo asyncdemo.c -ltaos
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/time.h>
+#include <unistd.h>
+#include <string.h>
+#include <inttypes.h>
+#include "taos.h"
+
+int     points = 5;
+int     numOfTables = 3;
+int     tablesInsertProcessed = 0;
+int     tablesSelectProcessed = 0;
+int64_t st, et;
+
+typedef struct {
+  int       id;
+  TAOS     *taos;
+  char      name[32];
+  time_t    timeStamp;
+  int       value;
+  int       rowsInserted;
+  int       rowsTried;
+  int       rowsRetrieved;
+} STable;
+
+void taos_insert_call_back(void *param, TAOS_RES *tres, int code);
+void taos_select_call_back(void *param, TAOS_RES *tres, int code);
+void shellPrintError(TAOS *taos);
+
+static void queryDB(TAOS *taos, char *command) {
+  int i;
+  TAOS_RES *pSql = NULL;
+  int32_t   code = -1;
+
+  for (i = 0; i < 5; i++) {
+    if (NULL != pSql) {
+      taos_free_result(pSql);
+      pSql = NULL;
+    }
+    
+    pSql = taos_query(taos, command);
+    code = taos_errno(pSql);
+    if (0 == code) {
+      break;
+    }    
+  }
+
+  if (code != 0) {
+    fprintf(stderr, "Failed to run %s, reason: %s\n", command, taos_errstr(pSql));
+    taos_free_result(pSql);
+    taos_close(taos);
+    taos_cleanup();
+    exit(EXIT_FAILURE);
+  }
+
+  taos_free_result(pSql);
+}
+
+int main(int argc, char *argv[])
+{
+  TAOS   *taos;
+  struct  timeval systemTime;
+  int     i;
+  char    sql[1024]  = { 0 };
+  char    prefix[20] = { 0 };
+  char    db[128]    = { 0 };
+  STable *tableList; //自定义的结构
+
+  if (argc != 5) {
+    printf("usage: %s server-ip dbname rowsPerTable numOfTables\n", argv[0]);
+    exit(0);
+  }
+
+  // a simple way to parse input parameters
+  if (argc >= 3) strncpy(db, argv[2], sizeof(db) - 1);
+  if (argc >= 4) points = atoi(argv[3]); //默认值是5
+  if (argc >= 5) numOfTables = atoi(argv[4]);  //默认值是3
+
+  size_t size = sizeof(STable) * (size_t)numOfTables;
+  tableList = (STable *)malloc(size);
+  memset(tableList, 0, size);
+
+  taos = taos_connect(argv[1], "root", "taosdata", NULL, 0);
+  if (taos == NULL)
+    shellPrintError(taos);  //打印错误消息
+
+  printf("success to connect to server\n");
+
+  sprintf(sql, "drop database if exists %s", db);
+  queryDB(taos, sql); //删除数据库
+
+  sprintf(sql, "create database %s", db);
+  queryDB(taos, sql); //创建数据库
+
+  sprintf(sql, "use %s", db);
+  queryDB(taos, sql); //使用数据库
+
+  strcpy(prefix, "asytbl_");
+  /*
+    typedef struct {
+      int       id;
+      TAOS     *taos;
+      char      name[32];
+      time_t    timeStamp;
+      int       value;
+      int       rowsInserted;
+      int       rowsTried;
+      int       rowsRetrieved;
+    } STable;
+  */
+  for (i = 0; i < numOfTables; ++i) {
+    tableList[i].id = i;
+    tableList[i].taos = taos;  //多个表指向同一个连接
+    sprintf(tableList[i].name, "%s%d", prefix, i);
+    sprintf(sql, "create table %s%d (ts timestamp, volume bigint)", prefix, i);
+    //sprintf(sql, "create table %s (ts timestamp, volume bigint)", tableList[i].name);
+    queryDB(taos, sql);
+  }  
+
+  gettimeofday(&systemTime, NULL); //两个指针将获取当前时间和时区信息
+  for (i = 0; i < numOfTables; ++i)
+    tableList[i].timeStamp = (time_t)(systemTime.tv_sec) * 1000 + systemTime.tv_usec / 1000; //这里拿到了一个假的时间创建表的时间
+
+  printf("success to create tables, press any key to insert\n");
+  getchar();
+
+  printf("start to insert...\n");
+  gettimeofday(&systemTime, NULL);
+  st = systemTime.tv_sec * 1000000 + systemTime.tv_usec;
+
+  tablesInsertProcessed = 0;
+  tablesSelectProcessed = 0;
+
+  for (i = 0; i<numOfTables; ++i) {
+    // insert records in asynchronous API
+    sprintf(sql, "insert into %s values(%ld, 0)", tableList[i].name, 1546300800000 + i);
+    taos_query_a(taos, sql, taos_insert_call_back, (void *)(tableList + i));
+  }
+
+  printf("once insert finished, presse any key to query\n");
+  getchar();
+
+  while(1) {
+    if (tablesInsertProcessed < numOfTables) {
+       printf("wait for process finished\n");
+       sleep(1);
+       continue;
+    }  
+
+    break;
+  }
+
+  printf("start to query...\n");
+  gettimeofday(&systemTime, NULL);
+  st = systemTime.tv_sec * 1000000 + systemTime.tv_usec;
+
+
+  for (i = 0; i < numOfTables; ++i) {
+    // select records in asynchronous API 
+    sprintf(sql, "select * from %s", tableList[i].name);
+    taos_query_a(taos, sql, taos_select_call_back, (void *)(tableList + i));
+  }
+
+  printf("\nonce finished, press any key to exit\n");
+  getchar();
+
+  while(1) {
+    if (tablesSelectProcessed < numOfTables) {
+       printf("wait for process finished\n");
+       sleep(1);
+       continue;
+    }  
+
+    break;
+  }
+
+  for (i = 0; i<numOfTables; ++i)  {
+    printf("%s inserted:%d retrieved:%d\n", tableList[i].name, tableList[i].rowsInserted, tableList[i].rowsRetrieved);
+  }
+
+  taos_close(taos);
+  free(tableList);
+
+  printf("==== async demo end====\n");
+  printf("\n");
+  return 0;
+}
+
+void shellPrintError(TAOS *con)
+{
+  fprintf(stderr, "TDengine error: %s\n", taos_errstr(con));
+  taos_close(con);
+  taos_cleanup();
+  exit(1);
+}
+
+void taos_insert_call_back(void *param, TAOS_RES *tres, int code) //这三个参数分别是taos_query_a的最后一个参数、查询结果、错误代码
+{
+  STable *pTable = (STable *)param;
+  struct  timeval systemTime;
+  char    sql[128];
+
+  pTable->rowsTried++;
+
+  if (code < 0)  {
+    printf("%s insert failed, code:%d, rows:%d\n", pTable->name, code, pTable->rowsTried);
+  }
+  else if (code == 0) {
+    printf("%s not inserted\n", pTable->name);
+  }
+  else {
+    pTable->rowsInserted++;
+  }
+
+  if (pTable->rowsTried < points) {
+    // for this demo, insert another record
+    sprintf(sql, "insert into %s values(%ld, %d)", pTable->name, 1546300800000+pTable->rowsTried*1000, pTable->rowsTried);
+    taos_query_a(pTable->taos, sql, taos_insert_call_back, (void *)pTable);  //应该是插入了points行数据
+  }
+  else {
+    printf("%d rows data are inserted into %s\n", points, pTable->name);
+    tablesInsertProcessed++;
+    if (tablesInsertProcessed >= numOfTables) {
+      gettimeofday(&systemTime, NULL);
+      et = systemTime.tv_sec * 1000000 + systemTime.tv_usec;
+      printf("%" PRId64 " mseconds to insert %d data points\n", (et - st) / 1000, points*numOfTables);
+    }
+  }
+  
+  taos_free_result(tres); //释放查询结果
+}
+
+void taos_retrieve_call_back(void *param, TAOS_RES *tres, int numOfRows)
+{
+  STable   *pTable = (STable *)param;
+  struct timeval systemTime;
+
+  if (numOfRows > 0) {
+
+    for (int i = 0; i<numOfRows; ++i) {
+      // synchronous API to retrieve a row from batch of records
+      /*TAOS_ROW row = */(void)taos_fetch_row(tres);
+      // process row
+    }
+
+    pTable->rowsRetrieved += numOfRows;
+
+    // retrieve next batch of rows
+    taos_fetch_rows_a(tres, taos_retrieve_call_back, pTable);
+
+  }
+  else {
+    if (numOfRows < 0)
+      printf("%s retrieve failed, code:%d\n", pTable->name, numOfRows);
+
+    //taos_free_result(tres);
+    printf("%d rows data retrieved from %s\n", pTable->rowsRetrieved, pTable->name);
+
+    tablesSelectProcessed++;
+    if (tablesSelectProcessed >= numOfTables) {
+      gettimeofday(&systemTime, NULL);
+      et = systemTime.tv_sec * 1000000 + systemTime.tv_usec;
+      printf("%" PRId64 " mseconds to query %d data rows\n", (et - st) / 1000, points * numOfTables);
+    }
+
+    taos_free_result(tres);
+  }
+
+
+}
+
+void taos_select_call_back(void *param, TAOS_RES *tres, int code)
+{
+  STable *pTable = (STable *)param;
+
+  if (code == 0 && tres) {
+    // asynchronous API to fetch a batch of records
+    taos_fetch_rows_a(tres, taos_retrieve_call_back, pTable);
+  }
+  else {
+    printf("%s select failed, code:%d\n", pTable->name, code);
+    taos_free_result(tres);
+    taos_cleanup();
+    exit(1);
+  }
+}
+```
+
+
+
+#### 参数绑定示例
+
+```c++
+// TAOS standard API example. The same syntax as MySQL, but only a subet 
+// to compile: gcc -o prepare prepare.c -ltaos
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "taos.h"
+
+void taosMsleep(int mseconds);
+
+int main(int argc, char *argv[])
+{
+  TAOS     *taos;
+  TAOS_RES *result;
+  int      code;
+  TAOS_STMT *stmt;
+
+  // connect to server
+  if (argc < 2) {
+    printf("please input server ip \n");
+    return 0;
+  }
+
+  taos = taos_connect(argv[1], "root", "taosdata", NULL, 0);
+  if (taos == NULL) {
+    printf("failed to connect to db, reason:%s\n", taos_errstr(taos));
+    exit(1);
+  }   
+
+  result = taos_query(taos, "drop database demo"); 
+  taos_free_result(result);
+
+  result = taos_query(taos, "create database demo");
+  code = taos_errno(result);
+  if (code != 0) {
+    printf("failed to create database, reason:%s\n", taos_errstr(result));
+    taos_free_result(result);
+    exit(1);
+  }
+  taos_free_result(result);
+
+  result = taos_query(taos, "use demo");
+  taos_free_result(result);
+
+  // create table
+  const char* sql = "create table m1 (ts timestamp, b bool, v1 tinyint, v2 smallint, v4 int, v8 bigint, f4 float, f8 double, bin binary(40), blob nchar(10))";
+  result = taos_query(taos, sql);
+  code = taos_errno(result);
+  if (code != 0) {
+    printf("failed to create table, reason:%s\n", taos_errstr(result));
+    taos_free_result(result);
+    exit(1);
+  }
+  taos_free_result(result);
+
+  // sleep for one second to make sure table is created on data node
+  // taosMsleep(1000);
+
+  // insert 10 records
+  struct {
+      int64_t ts;
+      int8_t b;
+      int8_t v1;
+      int16_t v2;
+      int32_t v4;
+      int64_t v8;
+      float f4;
+      double f8;
+      char bin[40];
+      char blob[80];
+  } v = {0};
+
+  int32_t boolLen = sizeof(int8_t);
+  int32_t sintLen = sizeof(int16_t);
+  int32_t intLen = sizeof(int32_t);
+  int32_t bintLen = sizeof(int64_t);
+  int32_t floatLen = sizeof(float);
+  int32_t doubleLen = sizeof(double);
+  int32_t binLen = sizeof(v.bin);
+  int32_t ncharLen = 30;
+
+  stmt = taos_stmt_init(taos);
+  TAOS_MULTI_BIND params[10];
+  params[0].buffer_type = TSDB_DATA_TYPE_TIMESTAMP;
+  params[0].buffer_length = sizeof(v.ts);
+  params[0].buffer = &v.ts;
+  params[0].length = &bintLen;
+  params[0].is_null = NULL;
+  params[0].num = 1;
+
+  params[1].buffer_type = TSDB_DATA_TYPE_BOOL;
+  params[1].buffer_length = sizeof(v.b);
+  params[1].buffer = &v.b;
+  params[1].length = &boolLen;
+  params[1].is_null = NULL;
+  params[1].num = 1;
+
+  params[2].buffer_type = TSDB_DATA_TYPE_TINYINT;
+  params[2].buffer_length = sizeof(v.v1);
+  params[2].buffer = &v.v1;
+  params[2].length = &boolLen;
+  params[2].is_null = NULL;
+  params[2].num = 1;
+
+  params[3].buffer_type = TSDB_DATA_TYPE_SMALLINT;
+  params[3].buffer_length = sizeof(v.v2);
+  params[3].buffer = &v.v2;
+  params[3].length = &sintLen;
+  params[3].is_null = NULL;
+  params[3].num = 1;
+
+  params[4].buffer_type = TSDB_DATA_TYPE_INT;
+  params[4].buffer_length = sizeof(v.v4);
+  params[4].buffer = &v.v4;
+  params[4].length = &intLen;
+  params[4].is_null = NULL;
+  params[4].num = 1;
+
+  params[5].buffer_type = TSDB_DATA_TYPE_BIGINT;
+  params[5].buffer_length = sizeof(v.v8);
+  params[5].buffer = &v.v8;
+  params[5].length = &bintLen;
+  params[5].is_null = NULL;
+  params[5].num = 1;
+
+  params[6].buffer_type = TSDB_DATA_TYPE_FLOAT;
+  params[6].buffer_length = sizeof(v.f4);
+  params[6].buffer = &v.f4;
+  params[6].length = &floatLen;
+  params[6].is_null = NULL;
+  params[6].num = 1;
+
+  params[7].buffer_type = TSDB_DATA_TYPE_DOUBLE;
+  params[7].buffer_length = sizeof(v.f8);
+  params[7].buffer = &v.f8;
+  params[7].length = &doubleLen;
+  params[7].is_null = NULL;
+  params[7].num = 1;
+
+  params[8].buffer_type = TSDB_DATA_TYPE_BINARY;
+  params[8].buffer_length = sizeof(v.bin);
+  params[8].buffer = v.bin;
+  params[8].length = &binLen;
+  params[8].is_null = NULL;
+  params[8].num = 1;
+
+  strcpy(v.blob, "一二三四五六七八九十");
+  params[9].buffer_type = TSDB_DATA_TYPE_NCHAR;
+  params[9].buffer_length = sizeof(v.blob);
+  params[9].buffer = v.blob;
+  params[9].length = &ncharLen;
+  params[9].is_null = NULL;
+  params[9].num = 1;
+
+  char is_null = 1;
+
+  sql = "insert into m1 values(?,?,?,?,?,?,?,?,?,?)";
+  code = taos_stmt_prepare(stmt, sql, 0); //填充sql
+  if (code != 0){
+    printf("failed to execute taos_stmt_prepare. code:0x%x\n", code);
+  }
+  v.ts = 1591060628000;
+  for (int i = 0; i < 10; ++i) {
+    v.ts += 1;
+    for (int j = 1; j < 10; ++j) {
+      params[j].is_null = ((i == j) ? &is_null : 0);
+    }
+    v.b = (int8_t)i % 2;
+    v.v1 = (int8_t)i;
+    v.v2 = (int16_t)(i * 2);
+    v.v4 = (int32_t)(i * 4);
+    v.v8 = (int64_t)(i * 8);
+    v.f4 = (float)(i * 40);
+    v.f8 = (double)(i * 80);
+    for (int j = 0; j < sizeof(v.bin); ++j) {
+      v.bin[j] = (char)(i + '0');
+    }
+
+    taos_stmt_bind_param(stmt, params); //绑定多个参数
+    taos_stmt_add_batch(stmt); // 加入到batch中
+  }
+  if (taos_stmt_execute(stmt) != 0) { //执行
+    printf("failed to execute insert statement.\n");
+    exit(1);
+  }
+  taos_stmt_close(stmt);
+
+  // query the records
+  stmt = taos_stmt_init(taos); // 唉 每次都都得释放掉
+  taos_stmt_prepare(stmt, "SELECT * FROM m1 WHERE v1 > ? AND v2 < ?", 0); //这里给个0干什么
+  v.v1 = 5;
+  v.v2 = 15;
+  taos_stmt_bind_param(stmt, params + 2);
+  if (taos_stmt_execute(stmt) != 0) {
+    printf("failed to execute select statement.\n");
+    exit(1);
+  }
+
+  result = taos_stmt_use_result(stmt);
+
+  TAOS_ROW    row;
+  int         rows = 0;
+  int         num_fields = taos_num_fields(result);
+  TAOS_FIELD *fields = taos_fetch_fields(result);
+
+  // fetch the records row by row
+  while ((row = taos_fetch_row(result))) {
+    char temp[256] = {0};
+    rows++;
+    taos_print_row(temp, row, fields, num_fields);
+    printf("%s\n", temp);
+  }
+  if (rows == 2) {
+    printf("two rows are fetched as expectation\n");
+  } else {
+    printf("expect two rows, but %d rows are fetched\n", rows);
+  }
+
+  taos_free_result(result);
+  taos_stmt_close(stmt);
+
+  return 0;
+}
+```
+
+#### 无模式写入示例
+
+```c++
+#include "taos.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/time.h>
+#include <time.h>
+#include <unistd.h>
+#include <inttypes.h>
+#include <string.h>
+
+
+int numSuperTables = 8;
+int numChildTables = 4;
+int numRowsPerChildTable = 2048;
+
+static int64_t getTimeInUs() {
+  struct timeval systemTime;
+  gettimeofday(&systemTime, NULL);
+  return (int64_t)systemTime.tv_sec * 1000000L + (int64_t)systemTime.tv_usec;
+}
+
+int main(int argc, char* argv[]) {
+  TAOS_RES *result;
+  const char* host = "127.0.0.1";
+  const char* user = "root";
+  const char* passwd = "taosdata";
+
+  taos_options(TSDB_OPTION_TIMEZONE, "GMT-8");
+  TAOS* taos = taos_connect(host, user, passwd, "", 0);
+  if (taos == NULL) {
+    printf("\033[31mfailed to connect to db, reason:%s\033[0m\n", taos_errstr(taos));
+    exit(1);
+  }
+
+  const char* info = taos_get_server_info(taos);
+  printf("server info: %s\n", info);
+  info = taos_get_client_info(taos);
+  printf("client info: %s\n", info);
+  result = taos_query(taos, "drop database if exists db;");
+  taos_free_result(result);
+  usleep(100000);
+  result = taos_query(taos, "create database db precision 'ms';");
+  taos_free_result(result);
+  usleep(100000);
+
+  (void)taos_select_db(taos, "db");
+
+  time_t ct = time(0);
+  int64_t ts = ct * 1000;
+  char* lineFormat = "sta%d,t0=true,t1=127i8,t2=32767i16,t3=%di32,t4=9223372036854775807i64,t9=11.12345f32,t10=22.123456789f64,t11=\"binaryTagValue\",t12=L\"ncharTagValue\" c0=true,c1=127i8,c2=32767i16,c3=2147483647i32,c4=9223372036854775807i64,c5=254u8,c6=32770u16,c7=2147483699u32,c8=9223372036854775899u64,c9=11.12345f32,c10=22.123456789f64,c11=\"binaryValue\",c12=L\"ncharValue\" %" PRId64;
+
+  int lineNum = numSuperTables * numChildTables * numRowsPerChildTable;
+  char** lines = calloc((size_t)lineNum, sizeof(char*));
+  int l = 0;
+  for (int i = 0; i < numSuperTables; ++i) {
+    for (int j = 0; j < numChildTables; ++j) {
+      for (int k = 0; k < numRowsPerChildTable; ++k) {
+        char* line = calloc(512, 1);
+        snprintf(line, 512, lineFormat, i, j, ts + 10 * l);
+        lines[l] = line;
+        ++l;
+      }
+    }
+  }
+
+  printf("%s\n", "begin taos_insert_lines");
+  int64_t  begin = getTimeInUs();
+  TAOS_RES *res = taos_schemaless_insert(taos, lines, lineNum, TSDB_SML_LINE_PROTOCOL, TSDB_SML_TIMESTAMP_MILLI_SECONDS);
+  int64_t end = getTimeInUs();
+  printf("code: %s. time used: %" PRId64 "\n", taos_errstr(res), end-begin);
+  taos_free_result(res);
+
+  return 0;
+}
+```
+
+
+
+#### 订阅和消费示例
+
+```c++
+/*
+ * Copyright (c) 2019 TAOS Data, Inc. <jhtao@taosdata.com>
+ *
+ * This program is free software: you can use, redistribute, and/or modify
+ * it under the terms of the GNU Affero General Public License, version 3
+ * or later ("AGPL"), as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include "taos.h"
+
+static int  running = 1;
+const char* topic_name = "topicname";
+
+static int32_t msg_process(TAOS_RES* msg) {
+  char    buf[1024];
+  int32_t rows = 0;
+
+  const char* topicName = tmq_get_topic_name(msg);
+  const char* dbName = tmq_get_db_name(msg);
+  int32_t     vgroupId = tmq_get_vgroup_id(msg);
+
+  printf("topic: %s\n", topicName);
+  printf("db: %s\n", dbName);
+  printf("vgroup id: %d\n", vgroupId);
+
+  while (1) {
+    TAOS_ROW row = taos_fetch_row(msg);
+    if (row == NULL) break;
+
+    TAOS_FIELD* fields = taos_fetch_fields(msg);
+    int32_t     numOfFields = taos_field_count(msg);
+    // int32_t*    length = taos_fetch_lengths(msg);
+    int32_t precision = taos_result_precision(msg);
+    rows++;
+    taos_print_row(buf, row, fields, numOfFields);
+    printf("precision: %d, row content: %s\n", precision, buf);
+  }
+
+  return rows;
+}
+
+static int32_t init_env() {
+  TAOS* pConn = taos_connect("localhost", "root", "taosdata", NULL, 0);
+  if (pConn == NULL) {
+    return -1;
+  }
+
+  TAOS_RES* pRes;
+  // drop database if exists
+  printf("create database\n");
+  pRes = taos_query(pConn, "drop topic topicname");
+  if (taos_errno(pRes) != 0) {
+    printf("error in drop topicname, reason:%s\n", taos_errstr(pRes));
+  }
+  taos_free_result(pRes);
+
+  pRes = taos_query(pConn, "drop database if exists tmqdb");
+  if (taos_errno(pRes) != 0) {
+    printf("error in drop tmqdb, reason:%s\n", taos_errstr(pRes));
+  }
+  taos_free_result(pRes);
+
+  // create database
+  pRes = taos_query(pConn, "create database tmqdb precision 'ns'");
+  if (taos_errno(pRes) != 0) {
+    printf("error in create tmqdb, reason:%s\n", taos_errstr(pRes));
+    goto END;
+  }
+  taos_free_result(pRes);
+
+  // create super table
+  printf("create super table\n");
+  pRes = taos_query(
+      pConn, "create table tmqdb.stb (ts timestamp, c1 int, c2 float, c3 varchar(16)) tags(t1 int, t3 varchar(16))");
+  if (taos_errno(pRes) != 0) {
+    printf("failed to create super table stb, reason:%s\n", taos_errstr(pRes));
+    goto END;
+  }
+  taos_free_result(pRes);
+
+  // create sub tables
+  printf("create sub tables\n");
+  pRes = taos_query(pConn, "create table tmqdb.ctb0 using tmqdb.stb tags(0, 'subtable0')");
+  if (taos_errno(pRes) != 0) {
+    printf("failed to create super table ctb0, reason:%s\n", taos_errstr(pRes));
+    goto END;
+  }
+  taos_free_result(pRes);
+
+  pRes = taos_query(pConn, "create table tmqdb.ctb1 using tmqdb.stb tags(1, 'subtable1')");
+  if (taos_errno(pRes) != 0) {
+    printf("failed to create super table ctb1, reason:%s\n", taos_errstr(pRes));
+    goto END;
+  }
+  taos_free_result(pRes);
+
+  pRes = taos_query(pConn, "create table tmqdb.ctb2 using tmqdb.stb tags(2, 'subtable2')");
+  if (taos_errno(pRes) != 0) {
+    printf("failed to create super table ctb2, reason:%s\n", taos_errstr(pRes));
+    goto END;
+  }
+  taos_free_result(pRes);
+
+  pRes = taos_query(pConn, "create table tmqdb.ctb3 using tmqdb.stb tags(3, 'subtable3')");
+  if (taos_errno(pRes) != 0) {
+    printf("failed to create super table ctb3, reason:%s\n", taos_errstr(pRes));
+    goto END;
+  }
+  taos_free_result(pRes);
+
+  // insert data
+  printf("insert data into sub tables\n");
+  pRes = taos_query(pConn, "insert into tmqdb.ctb0 values(now, 0, 0, 'a0')(now+1s, 0, 0, 'a00')");
+  if (taos_errno(pRes) != 0) {
+    printf("failed to insert into ctb0, reason:%s\n", taos_errstr(pRes));
+    goto END;
+  }
+  taos_free_result(pRes);
+
+  pRes = taos_query(pConn, "insert into tmqdb.ctb1 values(now, 1, 1, 'a1')(now+1s, 11, 11, 'a11')");
+  if (taos_errno(pRes) != 0) {
+    printf("failed to insert into ctb0, reason:%s\n", taos_errstr(pRes));
+    goto END;
+  }
+  taos_free_result(pRes);
+
+  pRes = taos_query(pConn, "insert into tmqdb.ctb2 values(now, 2, 2, 'a1')(now+1s, 22, 22, 'a22')");
+  if (taos_errno(pRes) != 0) {
+    printf("failed to insert into ctb0, reason:%s\n", taos_errstr(pRes));
+    goto END;
+  }
+  taos_free_result(pRes);
+
+  pRes = taos_query(pConn, "insert into tmqdb.ctb3 values(now, 3, 3, 'a1')(now+1s, 33, 33, 'a33')");
+  if (taos_errno(pRes) != 0) {
+    printf("failed to insert into ctb0, reason:%s\n", taos_errstr(pRes));
+    goto END;
+  }
+  taos_free_result(pRes);
+  taos_close(pConn);
+  return 0;
+
+END:
+  taos_free_result(pRes);
+  taos_close(pConn);
+  return -1;
+}
+
+int32_t create_topic() {
+  printf("create topic\n");
+  TAOS_RES* pRes;
+  TAOS*     pConn = taos_connect("localhost", "root", "taosdata", NULL, 0);
+  if (pConn == NULL) {
+    return -1;
+  }
+
+  pRes = taos_query(pConn, "use tmqdb");
+  if (taos_errno(pRes) != 0) {
+    printf("error in use tmqdb, reason:%s\n", taos_errstr(pRes));
+    return -1;
+  }
+  taos_free_result(pRes);
+
+  pRes = taos_query(pConn, "create topic topicname as select ts, c1, c2, c3, tbname from tmqdb.stb where c1 > 1");
+  if (taos_errno(pRes) != 0) {
+    printf("failed to create topic topicname, reason:%s\n", taos_errstr(pRes));
+    return -1;
+  }
+  taos_free_result(pRes);
+
+  taos_close(pConn);
+  return 0;
+}
+
+void tmq_commit_cb_print(tmq_t* tmq, int32_t code, void* param) {
+  printf("tmq_commit_cb_print() code: %d, tmq: %p, param: %p\n", code, tmq, param);
+}
+
+tmq_t* build_consumer() {
+  tmq_conf_res_t code;
+  tmq_t*         tmq = NULL;
+
+  tmq_conf_t* conf = tmq_conf_new();
+  code = tmq_conf_set(conf, "enable.auto.commit", "true");
+  if (TMQ_CONF_OK != code) {
+    tmq_conf_destroy(conf);
+    return NULL;
+  }
+  code = tmq_conf_set(conf, "auto.commit.interval.ms", "1000");
+  if (TMQ_CONF_OK != code) {
+    tmq_conf_destroy(conf);
+    return NULL;
+  }
+  code = tmq_conf_set(conf, "group.id", "cgrpName");
+  if (TMQ_CONF_OK != code) {
+    tmq_conf_destroy(conf);
+    return NULL;
+  }
+  code = tmq_conf_set(conf, "client.id", "user defined name");
+  if (TMQ_CONF_OK != code) {
+    tmq_conf_destroy(conf);
+    return NULL;
+  }
+  code = tmq_conf_set(conf, "td.connect.user", "root");
+  if (TMQ_CONF_OK != code) {
+    tmq_conf_destroy(conf);
+    return NULL;
+  }
+  code = tmq_conf_set(conf, "td.connect.pass", "taosdata");
+  if (TMQ_CONF_OK != code) {
+    tmq_conf_destroy(conf);
+    return NULL;
+  }
+  code = tmq_conf_set(conf, "auto.offset.reset", "earliest");
+  if (TMQ_CONF_OK != code) {
+    tmq_conf_destroy(conf);
+    return NULL;
+  }
+  code = tmq_conf_set(conf, "experimental.snapshot.enable", "false");
+  if (TMQ_CONF_OK != code) {
+    tmq_conf_destroy(conf);
+    return NULL;
+  }
+
+  tmq_conf_set_auto_commit_cb(conf, tmq_commit_cb_print, NULL);
+  tmq = tmq_consumer_new(conf, NULL, 0);
+
+_end:
+  tmq_conf_destroy(conf);
+  return tmq;
+}
+
+tmq_list_t* build_topic_list() {
+  tmq_list_t* topicList = tmq_list_new();
+  int32_t     code = tmq_list_append(topicList, topic_name);
+  if (code) {
+    tmq_list_destroy(topicList);
+    return NULL;
+  }
+  return topicList;
+}
+
+void basic_consume_loop(tmq_t* tmq) {
+  int32_t totalRows = 0;
+  int32_t msgCnt = 0;
+  int32_t timeout = 5000;
+  while (running) {
+    TAOS_RES* tmqmsg = tmq_consumer_poll(tmq, timeout);
+    if (tmqmsg) {
+      msgCnt++;
+      totalRows += msg_process(tmqmsg);
+      taos_free_result(tmqmsg);
+    } else {
+      break;
+    }
+  }
+
+  fprintf(stderr, "%d msg consumed, include %d rows\n", msgCnt, totalRows);
+}
+
+void consume_repeatly(tmq_t* tmq) {
+  int32_t               numOfAssignment = 0;
+  tmq_topic_assignment* pAssign = NULL;
+
+  int32_t code = tmq_get_topic_assignment(tmq, topic_name, &pAssign, &numOfAssignment);
+  if (code != 0) {
+    fprintf(stderr, "failed to get assignment, reason:%s", tmq_err2str(code));
+  }
+
+  // seek to the earliest offset
+  for(int32_t i = 0; i < numOfAssignment; ++i) {
+    tmq_topic_assignment* p = &pAssign[i];
+
+    code = tmq_offset_seek(tmq, topic_name, p->vgId, p->begin);
+    if (code != 0) {
+      fprintf(stderr, "failed to seek to %ld, reason:%s", p->begin, tmq_err2str(code));
+    }
+  }
+
+  free(pAssign);
+
+  // let's do it again
+  basic_consume_loop(tmq);
+}
+
+int main(int argc, char* argv[]) {
+  int32_t code;
+
+  if (init_env() < 0) {
+    return -1;
+  }
+
+  if (create_topic() < 0) {
+    return -1;
+  }
+
+  tmq_t* tmq = build_consumer();
+  if (NULL == tmq) {
+    fprintf(stderr, "build_consumer() fail!\n");
+    return -1;
+  }
+
+  tmq_list_t* topic_list = build_topic_list();
+  if (NULL == topic_list) {
+    return -1;
+  }
+
+  if ((code = tmq_subscribe(tmq, topic_list))) {
+    fprintf(stderr, "Failed to tmq_subscribe(): %s\n", tmq_err2str(code));
+  }
+
+  tmq_list_destroy(topic_list);
+
+  basic_consume_loop(tmq);
+
+  consume_repeatly(tmq);
+
+  code = tmq_consumer_close(tmq);
+  if (code) {
+    fprintf(stderr, "Failed to close consumer: %s\n", tmq_err2str(code));
+  } else {
+    fprintf(stderr, "Consumer closed\n");
+  }
+
+  return 0;
+}
+```
+
+
 
 ##### info
 
 更多示例代码及下载请见 [GitHub](https://github.com/taosdata/TDengine/tree/develop/examples/c)。 也可以在安装目录下的 `examples/c` 路径下找到。 该目录下有 makefile，在 Linux/macOS 环境下，直接执行 make 就可以编译得到执行文件。 **提示：**在 ARM 环境下编译时，请将 makefile 中的 `-msse4.2` 去掉，这个选项只有在 x64/x86 硬件平台上才能支持。
 
-## API 参考
+### API 参考
 
 以下分别介绍 TDengine 客户端驱动的基础 API、同步 API、异步 API、订阅 API 和无模式写入 API。
 
-### 基础 API
+#### 基础 API
 
 基础 API 用于完成创建数据库连接等工作，为其它 API 的执行提供运行时环境。
 
@@ -3268,7 +4402,7 @@ TDengine 客户端驱动的安装请参考 [安装指南](https://docs.taosdata.
 
   关闭连接，其中`taos`是 `taos_connect()` 返回的句柄。
 
-### 同步查询 API
+#### 同步查询 API
 
 本小节介绍 API 均属于同步接口。应用调用后，会阻塞等待响应，直到获得返回结果或错误信息。
 
@@ -3334,7 +4468,7 @@ typedef struct taosField {
 
 2.0 及以上版本 TDengine 推荐数据库应用的每个线程都建立一个独立的连接，或基于线程建立连接池。而不推荐在应用中将该连接 (TAOS*) 结构体传递到不同的线程共享使用。基于 TAOS 结构体发出的查询、写入等操作具有多线程安全性，但 “USE statement”  等状态量有可能在线程之间相互干扰。此外，C  语言的连接器可以按照需求动态建立面向数据库的新连接（该过程对用户不可见），同时建议只有在程序最后退出的时候才调用 `taos_close()` 关闭连接。 另一个需要注意的是，在上述同步 API 执行过程中，不能调用类似 pthread_cancel 之类的 API 来强制结束线程，因为涉及一些模块的同步操作，如果强制结束线程有可能造成包括但不限于死锁等异常状况。
 
-### 异步查询 API
+#### 异步查询 API
 
 TDengine 还提供性能更高的异步 API 处理数据插入、查询操作。在软硬件环境相同的情况下，异步 API 处理数据插入的速度比同步 API 快 2 ～ 4 倍。异步 API  采用非阻塞式的调用方式，在系统真正完成某个具体数据库操作前，立即返回。调用的线程可以去处理其他工作，从而可以提升整个应用的性能。异步 API  在网络延迟严重的情况下，优势尤为突出。
 
@@ -3360,7 +4494,7 @@ TDengine 还提供性能更高的异步 API 处理数据插入、查询操作。
 
 TDengine 的异步 API 均采用非阻塞调用模式。应用程序可以用多线程同时打开多张表，并可以同时对每张打开的表进行查询或者插入操作。需要指出的是，**客户端应用必须确保对同一张表的操作完全串行化**，即对同一个表的插入或查询操作未完成时（未返回时），不能够执行第二个插入或查询操作。
 
-### 参数绑定 API
+#### 参数绑定 API
 
 除了直接调用 `taos_query()` 进行查询，TDengine 也提供了支持参数绑定的 Prepare API，风格与 MySQL 类似，目前也仅支持用问号 `?` 来代表待绑定的参数。
 
@@ -3453,7 +4587,7 @@ typedef struct TAOS_MULTI_BIND {
 
   （2.1.3.0 版本新增） 用于在其他 STMT API 返回错误（返回错误码或空指针）时获取错误信息。
 
-### 无模式（schemaless）写入 API
+#### 无模式（schemaless）写入 API
 
 除了使用 SQL 方式或者使用参数绑定 API 写入数据外，还可以使用 Schemaless 的方式完成写入。Schemaless  可以免于预先创建超级表/数据子表的数据结构，而是可以直接写入数据，TDengine  系统会根据写入的数据内容自动创建和维护所需要的表结构。Schemaless 的使用方式详见 [Schemaless 写入](https://docs.taosdata.com/reference/schemaless/) 章节，这里介绍与之配套使用的 C/C++ API。
 
@@ -4097,3 +5231,597 @@ taos> insert into t1 values(now, 3);
 DB error: Unable to resolve FQDN (0.013874s)
 ```
 
+# TDengine SQL
+
+本文档说明 TDengine SQL 支持的语法规则、主要查询功能、支持的 SQL 查询函数，以及常用技巧等内容。阅读本文档需要读者具有基本的 SQL 语言的基础。TDengine 3.0 版本相比 2.x 版本做了大量改进和优化，特别是查询引擎进行了彻底的重构，因此 SQL 语法相比 2.x 版本有很多变更。详细的变更内容请见 [3.0 版本语法变更](https://docs.taosdata.com/taos-sql/changes/) 章节
+
+TDengine SQL 是用户对 TDengine 进行数据写入和查询的主要工具。TDengine SQL 提供标准的 SQL 语法，并针对时序数据和业务的特点优化和新增了许多语法和功能。TDengine SQL 语句的最大长度为 1M。TDengine SQL 不支持关键字的缩写，例如 DELETE 不能缩写为 DEL。
+
+本章节 SQL 语法遵循如下约定：
+
+- 用大写字母表示关键字，但 SQL 本身并不区分关键字和标识符的大小写
+- 用小写字母表示需要用户输入的内容
+- [ ] 表示内容为可选项，但不能输入 [] 本身
+- | 表示多选一，选择其中一个即可，但不能输入 | 本身
+- … 表示前面的项可重复多个
+
+为更好地说明 SQL 语法的规则及其特点，本文假设存在一个数据集。以智能电表(meters)为例，假设每个智能电表采集电流、电压、相位三个量。其建模如下：
+
+```text
+taos> DESCRIBE meters;
+             Field              |        Type        |   Length    |    Note    |
+=================================================================================
+ ts                             | TIMESTAMP          |           8 |            |
+ current                        | FLOAT              |           4 |            |
+ voltage                        | INT                |           4 |            |
+ phase                          | FLOAT              |           4 |            |
+ location                       | BINARY             |          64 | TAG        |
+ groupid                        | INT                |           4 | TAG        |
+```
+
+
+
+数据集包含 4 个智能电表的数据，按照 TDengine 的建模规则，对应 4 个子表，其名称分别是 d1001, d1002, d1003, d1004。
+
+
+
+## 数据类型
+
+### 时间戳[](https://docs.taosdata.com/taos-sql/data-type/#时间戳)
+
+使用 TDengine，最重要的是时间戳。创建并插入记录、查询历史记录的时候，均需要指定时间戳。时间戳有如下规则：
+
+- 时间格式为 `YYYY-MM-DD HH:mm:ss.MS`，默认时间分辨率为毫秒。比如：`2017-08-12 18:25:58.128`
+- 内部函数 NOW 是客户端的当前时间
+- 插入记录时，如果时间戳为 NOW，插入数据时使用提交这条记录的客户端的当前时间
+- Epoch Time：时间戳也可以是一个长整数，表示从 UTC 时间 1970-01-01 00:00:00 开始的毫秒数。相应地，如果所在 Database 的时间精度设置为“微秒”，则长整型格式的时间戳含义也就对应于从 UTC 时间 1970-01-01 00:00:00 开始的微秒数；纳秒精度逻辑相同。
+- 时间可以加减，比如 NOW-2h，表明查询时刻向前推 2 个小时（最近 2 小时）。数字后面的时间单位可以是 b（纳秒）、u（微秒）、a（毫秒）、s（秒）、m（分）、h（小时）、d（天）、w（周）。 比如 `SELECT * FROM t1 WHERE ts > NOW-2w AND ts <= NOW-1w`，表示查询两周前整整一周的数据。在指定降采样操作（Down Sampling）的时间窗口（Interval）时，时间单位还可以使用 n（自然月）和 y（自然年）。
+
+TDengine 缺省的时间戳精度是毫秒，但通过在 `CREATE DATABASE` 时传递的 `PRECISION` 参数也可以支持微秒和纳秒。
+
+```sql
+CREATE DATABASE db_name PRECISION 'ns';
+```
+
+
+
+### 数据类型[](https://docs.taosdata.com/taos-sql/data-type/#数据类型)
+
+在 TDengine 中，普通表的数据模型中可使用以下数据类型。
+
+| #    | **类型**          | **Bytes** | **说明**                                                     |
+| ---- | ----------------- | --------- | ------------------------------------------------------------ |
+| 1    | TIMESTAMP         | 8         | 时间戳。缺省精度毫秒，可支持微秒和纳秒，详细说明见上节。     |
+| 2    | INT               | 4         | 整型，范围 [-2^31, 2^31-1]                                   |
+| 3    | INT UNSIGNED      | 4         | 无符号整数，[0, 2^32-1]                                      |
+| 4    | BIGINT            | 8         | 长整型，范围 [-2^63, 2^63-1]                                 |
+| 5    | BIGINT UNSIGNED   | 8         | 长整型，范围 [0, 2^64-1]                                     |
+| 6    | FLOAT             | 4         | 浮点型，有效位数 6-7，范围 [-3.4E38, 3.4E38]                 |
+| 7    | DOUBLE            | 8         | 双精度浮点型，有效位数 15-16，范围 [-1.7E308, 1.7E308]       |
+| 8    | BINARY            | 自定义    | 记录单字节字符串，建议只用于处理 ASCII 可见字符，中文等多字节字符需使用 NCHAR |
+| 9    | SMALLINT          | 2         | 短整型， 范围 [-32768, 32767]                                |
+| 10   | SMALLINT UNSIGNED | 2         | 无符号短整型，范围 [0, 65535]                                |
+| 11   | TINYINT           | 1         | 单字节整型，范围 [-128, 127]                                 |
+| 12   | TINYINT UNSIGNED  | 1         | 无符号单字节整型，范围 [0, 255]                              |
+| 13   | BOOL              | 1         | 布尔型，{true, false}                                        |
+| 14   | NCHAR             | 自定义    | 记录包含多字节字符在内的字符串，如中文字符。每个 NCHAR 字符占用 4 字节的存储空间。字符串两端使用单引号引用，字符串内的单引号需用转义字符 `\'`。NCHAR 使用时须指定字符串大小，类型为 NCHAR(10) 的列表示此列的字符串最多存储 10 个 NCHAR 字符。如果用户字符串长度超出声明长度，将会报错。 |
+| 15   | JSON              |           | JSON 数据类型， 只有 Tag 可以是 JSON 格式                    |
+| 16   | VARCHAR           | 自定义    | BINARY 类型的别名                                            |
+
+##### NOTE
+
+- 表的每行长度不能超过 48KB（注意：每个 BINARY/NCHAR 类型的列还会额外占用 2 个字节的存储位置）。
+- 虽然 BINARY 类型在底层存储上支持字节型的二进制字符，但不同编程语言对二进制数据的处理方式并不保证一致，因此建议在 BINARY 类型中只存储 ASCII 可见字符，而避免存储不可见字符。多字节的数据，例如中文字符，则需要使用 NCHAR 类型进行保存。如果强行使用 BINARY 类型保存中文字符，虽然有时也能正常读写，但并不带有字符集信息，很容易出现数据乱码甚至数据损坏等情况。
+- BINARY 类型理论上最长可以有 16,374 字节。BINARY 仅支持字符串输入，字符串两端需使用单引号引用。使用时须指定大小，如 BINARY(20) 定义了最长为 20 个单字节字符的字符串，每个字符占 1 字节的存储空间，总共固定占用 20 字节的空间，此时如果用户字符串超出 20 字节将会报错。对于字符串内的单引号，可以用转义字符反斜线加单引号来表示，即 `\'`。
+- SQL 语句中的数值类型将依据是否存在小数点，或使用科学计数法表示，来判断数值类型是否为整型或者浮点型，因此在使用时要注意相应类型越界的情况。例如，9999999999999999999 会认为超过长整型的上边界而溢出，而 9999999999999999999.0 会被认为是有效的浮点数。
+
+### 常量[](https://docs.taosdata.com/taos-sql/data-type/#常量)
+
+TDengine 支持多个类型的常量，细节如下表：
+
+| #    | **语法**                                          | **类型**  | **说明**                                                     |
+| ---- | ------------------------------------------------- | --------- | ------------------------------------------------------------ |
+| 1    | [{+ \| -}]123                                     | BIGINT    | 整型数值的字面量的类型均为 BIGINT。如果用户输入超过了 BIGINT 的表示范围，TDengine 按 BIGINT 对数值进行截断。 |
+| 2    | 123.45                                            | DOUBLE    | 浮点数值的字面量的类型均为 DOUBLE。TDengine 依据是否存在小数点，或使用科学计数法表示，来判断数值类型是否为整型或者浮点型。 |
+| 3    | 1.2E3                                             | DOUBLE    | 科学计数法的字面量的类型为 DOUBLE。                          |
+| 4    | 'abc'                                             | BINARY    | 单引号括住的内容为字符串字面值，其类型为 BINARY，BINARY 的 Size 为实际的字符个数。对于字符串内的单引号，可以用转义字符反斜线加单引号来表示，即 `\'`。 |
+| 5    | "abc"                                             | BINARY    | 双引号括住的内容为字符串字面值，其类型为 BINARY，BINARY 的 Size 为实际的字符个数。对于字符串内的双引号，可以用转义字符反斜线加单引号来表示，即 `\"`。 |
+| 6    | TIMESTAMP {'literal' \| "literal"}                | TIMESTAMP | TIMESTAMP 关键字表示后面的字符串字面量需要被解释为 TIMESTAMP 类型。字符串需要满足 YYYY-MM-DD HH:mm:ss.MS 格式，其时间分辨率为当前数据库的时间分辨率。 |
+| 7    | {TRUE \| FALSE}                                   | BOOL      | 布尔类型字面量。                                             |
+| 8    | {'' \| "" \| '\t' \| "\t" \| ' ' \| " " \| NULL } | --        | 空值字面量。可以用于任意类型。                               |
+
+##### NOTE
+
+- TDengine 依据是否存在小数点，或使用科学计数法表示，来判断数值类型是否为整型或者浮点型，因此在使用时要注意相应类型越界的情况。例如，9999999999999999999 会认为超过长整型的上边界而溢出，而 9999999999999999999.0 会被认为是有效的浮点数。
+
+
+
+
+
+
+
+## 数据库
+
+### 创建数据库[](https://docs.taosdata.com/taos-sql/database/#创建数据库)
+
+```sql
+CREATE DATABASE [IF NOT EXISTS] db_name [database_options]
+ 
+database_options:
+    database_option ...
+ 
+database_option: {
+    BUFFER value
+  | CACHEMODEL {'none' | 'last_row' | 'last_value' | 'both'}
+  | CACHESIZE value
+  | COMP {0 | 1 | 2}
+  | DURATION value
+  | WAL_FSYNC_PERIOD value
+  | MAXROWS value
+  | MINROWS value
+  | KEEP value
+  | PAGES value
+  | PAGESIZE  value
+  | PRECISION {'ms' | 'us' | 'ns'}
+  | REPLICA value
+  | RETENTIONS ingestion_duration:keep_duration ...
+  | WAL_LEVEL {1 | 2}
+  | VGROUPS value
+  | SINGLE_STABLE {0 | 1}
+  | STT_TRIGGER value
+  | TABLE_PREFIX value
+  | TABLE_SUFFIX value
+  | TSDB_PAGESIZE value
+  | WAL_RETENTION_PERIOD value
+  | WAL_RETENTION_SIZE value
+  | WAL_SEGMENT_SIZE value
+}
+```
+
+
+
+#### 参数说明[](https://docs.taosdata.com/taos-sql/database/#参数说明)
+
+- BUFFER: 一个 VNODE 写入内存池大小，单位为 MB，默认为 96，最小为 3，最大为 16384。
+
+- CACHEMODEL：表示是否在内存中缓存子表的最近数据。默认为 none。
+
+  - none：表示不缓存。
+  - last_row：表示缓存子表最近一行数据。这将显著改善 LAST_ROW 函数的性能表现。
+  - last_value：表示缓存子表每一列的最近的非 NULL 值。这将显著改善无特殊影响（WHERE、ORDER BY、GROUP BY、INTERVAL）下的 LAST 函数的性能表现。
+  - both：表示同时打开缓存最近行和列功能。
+
+- CACHESIZE：表示每个 vnode 中用于缓存子表最近数据的内存大小。默认为 1 ，范围是[1, 65536]，单位是 MB。
+
+- COMP：表示数据库文件压缩标志位，缺省值为 2，取值范围为
+
+   
+
+  [0, 2]。
+
+  - 0：表示不压缩。
+  - 1：表示一阶段压缩。
+  - 2：表示两阶段压缩。
+
+- DURATION：数据文件存储数据的时间跨度。可以使用加单位的表示形式，如 DURATION 100h、DURATION 10d 等，支持 m（分钟）、h（小时）和 d（天）三个单位。不加时间单位时默认单位为天，如 DURATION 50 表示 50 天。
+
+- WAL_FSYNC_PERIOD：当 WAL 参数设置为 2 时，落盘的周期。默认为 3000，单位毫秒。最小为 0，表示每次写入立即落盘；最大为 180000，即三分钟。
+
+- MAXROWS：文件块中记录的最大条数，默认为 4096 条。
+
+- MINROWS：文件块中记录的最小条数，默认为 100 条。
+
+- KEEP：表示数据文件保存的天数，缺省值为 3650，取值范围 [1, 365000]，且必须大于或等于 DURATION 参数值。数据库会自动删除保存时间超过 KEEP 值的数据。KEEP 可以使用加单位的表示形式，如 KEEP 100h、KEEP 10d 等，支持 m（分钟）、h（小时）和 d（天）三个单位。也可以不写单位，如 KEEP 50，此时默认单位为天。企业版支持[多级存储](https://docs.taosdata.com/tdinternal/arch/#多级存储)功能, 因此, 可以设置多个保存时间（多个以英文逗号分隔，最多 3 个，满足 keep 0 <= keep 1 <= keep 2，如 KEEP 100h,100d,3650d）; 社区版不支持多级存储功能（即使配置了多个保存时间, 也不会生效, KEEP 会取最大的保存时间）。
+
+- PAGES：一个 VNODE 中元数据存储引擎的缓存页个数，默认为 256，最小 64。一个 VNODE 元数据存储占用 PAGESIZE * PAGES，默认情况下为 1MB 内存。
+
+- PAGESIZE：一个 VNODE 中元数据存储引擎的页大小，单位为 KB，默认为 4 KB。范围为 1 到 16384，即 1 KB 到 16 MB。
+
+- PRECISION：数据库的时间戳精度。ms 表示毫秒，us 表示微秒，ns 表示纳秒，默认 ms 毫秒。
+
+- REPLICA：表示数据库副本数，取值为 1 或 3，默认为 1。在集群中使用，副本数必须小于或等于 DNODE 的数目。
+
+- RETENTIONS：表示数据的聚合周期和保存时长，如 RETENTIONS 15s:7d,1m:21d,15m:50d 表示数据原始采集周期为 15 秒，原始数据保存 7 天；按 1 分钟聚合的数据保存 21 天；按 15 分钟聚合的数据保存 50 天。目前支持且只支持三级存储周期。
+
+- WAL_LEVEL：WAL 级别，默认为 1。
+
+  - 1：写 WAL，但不执行 fsync。
+  - 2：写 WAL，而且执行 fsync。
+
+- VGROUPS：数据库中初始 vgroup 的数目。
+
+- SINGLE_STABLE：表示此数据库中是否只可以创建一个超级表，用于超级表列非常多的情况。
+
+  - 0：表示可以创建多张超级表。
+  - 1：表示只可以创建一张超级表。
+
+- STT_TRIGGER：表示落盘文件触发文件合并的个数。默认为 1，范围 1 到 16。对于少表高频场景，此参数建议使用默认配置，或较小的值；而对于多表低频场景，此参数建议配置较大的值。
+
+- TABLE_PREFIX：当其为正值时，在决定把一个表分配到哪个 vgroup 时要忽略表名中指定长度的前缀；当其为负值时，在决定把一个表分配到哪个 vgroup 时只使用表名中指定长度的前缀；例如，假定表名为 "v30001"，当 TSDB_PREFIX = 2 时 使用 "0001" 来决定分配到哪个 vgroup ，当 TSDB_PREFIX = -2 时使用 "v3" 来决定分配到哪个 vgroup
+
+- TABLE_SUFFIX：当其为正值时，在决定把一个表分配到哪个 vgroup 时要忽略表名中指定长度的后缀；当其为负值时，在决定把一个表分配到哪个 vgroup 时只使用表名中指定长度的后缀；例如，假定表名为 "v30001"，当 TSDB_SUFFIX = 2 时 使用 "v300" 来决定分配到哪个 vgroup ，当 TSDB_SUFFIX = -2 时使用 "01" 来决定分配到哪个 vgroup。
+
+- TSDB_PAGESIZE：一个 VNODE 中时序数据存储引擎的页大小，单位为 KB，默认为 4 KB。范围为 1 到 16384，即 1 KB到 16 MB。
+
+- WAL_RETENTION_PERIOD: 为了数据订阅消费，需要WAL日志文件额外保留的最大时长策略。WAL日志清理，不受订阅客户端消费状态影响。单位为 s。默认为 0，表示无需为订阅保留。新建订阅，应先设置恰当的时长策略。
+
+- WAL_RETENTION_SIZE：为了数据订阅消费，需要WAL日志文件额外保留的最大累计大小策略。单位为 KB。默认为 0，表示累计大小无上限。
+
+- WAL_ROLL_PERIOD：wal 文件切换时长，单位为 s。当WAL文件创建并写入后，经过该时间，会自动创建一个新的WAL文件。默认为 0，即仅在TSDB落盘时创建新文件。
+
+- WAL_SEGMENT_SIZE：wal 单个文件大小，单位为 KB。当前写入文件大小超过上限后会自动创建一个新的WAL文件。默认为 0，即仅在TSDB落盘时创建新文件。
+
+### 创建数据库示例[](https://docs.taosdata.com/taos-sql/database/#创建数据库示例)
+
+```sql
+create database if not exists db vgroups 10 buffer 10
+```
+
+
+
+以上示例创建了一个有 10 个 vgroup 名为 db 的数据库， 其中每个 vnode 分配也 10MB 的写入缓存
+
+### 使用数据库[](https://docs.taosdata.com/taos-sql/database/#使用数据库)
+
+```text
+USE db_name;
+```
+
+
+
+使用/切换数据库（在 REST 连接方式下无效）。
+
+### 删除数据库[](https://docs.taosdata.com/taos-sql/database/#删除数据库)
+
+```text
+DROP DATABASE [IF EXISTS] db_name
+```
+
+
+
+删除数据库。指定 Database 所包含的全部数据表将被删除，该数据库的所有 vgroups 也会被全部销毁，请谨慎使用！
+
+### 修改数据库参数[](https://docs.taosdata.com/taos-sql/database/#修改数据库参数)
+
+```sql
+ALTER DATABASE db_name [alter_database_options]
+
+alter_database_options:
+    alter_database_option ...
+
+alter_database_option: {
+    CACHEMODEL {'none' | 'last_row' | 'last_value' | 'both'}
+  | CACHESIZE value
+  | BUFFER value
+  | PAGES value
+  | REPLICA value
+  | STT_TRIGGER value
+  | WAL_LEVEL value
+  | WAL_FSYNC_PERIOD value
+  | KEEP value
+}
+```
+
+
+
+#### 修改 CACHESIZE[](https://docs.taosdata.com/taos-sql/database/#修改-cachesize)
+
+修改数据库参数的命令使用简单，难的是如何确定是否需要修改以及如何修改。本小节描述如何判断数据库的 cachesize 是否够用。
+
+1. 如何查看 cachesize?
+
+通过 select * from information_schema.ins_databases; 可以查看这些 cachesize 的具体值。
+
+1. 如何查看 cacheload?
+
+通过 show <db_name>.vgroups; 可以查看 cacheload
+
+1. 判断 cachesize 是否够用
+
+如果 cacheload 非常接近 cachesize，则 cachesize 可能过小。 如果 cacheload 明显小于 cachesize 则 cachesize 是够用的。可以根据这个原则判断是否需要修改 cachesize 。具体修改值可以根据系统可用内存情况来决定是加倍或者是提高几倍。
+
+##### NOTE
+
+其它参数在 3.0.0.0 中暂不支持修改
+
+### 查看数据库[](https://docs.taosdata.com/taos-sql/database/#查看数据库)
+
+#### 查看系统中的所有数据库[](https://docs.taosdata.com/taos-sql/database/#查看系统中的所有数据库)
+
+```text
+SHOW DATABASES;
+```
+
+
+
+#### 显示一个数据库的创建语句[](https://docs.taosdata.com/taos-sql/database/#显示一个数据库的创建语句)
+
+```text
+SHOW CREATE DATABASE db_name \G;
+```
+
+
+
+常用于数据库迁移。对一个已经存在的数据库，返回其创建语句；在另一个集群中执行该语句，就能得到一个设置完全相同的 Database。
+
+#### 查看数据库参数[](https://docs.taosdata.com/taos-sql/database/#查看数据库参数)
+
+```sql
+SELECT * FROM INFORMATION_SCHEMA.INS_DATABASES WHERE NAME='db_name' \G;
+```
+
+
+
+会列出指定数据库的配置参数，并且每行只显示一个参数。
+
+### 删除过期数据[](https://docs.taosdata.com/taos-sql/database/#删除过期数据)
+
+```sql
+TRIM DATABASE db_name;
+```
+
+
+
+删除过期数据，并根据多级存储的配置归整数据。
+
+### 落盘内存数据[](https://docs.taosdata.com/taos-sql/database/#落盘内存数据)
+
+```sql
+FLUSH DATABASE db_name;
+```
+
+
+
+落盘内存中的数据。在关闭节点之前，执行这条命令可以避免重启后的数据回放，加速启动过程。
+
+### 调整VGROUP中VNODE的分布[](https://docs.taosdata.com/taos-sql/database/#调整vgroup中vnode的分布)
+
+```sql
+REDISTRIBUTE VGROUP vgroup_no DNODE dnode_id1 [DNODE dnode_id2] [DNODE dnode_id3]
+```
+
+
+
+按照给定的dnode列表，调整vgroup中的vnode分布。因为副本数目最大为3，所以最多输入3个dnode。
+
+### 自动调整VGROUP中VNODE的分布[](https://docs.taosdata.com/taos-sql/database/#自动调整vgroup中vnode的分布)
+
+```sql
+BALANCE VGROUP
+```
+
+
+
+自动调整集群所有vgroup中的vnode分布，相当于在vnode级别对集群进行数据的负载均衡操作。
+
+### 查看数据库工作状态[](https://docs.taosdata.com/taos-sql/database/#查看数据库工作状态)
+
+```sql
+SHOW db_name.ALIVE;
+```
+
+
+
+查询数据库 db_name 的可用状态，返回值 0：不可用 1：完全可用 2：部分可用（即数据库包含的 VNODE 部分节点可用，部分节点不可用）
+
+
+
+## 表
+
+### 创建表[](https://docs.taosdata.com/taos-sql/table/#创建表)
+
+`CREATE TABLE` 语句用于创建普通表和以超级表为模板创建子表。
+
+```sql
+CREATE TABLE [IF NOT EXISTS] [db_name.]tb_name (create_definition [, create_definition] ...) [table_options]
+
+CREATE TABLE create_subtable_clause
+
+CREATE TABLE [IF NOT EXISTS] [db_name.]tb_name (create_definition [, create_definition] ...)
+    [TAGS (create_definition [, create_definition] ...)]
+    [table_options]
+
+create_subtable_clause: {
+    create_subtable_clause [create_subtable_clause] ...
+  | [IF NOT EXISTS] [db_name.]tb_name USING [db_name.]stb_name [(tag_name [, tag_name] ...)] TAGS (tag_value [, tag_value] ...)
+}
+
+create_definition:
+    col_name column_type
+
+table_options:
+    table_option ...
+
+table_option: {
+    COMMENT 'string_value'
+  | WATERMARK duration[,duration]
+  | MAX_DELAY duration[,duration]
+  | ROLLUP(func_name [, func_name] ...)
+  | SMA(col_name [, col_name] ...)
+  | TTL value
+}
+```
+
+
+
+**使用说明**
+
+1. 表的第一个字段必须是 TIMESTAMP，并且系统自动将其设为主键；
+2. 表名最大长度为 192；
+3. 表的每行长度不能超过 48KB;（注意：每个 BINARY/NCHAR 类型的列还会额外占用 2 个字节的存储位置）
+4. 子表名只能由字母、数字和下划线组成，且不能以数字开头，不区分大小写
+5. 使用数据类型 binary 或 nchar，需指定其最长的字节数，如 binary(20)，表示 20 字节；
+6. 为了兼容支持更多形式的表名，TDengine 引入新的转义符 "`"，可以让表名与关键词不冲突，同时不受限于上述表名称合法性约束检查。但是同样具有长度限制要求。使用转义字符以后，不再对转义字符中的内容进行大小写统一。 例如：`aBc` 和 `abc` 是不同的表名，但是 abc 和 aBc 是相同的表名。 需要注意的是转义字符中的内容必须是可打印字符。
+
+**参数说明**
+
+1. COMMENT：表注释。可用于超级表、子表和普通表。
+2. WATERMARK：指定窗口的关闭时间，默认值为 5 秒，最小单位毫秒，范围为 0 到 15 分钟，多个以逗号分隔。只可用于超级表，且只有当数据库使用了 RETENTIONS 参数时，才可以使用此表参数。
+3. MAX_DELAY：用于控制推送计算结果的最大延迟，默认值为 interval 的值(但不能超过最大值)，最小单位毫秒，范围为 1 毫秒到 15 分钟，多个以逗号分隔。注：不建议 MAX_DELAY 设置太小，否则会过于频繁的推送结果，影响存储和查询性能，如无特殊需求，取默认值即可。只可用于超级表，且只有当数据库使用了 RETENTIONS 参数时，才可以使用此表参数。
+4. ROLLUP：Rollup 指定的聚合函数，提供基于多层级的降采样聚合结果。只可用于超级表。只有当数据库使用了 RETENTIONS 参数时，才可以使用此表参数。作用于超级表除 TS 列外的其它所有列，但是只能定义一个聚合函数。 聚合函数支持 avg, sum, min, max, last, first。
+5. SMA：Small Materialized Aggregates，提供基于数据块的自定义预计算功能。预计算类型包括 MAX、MIN 和 SUM。可用于超级表/普通表。
+6. TTL：Time to Live，是用户用来指定表的生命周期的参数。如果创建表时指定了这个参数，当该表的存在时间超过 TTL 指定的时间后，TDengine 自动删除该表。这个 TTL 的时间只是一个大概时间，系统不保证到了时间一定会将其删除，而只保证存在这样一个机制且最终一定会删除。TTL 单位是天，默认为 0，表示不限制，到期时间为表创建时间加上 TTL 时间。TTL 与数据库 KEEP 参数没有关联，如果 KEEP 比 TTL 小，在表被删除之前数据也可能已经被删除。
+
+### 创建子表[](https://docs.taosdata.com/taos-sql/table/#创建子表)
+
+#### 创建子表[](https://docs.taosdata.com/taos-sql/table/#创建子表-1)
+
+```sql
+CREATE TABLE [IF NOT EXISTS] tb_name USING stb_name TAGS (tag_value1, ...);
+```
+
+
+
+#### 创建子表并指定标签的值[](https://docs.taosdata.com/taos-sql/table/#创建子表并指定标签的值)
+
+```sql
+CREATE TABLE [IF NOT EXISTS] tb_name USING stb_name (tag_name1, ...) TAGS (tag_value1, ...);
+```
+
+
+
+以指定的超级表为模板，也可以指定一部分 TAGS 列的值来创建数据表（没被指定的 TAGS 列会设为空值）。
+
+#### 批量创建子表[](https://docs.taosdata.com/taos-sql/table/#批量创建子表)
+
+```sql
+CREATE TABLE [IF NOT EXISTS] tb_name1 USING stb_name TAGS (tag_value1, ...) [IF NOT EXISTS] tb_name2 USING stb_name TAGS (tag_value2, ...) ...;
+```
+
+
+
+批量建表方式要求数据表必须以超级表为模板。 在不超出 SQL 语句长度限制的前提下，单条语句中的建表数量建议控制在 1000 ～ 3000 之间，将会获得比较理想的建表速度。
+
+### 修改普通表[](https://docs.taosdata.com/taos-sql/table/#修改普通表)
+
+```sql
+ALTER TABLE [db_name.]tb_name alter_table_clause
+
+alter_table_clause: {
+    alter_table_options
+  | ADD COLUMN col_name column_type
+  | DROP COLUMN col_name
+  | MODIFY COLUMN col_name column_type
+  | RENAME COLUMN old_col_name new_col_name
+}
+
+alter_table_options:
+    alter_table_option ...
+
+alter_table_option: {
+    TTL value
+  | COMMENT 'string_value'
+}
+```
+
+
+
+**使用说明** 对普通表可以进行如下修改操作
+
+1. ADD COLUMN：添加列。
+2. DROP COLUMN：删除列。
+3. MODIFY COLUMN：修改列定义，如果数据列的类型是可变长类型，那么可以使用此指令修改其宽度，只能改大，不能改小。
+4. RENAME COLUMN：修改列名称。
+
+#### 增加列[](https://docs.taosdata.com/taos-sql/table/#增加列)
+
+```sql
+ALTER TABLE tb_name ADD COLUMN field_name data_type;
+```
+
+
+
+#### 删除列[](https://docs.taosdata.com/taos-sql/table/#删除列)
+
+```sql
+ALTER TABLE tb_name DROP COLUMN field_name;
+```
+
+
+
+#### 修改列宽[](https://docs.taosdata.com/taos-sql/table/#修改列宽)
+
+```sql
+ALTER TABLE tb_name MODIFY COLUMN field_name data_type(length);
+```
+
+
+
+#### 修改列名[](https://docs.taosdata.com/taos-sql/table/#修改列名)
+
+```sql
+ALTER TABLE tb_name RENAME COLUMN old_col_name new_col_name
+```
+
+
+
+### 修改子表[](https://docs.taosdata.com/taos-sql/table/#修改子表)
+
+```sql
+ALTER TABLE [db_name.]tb_name alter_table_clause
+
+alter_table_clause: {
+    alter_table_options
+  | SET TAG tag_name = new_tag_value
+}
+
+alter_table_options:
+    alter_table_option ...
+
+alter_table_option: {
+    TTL value
+  | COMMENT 'string_value'
+}
+```
+
+
+
+**使用说明**
+
+1. 对子表的列和标签的修改，除了更改标签值以外，都要通过超级表才能进行。
+
+#### 修改子表标签值[](https://docs.taosdata.com/taos-sql/table/#修改子表标签值)
+
+```text
+ALTER TABLE tb_name SET TAG tag_name=new_tag_value;
+```
+
+
+
+### 删除表[](https://docs.taosdata.com/taos-sql/table/#删除表)
+
+可以在一条 SQL 语句中删除一个或多个普通表或子表。
+
+```sql
+DROP TABLE [IF EXISTS] [db_name.]tb_name [, [IF EXISTS] [db_name.]tb_name] ...
+```
+
+
+
+### 查看表的信息[](https://docs.taosdata.com/taos-sql/table/#查看表的信息)
+
+#### 显示所有表[](https://docs.taosdata.com/taos-sql/table/#显示所有表)
+
+如下 SQL 语句可以列出当前数据库中的所有表名。
+
+```sql
+SHOW TABLES [LIKE tb_name_wildchar];
+```
+
+
+
+#### 显示表创建语句[](https://docs.taosdata.com/taos-sql/table/#显示表创建语句)
+
+```text
+SHOW CREATE TABLE tb_name;
+```
+
+
+
+常用于数据库迁移。对一个已经存在的数据表，返回其创建语句；在另一个集群中执行该语句，就能得到一个结构完全相同的数据表。
+
+#### 获取表结构信息[](https://docs.taosdata.com/taos-sql/table/#获取表结构信息)
+
+```text
+DESCRIBE [db_name.]tb_name;
+```
