@@ -34,7 +34,7 @@ std::cout <<  "hello word" << std::endl;
 
 2、步骤二，写CMakeLists.txt
 
-```cpp
+```cmake
 #CMakeLists.txt
 
 PROJECT (HELLO)
@@ -50,7 +50,7 @@ ADD_EXECUTABLE(hello ${SRC_LIST})
 
 3、步骤三、使用cmake，生成makefile文件
 
-```cpp
+```shell
 cmake .
 
 输出：
@@ -85,7 +85,7 @@ This warning is for project developers.  Use -Wno-dev to suppress it.
 
 4、使用make命令编译
 
-```cpp
+```shell
 root@localhost cmake]# make
 Scanning dependencies of target hello
 [100%] Building CXX object CMakeFiles/hello.dir/main.cpp.o
@@ -109,9 +109,9 @@ PROJECT (HELLO C CXX)      指定了工程的名字，并且支持语言是C和C
 
 该指定隐式定义了两个CMAKE的变量
 
-<projectname>_BINARY_DIR，本例中是 HELLO_BINARY_DIR
+\<projectname>_BINARY_DIR，本例中是 HELLO_BINARY_DIR
 
-<projectname>_SOURCE_DIR，本例中是 HELLO_SOURCE_DIR
+\<projectname>_SOURCE_DIR，本例中是 HELLO_SOURCE_DIR
 
 MESSAGE关键字就可以直接使用者两个变量，当前都指向当前的工作目录，后面会讲外部编译
 
@@ -147,8 +147,10 @@ ADD_EXECUTABLE(hello ${SRC_LIST})     生成的可执行文件名是hello，源�
 
 上述例子可以简化的写成
 
+```cmake
 PROJECT(HELLO)
 ADD_EXECUTABLE(hello main.cpp)
+```
 
 注意：工程名的 HELLO 和生成的可执行文件 hello 是没有任何关系的
 
@@ -173,7 +175,7 @@ ADD_EXECUTABLE(hello main.cpp)
 
 ## 外部构建方式举例
 
-```cpp
+```shell
 //例子目录，CMakeLists.txt和上面例子一致
 [root@localhost cmake]# pwd
 /root/cmake
@@ -185,7 +187,7 @@ total 8
 
 1、建立一个build目录，可以在任何地方，建议在当前目录下
 
-2、进入build，运行cmake ..    当然..表示上一级目录，你可以写CMakeLists.txt所在的绝对路径，生产的文件都在build目录下了
+2、进入build，运行cmake ..  , .. 表示上一级目录，你可以写CMakeLists.txt所在的绝对路径，生产的文件都在build目录下了
 
 3、在build目录下，运行make来构建工程
 
@@ -200,7 +202,7 @@ total 8
 - 为工程添加一个子目录 src，用来放置工程源代码
 - 添加一个子目录 doc，用来放置这个工程的文档 hello.txt
 - 在工程目录添加文本文件 COPYRIGHT, README
-- 在工程目录添加一个 [runhello.sh](http://runhello.sh/) 脚本，用来调用 hello 二进制
+- 在工程目录添加一个 runhello.sh 脚本，用来调用 hello 二进制
 - 将构建后的目标文件放入构建目录的 bin 子目录
 - 将 doc 目录 的内容以及 COPYRIGHT/README 安装到/usr/share/doc/cmake/
 
@@ -220,14 +222,14 @@ total 8
 
 外层CMakeLists.txt
 
-```cpp
+```cmake
 PROJECT(HELLO)
-ADD_SUBDIRECTORY(src bin)
+ADD_SUBDIRECTORY(src bin) //src 目录下编译的内容，会在当前目录下（还是在build的bin目录下？）的bin目录下生成
 ```
 
 src下的CMakeLists.txt
 
-```cpp
+```cmake
 ADD_EXECUTABLE(hello main.cpp)
 ```
 
@@ -248,8 +250,8 @@ ADD_SUBDIRECTORY(source_dir [binary_dir] [EXCLUDE_FROM_ALL])
 
 SET 指令重新定义 EXECUTABLE_OUTPUT_PATH 和 LIBRARY_OUTPUT_PATH 变量 来指定最终的目标二进制的位置
 
-SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
-SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
+SET(EXECUTABLE_OUTPUT_PATH \${PROJECT_BINARY_DIR}/bin)
+	    SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 思考：加载哪个CMakeLists.txt当中
 
