@@ -3915,7 +3915,70 @@ int ui = absObj(i);
 
 #### 14.8.1 lambda是函数对象
 
+当我们编写一个lambda后，编译器将该表达式翻译成一个**未命名类的未命名对象**。在lambda表达式产生的类中**含有一个重载的函数调用运算符**
 
+```c++
+stable_sort(words.begin(),words.end(),[](const string &a, const string&b){
+    return a.size() < b.size();
+});
+//行为类似于下面这个类的未命名对象
+class ShorterString{
+    public:
+    bool operator()(const string &a, const string&b) const{
+        return a.size() < b.size();
+    }
+};
+```
+
+默认情况下lambda不能改变它捕获的变量，因此在默认情况下，由lambda产生的类当中的函数调用运算符是一个const成员函数。如果lambda被声明为可变的，则调用运算符就不是const的了
+
+```c++
+stable_sort(words.begin(),words.end(),ShorterString);
+```
+
+##### 表示lambda及相应捕获行为的类
+
+上述的lambda没有捕获变量，所以只生成了函数调用运算符
+
+当一个lambda表达式通过**引用捕获**变量时，将由程序负责确保lambda执行时引用所引对象确实存在，因此编译器可以直接使用该引用而**无须在lambda产生的类中将其存储为数据成员**
+
+当一个lambda表达式通过**值捕获**时，该值被拷贝到lambda中，因此lambda生成的类**必须为捕获的值生成对应的数据成员**，同时创建**构造函数**来初始化数据成员
+
+lambda产生的类不含默认构造函数、赋值运算符及默认析构函数；是否含有拷贝/移动构造函数则通常要视捕获的数据成员类型而定
+
+#### 14.8.2 标准库定义的函数对象
+
+标准库定义了一组表示算术运算符、关系运算符和逻辑运算符的类，每个类分别定义了一个执行命名操作的调用运算符。
+
+头文件functional
+
+| 算术              | 关系                 | 逻辑               |
+| ----------------- | -------------------- | ------------------ |
+| plus\<Type>       | equal_to\<Type>      | logical_and\<Type> |
+| minus\<Type>      | not_equal_to\<Type>  | logical_or\<Type>  |
+| multiplies\<Type> | greater\<Type>       | logical_not\<Type> |
+| divides\<Type>    | greater_equal\<Type> |                    |
+| modulus\<Type>    | less\<Type>          |                    |
+| negate\<Type>     | less_equal\<Type>    |                    |
+
+##### 在算法中使用标准库函数对象
+
+表述运算符的函数对象常用来替换算法中默认的运算符
+
+```c++
+sort(svec.begin(),svec.end(),greater<string>());
+```
+
+标准库规定其函数对象对于指针同样适用。比较两个无关指针将产生未定义的行为，然而我们可能会希望通过比较指针的内存地址来sort指针的vector。直接这么做将产生未定义的行为，因此可以使用一个标准库函数对象来实现该目的：
+
+```c++
+vector<string*> nameTable;  //指针的vector
+//错误：nameTable中的指针彼此之间没有关系，所以<产生未定义的行为
+sort(nameTable.begin(),nameTable.end(),[](string *a,string *b){return a < b;});
+sort(nameTable.begin(),nameTable.end(),less<string*>()); //正确
+```
+
+#### 14.8.3 可调用对象与function
 
 ## 第十五章 面向对象程序设计
 
