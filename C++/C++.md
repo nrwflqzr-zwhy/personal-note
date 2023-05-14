@@ -3980,6 +3980,91 @@ sort(nameTable.begin(),nameTable.end(),less<string*>()); //正确
 
 #### 14.8.3 可调用对象与function
 
+可调用对象有**函数、函数指针、lambda表达式、bind创建的对象**（用来适配参数列表）以及**重载了函数调用运算符的类**
+
+可调用对象也有类型。lambda有自己唯一的类类型，函数及函数指针的类型由返回值类型和实参类型决定。两个不同类型的可调用对象可能共享同一种**调用形式**。调用形式指明了调用返回类型以及传递给调用的实参类型。一种调用形式对应一个函数类型
+
+```c++
+int(int,int) //是一个函数类型，接受两个int，返回一个int
+```
+
+##### 不同类型可能具有相同的调用形式
+
+对于几个可调用对象共享同一种调用形式的情况，有时我们会希望把它们看成具有相同的类型
+
+```c++
+int add(int i, int j){return i + j;}
+auto mod = [](int i,int j){return i % j;}
+struct divide{
+    int operator()(int i, int j){
+        return i/j;
+    }
+};
+//这几个对象共享同一种调用形式：int(int,int)
+```
+
+**函数表**：用于存储指向这些可调用对象的“指针”，c++中函数表容易通过map实现，表示运算符的string作为键，实现运算符的函数作为值
+
+```c++
+map<string,int(*)(int,int)> binops;
+binops.insert({"+", add}); //正确
+binops.insert({"%", mod}); //错误：mod不是一个函数指针
+```
+
+##### 标准库function类型
+
+我们使用function的标准库解决上述的问题
+
+|         function的操作         |                                                              |
+| :----------------------------: | :----------------------------------------------------------: |
+|        function\<T> f;         | f是一个用来存储可调用对象的空function，这些可调用对象的调用形式应该与函数类型T相同（即T是retType(args)） |
+|    function\<T> f(nullptr);    |                   显式的构造一个空function                   |
+|      function\<T> f(obj);      |                 在f中存储可调用对象obj的副本                 |
+|               f                |           将f作为条件：当f含有一个可调用对象时为真           |
+|            f(args)             |                  调用f中的对象，参数是args                   |
+| 定义为function\<T>的成员的类型 |                                                              |
+|          result_type           |            该function类型的可调用对象的返回的类型            |
+|         argument_type          | 当T有一个或两个实参时定义的类型。如果T只有一个实参，则argument_type是该类型的同义词；如果T有两个实参，则first_argument_type和second_argument_type分别代表两个实参的类型 |
+|      first_argument_type       |                                                              |
+|      second_argument_type      |                                                              |
+
+```c++
+function<int(int,int)>
+function<int(int,int)> f1 = add;
+function<int(int,int)> f2 = divide();
+function<int(int,int)> f3 = [](int i,int j){return i * j;};
+cout << f1(4,2) <<endl;
+cout << f2(4,2) <<endl;
+cout << f3(4,2) <<endl;
+```
+
+直接使用function能够调用，**function重载了调用运算符**。使用function我们可以重新定义map
+
+```c++
+map<string,function<int(int,int)>> binops;
+```
+
+##### 重载的函数与function
+
+我们不能（直接）将重载函数名字存入function类型的对象中，**解决二义性的问题的一条途径是存储函数指针**而非函数名字
+
+```c++
+int (*fp)(int,int) = add;
+binops.insert({"+",fp}); //fp就限制了我们到底存储的那个版本的重载
+```
+
+也可以**使用lambda来消除二义性**
+
+```c++
+binops.insert({"+",[](int a,int b){return add(a,b);}});
+```
+
+### 14.9 重载、类型转换与运算符
+
+
+
+
+
 ## 第十五章 面向对象程序设计
 
 
