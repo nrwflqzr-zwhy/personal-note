@@ -5241,7 +5241,7 @@ TDengine SQL 是用户对 TDengine 进行数据写入和查询的主要工具。
 
 - 用大写字母表示关键字，但 SQL 本身并不区分关键字和标识符的大小写
 - 用小写字母表示需要用户输入的内容
-- [ ] 表示内容为可选项，但不能输入 [] 本身
+- 𤆺表示内容为可选项，但不能输入 [] 本身
 - | 表示多选一，选择其中一个即可，但不能输入 | 本身
 - … 表示前面的项可重复多个
 
@@ -5259,17 +5259,13 @@ taos> DESCRIBE meters;
  groupid                        | INT                |           4 | TAG        |
 ```
 
-
-
 数据集包含 4 个智能电表的数据，按照 TDengine 的建模规则，对应 4 个子表，其名称分别是 d1001, d1002, d1003, d1004。
-
-
 
 ## 数据类型
 
-### 时间戳[](https://docs.taosdata.com/taos-sql/data-type/#时间戳)
+### [时间戳](https://docs.taosdata.com/taos-sql/data-type/#时间戳)
 
-使用 TDengine，最重要的是时间戳。创建并插入记录、查询历史记录的时候，均需要指定时间戳。时间戳有如下规则：
+使用 TDengine，最重要的是时间戳。**创建并插入记录、查询历史记录的时候，均需要指定时间戳**。时间戳有如下规则：
 
 - 时间格式为 `YYYY-MM-DD HH:mm:ss.MS`，默认时间分辨率为毫秒。比如：`2017-08-12 18:25:58.128`
 - 内部函数 NOW 是客户端的当前时间
@@ -5277,15 +5273,13 @@ taos> DESCRIBE meters;
 - Epoch Time：时间戳也可以是一个长整数，表示从 UTC 时间 1970-01-01 00:00:00 开始的毫秒数。相应地，如果所在 Database 的时间精度设置为“微秒”，则长整型格式的时间戳含义也就对应于从 UTC 时间 1970-01-01 00:00:00 开始的微秒数；纳秒精度逻辑相同。
 - 时间可以加减，比如 NOW-2h，表明查询时刻向前推 2 个小时（最近 2 小时）。数字后面的时间单位可以是 b（纳秒）、u（微秒）、a（毫秒）、s（秒）、m（分）、h（小时）、d（天）、w（周）。 比如 `SELECT * FROM t1 WHERE ts > NOW-2w AND ts <= NOW-1w`，表示查询两周前整整一周的数据。在指定降采样操作（Down Sampling）的时间窗口（Interval）时，时间单位还可以使用 n（自然月）和 y（自然年）。
 
-TDengine 缺省的时间戳精度是毫秒，但通过在 `CREATE DATABASE` 时传递的 `PRECISION` 参数也可以支持微秒和纳秒。
+TDengine **缺省的时间戳精度是毫秒**，但通过在 `CREATE DATABASE` 时传递的 `PRECISION` 参数也可以支持微秒和纳秒。
 
 ```sql
 CREATE DATABASE db_name PRECISION 'ns';
 ```
 
-
-
-### 数据类型[](https://docs.taosdata.com/taos-sql/data-type/#数据类型)
+### [数据类型](https://docs.taosdata.com/taos-sql/data-type/#数据类型)
 
 在 TDengine 中，普通表的数据模型中可使用以下数据类型。
 
