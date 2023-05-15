@@ -6432,9 +6432,9 @@ SELECT CASE dev_status WHEN 1 THEN 'Running' WHEN 2 THEN 'Warning' WHEN 3 THEN '
 SELECT AVG(CASE WHEN voltage < 200 or voltage > 250 THEN 220 ELSE voltage END) FROM meters;
 ```
 
-## JOIN 子句
+### JOIN 子句
 
-TDengine 支持基于时间戳主键的内连接，即 JOIN 条件必须包含时间戳主键。只要满足基于时间戳主键这个要求，普通表、子表、超级表和子查询之间可以随意的进行内连接，且对表个数没有限制。
+**TDengine 支持基于时间戳主键的内连接**，即 **JOIN 条件必须包含时间戳主键**。只要满足基于时间戳主键这个要求，普通表、子表、超级表和子查询之间可以随意的进行内连接，且对表个数没有限制。
 
 普通表与普通表之间的 JOIN 操作：
 
@@ -6462,7 +6462,7 @@ WHERE t1.ts = t2.ts AND t1.deviceid = t2.deviceid AND t1.status=0;
 
 类似地，也可以对多个子查询的查询结果进行 JOIN 操作。
 
-## 嵌套查询
+### 嵌套查询
 
 “嵌套查询”又称为“子查询”，也即在一条 SQL 语句中，“内层查询”的计算结果可以作为“外层查询”的计算对象来使用。
 
@@ -6471,8 +6471,6 @@ WHERE t1.ts = t2.ts AND t1.deviceid = t2.deviceid AND t1.status=0;
 ```text
 SELECT ... FROM (SELECT ... FROM ...) ...;
 ```
-
-##### 
 
 ##### info
 
@@ -6486,7 +6484,7 @@ SELECT ... FROM (SELECT ... FROM ...) ...;
     - 如果内层查询的结果数据不是按时间戳有序，那么计算过程依赖数据按时间有序的函数在外层会无法正常工作。例如：LEASTSQUARES, ELAPSED, INTERP, DERIVATIVE, IRATE, TWA, DIFF, STATECOUNT,  STATEDURATION, CSUM, MAVG, TAIL, UNIQUE。
     - 计算过程需要两遍扫描的函数，在外层查询中无法正常工作。例如：此类函数包括：PERCENTILE。
 
-## UNION ALL 子句
+### UNION ALL 子句
 
 语法
 
@@ -6496,9 +6494,9 @@ UNION ALL SELECT ...
 [UNION ALL SELECT ...]
 ```
 
-TDengine 支持 UNION ALL 操作符。也就是说，如果多个 SELECT 子句返回结果集的结构完全相同（列名、列类型、列数、顺序），那么可以通过  UNION ALL 把这些结果集合并到一起。目前只支持 UNION ALL 模式，也即在结果集的合并过程中是不去重的。在同一个 sql  语句中，UNION ALL 最多支持 100 个。
+TDengine 支持 UNION ALL 操作符。也就是说，如果多个 SELECT 子句返回结果集的**结构**完全相同（列名、列类型、列数、顺序），那么可以通过  UNION ALL 把这些结果集合并到一起。目前只支持 UNION ALL 模式，也即在结果集的合并过程中是不去重的。在同一个 sql  语句中，UNION ALL 最多支持 100 个。
 
-## SQL 示例
+### SQL 示例
 
 对于下面的例子，表 tb1 用以下语句创建：
 
