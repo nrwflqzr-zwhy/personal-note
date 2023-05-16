@@ -6638,7 +6638,7 @@ ABS(expr)
 
 **使用说明**：只能与普通列，选择（Selection）、投影（Projection）函数一起使用，不能与聚合（Aggregation）函数一起使用。
 
-#### ACOS
+##### ACOS
 
 ```sql
 ACOS(expr)
@@ -6656,7 +6656,7 @@ ACOS(expr)
 
 **使用说明**：只能与普通列，选择（Selection）、投影（Projection）函数一起使用，不能与聚合（Aggregation）函数一起使用。
 
-#### ASIN
+##### ASIN
 
 ```sql
 ASIN(expr)
@@ -6674,7 +6674,7 @@ ASIN(expr)
 
 **使用说明**：只能与普通列，选择（Selection）、投影（Projection）函数一起使用，不能与聚合（Aggregation）函数一起使用。
 
-#### ATAN
+##### ATAN
 
 ```sql
 ATAN(expr)
@@ -6692,7 +6692,7 @@ ATAN(expr)
 
 **使用说明**：只能与普通列，选择（Selection）、投影（Projection）函数一起使用，不能与聚合（Aggregation）函数一起使用。
 
-#### CEIL
+##### CEIL
 
 ```sql
 CEIL(expr)
