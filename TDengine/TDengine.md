@@ -6966,7 +6966,7 @@ SUBSTR(expr, pos [,len])
 
 **适用于**: 表和超级表。
 
-#### UPPER
+##### UPPER
 
 ```sql
 UPPER(expr)
@@ -6982,11 +6982,11 @@ UPPER(expr)
 
 **适用于**: 表和超级表。
 
-### 转换函数
+#### 转换函数
 
 转换函数将值从一种数据类型转换为另一种数据类型。
 
-#### CAST
+##### CAST
 
 ```sql
 CAST(expr AS type_name)
@@ -7007,13 +7007,13 @@ CAST(expr AS type_name)
 - 对于不能支持的类型转换会直接报错。
 - 对于类型支持但某些值无法正确转换的情况，对应的转换后的值以转换函数输出为准。目前可能遇到的几种情况： 1）字符串类型转换数值类型时可能出现的无效字符情况，例如"a"可能转为0，但不会报错。 2）转换到数值类型时，数值大于type_name可表示的范围时，则会溢出，但不会报错。 3）转换到字符串类型时，如果转换后长度超过type_name中指定的长度，则会截断，但不会报错。
 
-#### TO_ISO8601
+##### TO_ISO8601
 
 ```sql
 TO_ISO8601(expr [, timezone])
 ```
 
-**功能说明**：将 UNIX 时间戳转换成为 ISO8601 标准的日期时间格式，并附加时区信息。timezone 参数允许用户为输出结果指定附带任意时区信息。如果 timezone 参数省略，输出结果则附带当前客户端的系统时区信息。
+**功能说明**：**将 UNIX 时间戳转换成为 ISO8601 标准的日期时间格式**，并**附加时区信息**。timezone 参数允许用户为输出结果指定附带任意时区信息。如果 timezone 参数省略，输出结果则附带当前客户端的系统时区信息。
 
 **返回结果数据类型**：VARCHAR 类型。
 
@@ -7029,13 +7029,13 @@ TO_ISO8601(expr [, timezone])
 - 如果输入是表示 UNIX 时间戳的整形，返回格式精度由时间戳的位数决定;
 - 如果输入是 TIMESTAMP 类型的列，返回格式的时间戳精度与当前 DATABASE 设置的时间精度一致。
 
-#### TO_JSON
+##### TO_JSON
 
 ```sql
 TO_JSON(str_literal)
 ```
 
-**功能说明**: 将字符串常量转换为 JSON 类型。
+**功能说明**: **将字符串常量转换为 JSON 类型。**
 
 **返回结果数据类型**: JSON。
 
@@ -7045,7 +7045,7 @@ TO_JSON(str_literal)
 
 **适用于**: 表和超级表。
 
-#### TO_UNIXTIMESTAMP
+##### TO_UNIXTIMESTAMP
 
 ```sql
 TO_UNIXTIMESTAMP(expr [, return_timestamp])
@@ -7072,13 +7072,13 @@ return_timestamp: {
 - 返回的时间戳精度与当前 DATABASE 设置的时间精度一致。
 - return_timestamp 指定函数返回值是否为时间戳类型，设置为1时返回 TIMESTAMP 类型，设置为0时返回 BIGINT 类型。如不指定缺省返回 BIGINT 类型。
 
-### 时间和日期函数
+#### 时间和日期函数
 
 时间和日期函数对时间戳类型进行操作。
 
 所有返回当前时间的函数，如NOW、TODAY和TIMEZONE，在一条SQL语句中不论出现多少次都只会被计算一次。
 
-#### NOW
+##### NOW
 
 ```sql
 NOW()
@@ -7099,7 +7099,7 @@ NOW()
 - 支持时间加减操作，如 NOW() + 1s, 支持的时间单位如下： b(纳秒)、u(微秒)、a(毫秒)、s(秒)、m(分)、h(小时)、d(天)、w(周)。
 - 返回的时间戳精度与当前 DATABASE 设置的时间精度一致。
 
-#### TIMEDIFF
+##### TIMEDIFF
 
 ```sql
 TIMEDIFF(expr1, expr2 [, time_unit])
@@ -7121,7 +7121,7 @@ TIMEDIFF(expr1, expr2 [, time_unit])
 - 如果时间单位 time_unit 未指定， 返回的时间差值精度与当前 DATABASE 设置的时间精度一致。
 - 输入包含不符合时间日期格式的字符串则返回 NULL。
 
-#### TIMETRUNCATE
+##### TIMETRUNCATE
 
 ```sql
 TIMETRUNCATE(expr, time_unit [, ignore_timezone])
@@ -7147,13 +7147,13 @@ ignore_timezone: {
 - 输入包含不符合时间日期格式的字符串则返回 NULL。
 - 当使用 1d 作为时间单位对时间戳进行截断时， 可通过设置 ignore_timezone 参数指定返回结果的显示是否忽略客户端时区的影响。 例如客户端所配置时区为 UTC+0800, 则 TIMETRUNCATE('2020-01-01 23:00:00', 1d, 0) 返回结果为 '2020-01-01 08:00:00'。 而使用 TIMETRUNCATE('2020-01-01 23:00:00', 1d, 1) 设置忽略时区时，返回结果为 '2020-01-01 00:00:00' ignore_timezone 如果忽略的话，则默认值为 1 。
 
-#### TIMEZONE
+##### TIMEZONE
 
 ```sql
 TIMEZONE()
 ```
 
-**功能说明**：返回客户端当前时区信息。
+**功能说明**：**返回客户端当前时区信息**。
 
 **返回结果数据类型**：VARCHAR。
 
@@ -7161,13 +7161,13 @@ TIMEZONE()
 
 **适用于**：表和超级表。
 
-#### TODAY
+##### TODAY
 
 ```sql
 TODAY()
 ```
 
-**功能说明**：返回客户端当日零时的系统时间。
+**功能说明**：**返回客户端当日零时的系统时间**。
 
 **返回结果数据类型**：TIMESTAMP。
 
@@ -7180,13 +7180,13 @@ TODAY()
 - 支持时间加减操作，如 TODAY() + 1s, 支持的时间单位如下： b(纳秒)，u(微秒)，a(毫秒)，s(秒)，m(分)，h(小时)，d(天)，w(周)。
 - 返回的时间戳精度与当前 DATABASE 设置的时间精度一致。
 
-## 聚合函数
+### 聚合函数
 
 聚合函数为查询结果集的每一个分组返回单个结果行。可以由 GROUP BY 或窗口切分子句指定分组，如果没有，则整个查询结果集视为一个分组。
 
 TDengine 支持针对数据的聚合查询。提供如下聚合函数。
 
-### APERCENTILE
+##### APERCENTILE
 
 ```sql
 APERCENTILE(expr, p [, algo_type])
@@ -7197,7 +7197,7 @@ algo_type: {
 }
 ```
 
-**功能说明**：统计表/超级表中指定列的值的近似百分比分位数，与 PERCENTILE 函数相似，但是返回近似结果。
+**功能说明**：**统计表/超级表**中指定列的值的近似百分比分位数，与 PERCENTILE 函数相似，但是返回近似结果。
 
 **返回数据类型**： DOUBLE。
 
@@ -7211,13 +7211,13 @@ algo_type: {
 - algo_type 取值为 "default" 或 "t-digest"。 输入为 "default" 时函数使用基于直方图算法进行计算。输入为  "t-digest" 时使用t-digest算法计算分位数的近似结果。如果不指定 algo_type 则使用 "default" 算法。
 - "t-digest"算法的近似结果对于输入数据顺序敏感，对超级表查询时不同的输入排序结果可能会有微小的误差。
 
-### AVG
+##### AVG
 
 ```sql
 AVG(expr)
 ```
 
-**功能说明**：统计指定字段的平均值。
+**功能说明**：**统计指定字段的平均值**。
 
 **返回数据类型**：DOUBLE。
 
@@ -7225,13 +7225,13 @@ AVG(expr)
 
 **适用于**：表和超级表。
 
-### COUNT
+##### COUNT
 
 ```sql
 COUNT({* | expr})
 ```
 
-**功能说明**：统计指定字段的记录行数。
+**功能说明**：**统计指定字段的记录行数**。
 
 **返回数据类型**：BIGINT。
 
@@ -7244,13 +7244,13 @@ COUNT({* | expr})
 - 可以使用星号(*)来替代具体的字段，使用星号(*)返回全部记录数量。
 - 如果统计字段是具体的列，则返回该列中非 NULL 值的记录数量。
 
-### ELAPSED
+##### ELAPSED
 
 ```sql
 ELAPSED(ts_primary_key [, time_unit])
 ```
 
-**功能说明**：elapsed函数表达了统计周期内连续的时间长度，和twa函数配合使用可以计算统计曲线下的面积。在通过INTERVAL子句指定窗口的情况下，统计在给定时间范围内的每个窗口内有数据覆盖的时间范围；如果没有INTERVAL子句，则返回整个给定时间范围内的有数据覆盖的时间范围。注意，ELAPSED返回的并不是时间范围的绝对值，而是绝对值除以time_unit所得到的单位个数。
+**功能说明**：elapsed 函数表达了统计周期内连续的时间长度，和twa函数配合使用可以计算统计曲线下的面积。在通过INTERVAL子句指定窗口的情况下，统计在给定时间范围内的每个窗口内有数据覆盖的时间范围；如果没有INTERVAL子句，则返回整个给定时间范围内的有数据覆盖的时间范围。注意，ELAPSED返回的并不是时间范围的绝对值，而是绝对值除以time_unit所得到的单位个数。
 
 **返回结果类型**：DOUBLE。
 
@@ -7269,7 +7269,7 @@ ELAPSED(ts_primary_key [, time_unit])
 - 对于嵌套查询，仅当内层查询会输出隐式时间戳列时有效。例如select elapsed(ts) from (select diff(value) from  sub1)语句，diff函数会让内层查询输出隐式时间戳列，此为主键列，可以用于elapsed函数的第一个参数。相反，例如select  elapsed(ts) from (select * from sub1)  语句，ts列输出到外层时已经没有了主键列的含义，无法使用elapsed函数。此外，elapsed函数作为一个与时间线强依赖的函数，形如select elapsed(ts) from (select diff(value) from st group by  tbname)尽管会返回一条计算结果，但并无实际意义，这种用法后续也将被限制。
 - 不支持与leastsquares、diff、derivative、top、bottom、last_row、interp等函数混合使用。
 
-### LEASTSQUARES
+##### LEASTSQUARES
 
 ```sql
 LEASTSQUARES(expr, start_val, step_val)
@@ -7283,7 +7283,7 @@ LEASTSQUARES(expr, start_val, step_val)
 
 **适用于**：表。
 
-### SPREAD
+##### SPREAD
 
 ```sql
 SPREAD(expr)
@@ -7297,7 +7297,7 @@ SPREAD(expr)
 
 **适用于**：表和超级表。
 
-### STDDEV
+##### STDDEV
 
 ```sql
 STDDEV(expr)
@@ -7311,7 +7311,7 @@ STDDEV(expr)
 
 **适用于**：表和超级表。
 
-### SUM
+##### SUM
 
 ```sql
 SUM(expr)
@@ -7325,7 +7325,7 @@ SUM(expr)
 
 **适用于**：表和超级表。
 
-### HYPERLOGLOG
+##### HYPERLOGLOG
 
 ```sql
 HYPERLOGLOG(expr)
@@ -7342,7 +7342,7 @@ HYPERLOGLOG(expr)
 
 **适用于**：表和超级表。
 
-### HISTOGRAM
+##### HISTOGRAM
 
 ```sql
 HISTOGRAM(expr，bin_type, bin_description, normalized)
@@ -7365,7 +7365,7 @@ HISTOGRAM(expr，bin_type, bin_description, normalized)
   - "log_bin": "{"start":1.0, "factor": 2.0, "count": 5, "infinity": true}" "start" 表示数据起始点，"factor" 表示按指数递增的因子，"count" 为 bin 的总数，"infinity" 表示是否添加（-inf, inf）作为区间起点和终点， 生成区间为[-inf, 1.0, 2.0, 4.0, 8.0, 16.0, +inf]。
 - normalized 是否将返回结果归一化到 0~1 之间 。有效输入为 0 和 1。
 
-### PERCENTILE
+##### PERCENTILE
 
 ```sql
 PERCENTILE(expr, p [, p1] ... )
@@ -7384,17 +7384,17 @@ PERCENTILE(expr, p [, p1] ... )
 - *P*值取值范围 0≤*P*≤100，为 0 的时候等同于 MIN，为 100 的时候等同于 MAX;
 - 同时计算针对同一列的多个分位数时，建议使用一个PERCENTILE函数和多个参数的方式，能很大程度上降低查询的响应时间。 比如，使用查询SELECT percentile(col, 90, 95, 99) FROM table, 性能会优于SELECT  percentile(col, 90), percentile(col, 95), percentile(col, 99) from  table。
 
-## 选择函数
+### 选择函数
 
 选择函数根据语义在查询结果集中选择一行或多行结果返回。用户可以同时指定输出 ts 列或其他列（包括 tbname 和标签列），这样就可以方便地知道被选出的值是源于哪个数据行的。
 
-### BOTTOM
+##### BOTTOM
 
 ```sql
 BOTTOM(expr, k)
 ```
 
-**功能说明**：统计表/超级表中某列的值最小 *k* 个非 NULL 值。如果多条数据取值一样，全部取用又会超出 k 条限制时，系统会从相同值中随机选取符合要求的数量返回。
+**功能说明**：统计表/超级表中某列的值**最小** k 个非 NULL 值。如果多条数据取值一样，全部取用又会超出 k 条限制时，系统会从相同值中随机选取符合要求的数量返回。
 
 **返回数据类型**：同应用的字段。
 
@@ -7408,7 +7408,7 @@ BOTTOM(expr, k)
 - 系统同时返回该记录关联的时间戳列；
 - 限制：BOTTOM 函数不支持 FILL 子句。
 
-### FIRST
+##### FIRST
 
 ```sql
 FIRST(expr)
@@ -7428,7 +7428,7 @@ FIRST(expr)
 - 如果结果集中的某列全部为 NULL 值，则该列的返回结果也是 NULL；
 - 如果结果集中所有列全部为 NULL 值，则不返回结果。
 
-### INTERP
+##### INTERP
 
 ```sql
 INTERP(expr)
@@ -7454,7 +7454,7 @@ INTERP(expr)
 - INTERP 可以与伪列 _irowts 一起使用，返回插值点所对应的时间戳(3.0.2.0版本以后支持)。
 - INTERP 可以与伪列 _isfilled 一起使用，显示返回结果是否为原始记录或插值算法产生的数据(3.0.3.0版本以后支持)。
 
-### LAST
+##### LAST
 
 ```sql
 LAST(expr)
@@ -7474,7 +7474,7 @@ LAST(expr)
 - 如果结果集中的某列全部为 NULL 值，则该列的返回结果也是 NULL；如果结果集中所有列全部为 NULL 值，则不返回结果。
 - 在用于超级表时，时间戳完全一样且同为最大的数据行可能有多个，那么会从中随机返回一条，而并不保证多次运行所挑选的数据行必然一致。
 
-### LAST_ROW
+##### LAST_ROW
 
 ```sql
 LAST_ROW(expr)
@@ -7493,7 +7493,7 @@ LAST_ROW(expr)
 - 在用于超级表时，时间戳完全一样且同为最大的数据行可能有多个，那么会从中随机返回一条，而并不保证多次运行所挑选的数据行必然一致。
 - 不能与 INTERVAL 一起使用。
 
-### MAX
+##### MAX
 
 ```sql
 MAX(expr)
@@ -7507,7 +7507,7 @@ MAX(expr)
 
 **适用于**：表和超级表。
 
-### MIN
+##### MIN
 
 ```sql
 MIN(expr)
@@ -7521,13 +7521,13 @@ MIN(expr)
 
 **适用于**：表和超级表。
 
-### MODE
+##### MODE
 
 ```sql
 MODE(expr)
 ```
 
-**功能说明**：返回出现频率最高的值，若存在多个频率相同的最高值，则随机输出其中某个值。
+**功能说明**：返回**出现频率**最高的值，若存在多个频率相同的最高值，则随机输出其中某个值。
 
 **返回数据类型**：与输入数据类型一致。
 
@@ -7535,7 +7535,7 @@ MODE(expr)
 
 **适用于**：表和超级表。
 
-### SAMPLE
+##### SAMPLE
 
 ```sql
 SAMPLE(expr, k)
@@ -7556,7 +7556,7 @@ SAMPLE(expr, k)
 - 不能参与表达式计算；该函数可以应用在普通表和超级表上；
 - 使用在超级表上的时候，需要搭配 PARTITION by tbname 使用，将结果强制规约到单个时间线。
 
-### TAIL
+##### TAIL
 
 ```sql
 TAIL(expr, k [, offset_rows])
@@ -7572,13 +7572,13 @@ TAIL(expr, k [, offset_rows])
 
 **适用于**：表、超级表。
 
-### TOP
+##### TOP
 
 ```sql
 TOP(expr, k)
 ```
 
-**功能说明**： 统计表/超级表中某列的值最大 *k* 个非 NULL 值。如果多条数据取值一样，全部取用又会超出 k 条限制时，系统会从相同值中随机选取符合要求的数量返回。
+**功能说明**： 统计表/超级表中某列的值**最大** *k* 个非 NULL 值。如果多条数据取值一样，全部取用又会超出 k 条限制时，系统会从相同值中随机选取符合要求的数量返回。
 
 **返回数据类型**：同应用的字段。
 
@@ -7592,7 +7592,7 @@ TOP(expr, k)
 - 系统同时返回该记录关联的时间戳列；
 - 限制：TOP 函数不支持 FILL 子句。
 
-### UNIQUE
+##### UNIQUE
 
 ```sql
 UNIQUE(expr)
@@ -7606,17 +7606,17 @@ UNIQUE(expr)
 
 **适用于**: 表和超级表。
 
-## 时序数据特有函数
+### 时序数据特有函数
 
 时序数据特有函数是 TDengine 为了满足时序数据的查询场景而量身定做出来的。在通用数据库中，实现类似功能通常需要复杂的查询语法，且效率很低。TDengine 以函数的方式内置了这些功能，最大程度的减轻了用户的使用成本。
 
-### CSUM
+##### CSUM
 
 ```sql
 CSUM(expr)
 ```
 
-**功能说明**：累加和（Cumulative sum），输出行与输入行数相同。
+**功能说明**：**累加和（Cumulative sum），输出行与输入行数相同**。
 
 **返回结果类型**： 输入列如果是整数类型返回值为长整型 （int64_t），浮点数返回值为双精度浮点数（Double）。无符号整数类型返回值为无符号长整型（uint64_t）。
 
@@ -7632,7 +7632,7 @@ CSUM(expr)
 - 只能与聚合（Aggregation）函数一起使用。 该函数可以应用在普通表和超级表上。
 - 使用在超级表上的时候，需要搭配 PARTITION BY tbname使用，将结果强制规约到单个时间线。
 
-### DERIVATIVE
+##### DERIVATIVE
 
 ```sql
 DERIVATIVE(expr, time_interval, ignore_negative)
