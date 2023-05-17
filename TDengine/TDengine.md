@@ -6710,7 +6710,7 @@ CEIL(expr)
 
 **使用说明**: 只能与普通列，选择（Selection）、投影（Projection）函数一起使用，不能与聚合（Aggregation）函数一起使用。
 
-#### COS
+##### COS
 
 ```sql
 COS(expr)
@@ -6728,7 +6728,7 @@ COS(expr)
 
 **使用说明**：只能与普通列，选择（Selection）、投影（Projection）函数一起使用，不能与聚合（Aggregation）函数一起使用。
 
-#### FLOOR
+##### FLOOR
 
 ```sql
 FLOOR(expr)
@@ -6736,7 +6736,7 @@ FLOOR(expr)
 
 **功能说明**：获得指定字段的向下取整数的结果。 其他使用说明参见 CEIL 函数描述。
 
-#### LOG
+##### LOG
 
 ```sql
 LOG(expr1[, expr2])
@@ -6754,7 +6754,7 @@ LOG(expr1[, expr2])
 
 **使用说明**：只能与普通列，选择（Selection）、投影（Projection）函数一起使用，不能与聚合（Aggregation）函数一起使用。
 
-#### POW
+##### POW
 
 ```sql
 POW(expr1, expr2)
@@ -6772,7 +6772,7 @@ POW(expr1, expr2)
 
 **使用说明**：只能与普通列，选择（Selection）、投影（Projection）函数一起使用，不能与聚合（Aggregation）函数一起使用。
 
-#### ROUND
+##### ROUND
 
 ```sql
 ROUND(expr)
@@ -6780,7 +6780,7 @@ ROUND(expr)
 
 **功能说明**：获得指定字段的四舍五入的结果。 其他使用说明参见 CEIL 函数描述。
 
-#### SIN
+##### SIN
 
 ```sql
 SIN(expr)
@@ -6798,7 +6798,7 @@ SIN(expr)
 
 **使用说明**：只能与普通列，选择（Selection）、投影（Projection）函数一起使用，不能与聚合（Aggregation）函数一起使用。
 
-#### SQRT
+##### SQRT
 
 ```sql
 SQRT(expr)
@@ -6816,7 +6816,7 @@ SQRT(expr)
 
 **使用说明**：只能与普通列，选择（Selection）、投影（Projection）函数一起使用，不能与聚合（Aggregation）函数一起使用。
 
-#### TAN
+##### TAN
 
 ```sql
 TAN(expr)
@@ -6834,11 +6834,11 @@ TAN(expr)
 
 **使用说明**：只能与普通列，选择（Selection）、投影（Projection）函数一起使用，不能与聚合（Aggregation）函数一起使用。
 
-### 字符串函数
+#### 字符串函数
 
 字符串函数的输入参数为字符串类型，返回结果为数值类型或字符串类型。
 
-#### CHAR_LENGTH
+##### CHAR_LENGTH
 
 ```sql
 CHAR_LENGTH(expr)
@@ -6854,7 +6854,7 @@ CHAR_LENGTH(expr)
 
 **适用于**: 表和超级表。
 
-#### CONCAT
+##### CONCAT
 
 ```sql
 CONCAT(expr1, expr2 [, expr] ... )
@@ -6870,7 +6870,7 @@ CONCAT(expr1, expr2 [, expr] ... )
 
 **适用于**: 表和超级表。
 
-#### CONCAT_WS
+##### CONCAT_WS
 
 ```sql
 CONCAT_WS(separator_expr, expr1, expr2 [, expr] ...)
@@ -6886,7 +6886,7 @@ CONCAT_WS(separator_expr, expr1, expr2 [, expr] ...)
 
 **适用于**: 表和超级表。
 
-#### LENGTH
+##### LENGTH
 
 ```sql
 LENGTH(expr)
@@ -6902,7 +6902,7 @@ LENGTH(expr)
 
 **适用于**: 表和超级表。
 
-#### LOWER
+##### LOWER
 
 ```sql
 LOWER(expr)
@@ -6918,7 +6918,7 @@ LOWER(expr)
 
 **适用于**: 表和超级表。
 
-#### LTRIM
+##### LTRIM
 
 ```sql
 LTRIM(expr)
@@ -6934,7 +6934,7 @@ LTRIM(expr)
 
 **适用于**: 表和超级表。
 
-#### RTRIM
+##### RTRIM
 
 ```sql
 RTRIM(expr)
@@ -6950,7 +6950,7 @@ RTRIM(expr)
 
 **适用于**: 表和超级表。
 
-#### SUBSTR
+##### SUBSTR
 
 ```sql
 SUBSTR(expr, pos [,len])
