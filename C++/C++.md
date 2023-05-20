@@ -4884,7 +4884,155 @@ BlobPtr<T> BlobPtr<T>::operator++(int){
 
 ###### 一对一友好关系
 
-类模板与另一个（类或函数）模板间友好关系的最常见的形式是建立对应实例及其友元间的友好关系
+类模板与另一个（类或函数）模板间友好关系的最常见的形式是**建立对应实例及其友元间的友好关系**
+
+为了引用（类或函数）模板的一个特定实例，必须首先**声明模板自身**。一个模板声明包括模板参数列表
+
+```c++
+//前置声明，在Blob中声明友元所需要的
+template <typename> class BlobPtr;
+template <typename> class Blob;
+template <typename T>
+	bool operator==(const Blob<T>&, const Blob<T>&);
+template <typename T> class Blob{
+    //下面的声明建立起了一一对应的关系
+    friend class BlobPtr<T>;
+    friend bool operator==<T>(const Blob<T>&, const Blob<T>&);
+}
+```
+
+###### 通用和特定的模板友好关系
+
+**一个类可以将另一个模板的每个实例都声明为自己的友元，或者限定特定的实例为友元**
+
+```c++
+template <typename T> class Pal;
+class C{
+    friend class Pal<C>; //用类C实例化的Pal是C的一个友元
+    template <typename T> friend class Pal2; //所有Pal2的实力都是C的一个友元，此时无须前置声明
+};
+template <typename T> class C2{
+    friend class Pal<T>; //C2的每个实例都将相同实例化的Pal作为友元
+    template <typename X> friend class Pal2; //Pal2的所有实例都是C2每个实例的友元
+    friend class Pal3;//非模板类Pal3是C2所有实例的友元
+};
+```
+
+##### 令模板自己的类型参数成为友元
+
+```c++
+template <typename Type> class Bar{
+    friend Type; 
+    //xxx
+};
+```
+
+##### 模板类型别名
+
+类模板的一个实例对应了一个类类型，与其他类类型一样，可以定义一个typedef来引用实例化的类：
+
+```c++
+typedef Blob<string> StrBlob;
+```
+
+模板不是一个类型，所以不能定义typedef引用一个模板，即**无法定义typedef引用Blob\<T>**
+
+新标准**允许为类模板定义一个类型别名**
+
+```c++
+template <typename T> using twin = pair<T,T>;
+twin<string> authors; //authors 是一个 pair<string,string>
+```
+
+当定义一个模板类型别名时，可以固定一个或多个模板参数
+
+```c++
+template <typename T> using partNo = pair<T,unsigned>;
+partNo<string> books; //books 是一个 pair<string,unsigned>
+partNo<Vehicle> cars; //cars 是一个 pair<Vehicle,unsigned>
+partNo<Student> kids; //kids 是一个 pair<Student,unsigned>
+```
+
+##### 类模板的static成员
+
+类模板的每个实例都有其自己的static成员实例
+
+#### 16.1.3 模板参数
+
+类型参数通常命名为T，但实际上可以使用任何名字
+
+##### 模板参数与作用域
+
+模板参数遵循普通的作用域规则。**一个模板参数名的可用范围是在其声明之后，至模板声明或定义结束之前**
+
+模板参数会隐藏外层作用域中声明的相同名字，但是与其他大多数上下文不同，在模板内不能重用模板参数名
+
+```c++
+typedef double A;
+template <typename A, typename B> void f(A a, B b){
+    A tmp = a;  //tmp 不是double类型的
+    double B; //错误：重声明模板参数B
+}
+```
+
+一个模板参数名在一个特定模板参数列表中只能出现一次
+
+##### 模板声明
+
+**模板声明必须包含模板参数，与函数参数相同，声明中的模板参数的名字不必与定义中相同，只需要保证每个定义和声明都有相同数量和种类（类型或非类型）的参数**
+
+一个特定文件所需要的所有模板的声明通常一起放置在文件开始位置，出现于任何使用这些模板的代码之前，原因见[16.3]
+
+##### 使用类的类型成员
+
+使用作用域运算符(::)来访问static成员和类型成员。在普通（非模板）代码中，编译器掌握类的定义，因此它知道通过作用域运算符访问的名字是类型还是static成员，例如，string::size_type的定义因为编译器有string的定义，所以它知道size_type是一个类型
+
+但是假定T是一个模板类型参数，编译器遇到T::mem时不会知道mem是一个类型成员还是一个static数据成员，直至类实例化时才能知道。但是为了处理模板，编译器必须知道名字是否表示一个类型，例如当出现如下代码时
+
+```c++
+T::size_type * p;
+```
+
+它需要知道我们是在定义名为p的指针还是一个乘法操作
+
+**默认情况下，C++语言假定通过作用域运算符访问的名字不是类型，因此如果我们希望使用一个模板类型参数的类型成员，就必须显式告诉编译器该名字是一个类型，通过关键字`typename`来实现这一点：**
+
+```c++
+template<typename T>
+typename T::value_type top(const T& c){
+    if(!c.empty()){
+        return c.back();
+    }
+    else{
+        return typename T::value_type();
+    }
+}
+```
+
+当希望通知编译器一个名字表示类型时，必须使用关键字`typename`，而不能使用`class`
+
+##### 默认模板实参
+
+可以提供默认模板实参，可以为函数和类模板提供默认实参，例如，
+
+```c++
+template <typename T, typename F = less<T>>
+int compare(const T &v1,const T &v2, F f = F()){
+    if(f(v1,v2)) return -1;
+    if(f(v2,v1)) return 1;
+    return 0;
+}
+```
+
+F 表示可调用对象的类型，并定义了一个新的函数参数 f 绑定到一个可调用对象上
+
+对于一个模板参数，只有右侧的所有参数都有默认实参时，它才可以有默认实参
+
+##### 模板默认实参与类模板
+
+无论何时使用类模板，都必须在模板名后接上\<>。如果一个类所有模板参数都有默认实参且希望使用这些默认实参时，就必须在模板名之后跟一个空尖括号对
+
+
 
 
 
