@@ -5123,6 +5123,190 @@ T1 sum(T2,T3);
 没有实参可以用来推断 T1 的类型，每次调用 sum 时都必须为 T1 提供一个**显式模板实参**。显式模板实参在尖括号中给出，位于函数名之后，实参列表之前：
 
 ```c++
-auto 
+auto val3 = sum<long long>(i, lng);//显式指定 T1
 ```
+
+##### 正常类型转换应用于显式指定的实参
+
+用普通类型定义的函数参数，允许正常的类型转换；对于模板类型参数已经显式指定了的函数实参，也进行正常的类型转换
+
+```c++
+long lng;
+compare(lng, 1024); //错误：模板参数不匹配
+compare<long>(lng,1024);//正确：实例化compare(long,long)
+compare<int>(lng,1024);//正确：实例化compare(int,int)
+```
+
+#### 16.2.3 尾置返回类型与类型转换
+
+当返回类型时模板参数时，用户的负担比较重，因为无法从实参中推断模板参数的值。为了更好的定义我们使用尾置返回类型[6.3.3]，因为尾置返回类型出现在参数列表之后，它可以使用函数的参数
+
+```c++
+template <typename It>
+auto fcn(It beg,It end) -> decltype(*beg){
+    return *beg;
+}
+```
+
+这样返回类型就能够从 beg 的类型中推断出来
+
+##### 进行类型转换的标准库模板类
+
+为了获得元素类型，我们可以使用标准库的**类型转换**模板，位于头文件`type_traits`中。该头文件中的类通常用于所谓的模板元程序设计
+
+<center>标准类型转换模板</center>
+
+| 对Mod\<T>,其中Mod为  |            若T为             | 则Mod\<T>::type为 | 描述                             |
+| :------------------: | :--------------------------: | :---------------: | -------------------------------- |
+|   remove_reference   |      X&或X&&<br />否则       |     X<br />T      | 能够去掉引用                     |
+|      add_const       | X&、const X 或函数<br />否则 |  T<br />const T   | 为类型添加const                  |
+| add_lvalue_reference |    X&<br />X&&<br />否则     | T<br />X&<br />T& | 左值引用                         |
+| add_rvalue_reference |      X&或X&&<br />否则       |    T<br />T&&     | 添加右值引用，或保持左值引用不变 |
+|    remove_pointer    |         X*<br />否则         |     X<br />T      | 去掉指针                         |
+|     add_pointer      |      X&或X&&<br />否则       |    X\*<br />T*    |                                  |
+|     make_signed      |     unsigned X<br />否则     |     X<br />T      | 将无符号数变为有符号数           |
+|   remove_unsigned    |     带符号类型<br />否则     | unsigned X<br />T | 将带符号类型变为无符号类型       |
+|    remove_extent     |        X[n]<br />否则        |     X<br />T      |                                  |
+|  remove_all_extent   | X\[n~1~]\[n~2~]...<br />否则 |     X<br />T      |                                  |
+
+```c++
+remove_reference<decltype(*beg)>::type; //返回beg的类型（此时就不是引用了）
+```
+
+#### 16.2.4 函数指针和实参判断
+
+当用一个函数模板初始化一个函数指针或为一个函数指针赋值时，编译器使用指针的类型来推断模板实参
+
+```c++
+template <typename T> int compare(const T&, const T&);
+int (*pf1)(const int&, const int&) = compare;
+```
+
+pf1中参数的类型决定了T的模板实参的类型。上述代码中T的类型为int。
+
+如果不能从函数指针中确定模板实参，则发生错误
+
+```c++
+void func(int(*)(const string&,const string&));
+void func(int(*)(const int&,const int&));
+func(compare);//错误，两个函数都可以
+func(compare<int>);//正确，显示指明了使用func的那个版本
+```
+
+#### 16.2.5 模板实参推断和引用
+
+```c++
+template <typename T> void f(T &p);
+```
+
+编译器会应用正常的绑定规则；`const`是底层的，不是顶层的（引用自己是`const`的）
+
+##### 从左值引用函数参数推断类型
+
+当一个函数参数是模板类型参数的一个普通（左值）引用时，绑定规则告诉我们只能传递给它一个左值。实参可以是`const`类型也可以不是，如果实参是`const`的，则T将被推断为`const`类型
+
+```c++
+template <typename T> void f(T &p);
+f(i); //i是一个int;模板参数类型T是int
+f(ci);//模板参数类型是const int
+f(5);//错误，传递给一个&参数的实参必须是一个左值
+```
+
+如果一个函数参数的类型是`const T&`，正常的绑定规则告诉我们可以传递给它任何类型的实参——一个对象（const或非const）、一个临时对象或是一个字面常量值。当函数参数本身是const时，T的类型推断的结果不会是一个const类型，**const是函数参数的一部分；因此它不会是模板参数类型的一部分**
+
+```c++
+template <typename T> void f(T &p);
+f(i); //i是一个int;模板参数类型T是int
+f(ci);//ci是一个const int，但模板参数类型是int
+f(5);//一个const &参数可以绑定到一个右值；T是int
+```
+
+##### 从右值引用函数参数推断类型
+
+当一个函数参数是一个右值引用时，正常绑定规则告诉我们可以传递给它一个右值。这时，类型推断过程类似普通左值引用函数参数的推断过程。**推断出T的类型是该右值实参的类型**
+
+```c++
+template <typename T> void f3(T &&p);
+f3(42); //实参是一个int类型的右值；模板参数T是int
+```
+
+##### 引用折叠和右值引用参数
+
+假设 i 是一个int对象，我们可能认为像f3(i)这样的调用是不合法的，因为 i 是一个左值，而且通常不能将一个右值引用绑定到一个左值上。
+
+但是，C++语言提供了两个例外规则，允许上述的绑定。也是move这种标准库设施正确工作的基础
+
+**第一个例外规则影响右值引用参数的推断如何进行**。当我们将一个左值传递给函数的右值引用参数，且此右值引用指向模板类型参数时，编译器推断模板类型参数为实参的左值引用类型。因此调用上述f3(i)时，编译器推断T的类型为int&，而非int
+
+这样看起来可能f3的参数是左值引用的引用，但是**不能（直接）定义一个引用的引用。但是通过类型别名[2.5.1]或通过模板类型参数间接定义是可以的**
+
+这时**使用第二个例外规则绑定规则**：如果我们间接创建一个引用的引用，则这些引用形成了“折叠”。在所有情况下（除了一个例外），引用会折叠成一个普通的左值引用类型。在新标准中，折叠规则扩展到右值引用。只在一种特殊情况下引用会折叠成右值引用：右值引用的右值引用。**即，对于一个给定类型X：**
+
+- **X& &，X& &&和X&& &都折叠成类型X&**
+- **类型X&& && 折叠成X&&**
+
+**引用类型只能应用于间接创建的引用的引用，如类型别名或模板参数**
+
+#### 16.2.6 理解std::move
+
+##### std::move是如何定义的
+
+```c++
+template <typename T>
+typename remove_reference<T>::type&& move(T&& t){
+    return static_cast<typename remove_reference<T>::type&&>(t);
+}
+```
+
+通过引用折叠，move的函数参数可以与任何类型的实参匹配
+
+```c++
+string s1("hi"),s2;
+s2 = std::move(string("bye!"));
+s2 = std::move(s1);
+```
+
+##### std::move是如何工作的
+
+对于第一个std::move的调用
+
+- 推断出T的类型为string
+- 因此，remove_reference用string进行实例化
+- remove_reference\<string>的type成员是string
+- move的返回类型是string&&
+- move的函数参数t的类型为string&&
+
+对于第二个std::move的调用
+
+- 推断出的T的类型为string&
+- 因此，remove_reference用string&进行实例化
+- remove_reference\<string&>的type成员是string
+- move的返回类型是string&&
+- move的函数参数t的类型为string&&
+
+**从一个左值static_cast到一个右值引用是允许的**，这是一条针对右值引用的特许规则：虽然不能隐式地将一个左值转换为右值引用，但可以使用static_cast显式地将一个左值转换为右值引用
+
+#### 16.2.7 转发
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
