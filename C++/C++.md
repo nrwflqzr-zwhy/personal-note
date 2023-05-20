@@ -5346,13 +5346,113 @@ template <typename Type> intermediary(Type &&arg){
 
 ### 16.3 重载与模板
 
+函数模板可以被另一个模板或普通函数重载。名字相同的函数必须具有不同数量或类型的参数
 
+设计函数模板时，函数匹配规则会在以下几方面受到影响：
 
+- 对于一个调用，其候选函数包括所有模板实参推断成功的函数模板实例
+- 候选的函数模板总是可行的，因为模板实参推断会排除任何不可行的模板
+- 与往常一样，可行函数按类型转换来排序。当然可以用于函数模板调用的类型转换非常有限
+- 与往常一样，如果恰有一个函数提供比其他任何函数都要好的匹配，则选择此函数。但是，如果有多个函数提供同样好的匹配，则：
+  - 如果同样好的函数中只有一个是非模板函数，则选择此函数
+  - 如果同样好的函数中没有非模板函数，而有多个模板函数，且其中一个模板比其他模板更特例化，则选择此模板
+  - 否则，此调用有歧义
 
+##### 编写重载模板
 
+```c++
+template <typename T> string debug_rep(const T &t){
+    ostringstream ret;
+   	ret << t;
+    return ret.str();
+}
+```
 
+此函数可以用来生成一个对象对应的string表示，该对象可以是任意具备输出运算符的类型
 
+接下来定义打印指针的debug_rep版本
 
+```c++
+template <typename T> string debug_rep(T *p){
+    ostringstream ret;
+    ret << "pointer: " << p;
+    if(p){
+        //xxx
+    }else{
+        //xxx
+    }
+    return ret.str();
+}
+```
+
+此版本生成一个string，包括指针本身的值和调用debug_rep获得的指针指向的值。此函数不能用于打印字符指针，因为char*定义了一个<<版本，假定指针表示一个空字符结尾的字符数组，并打印数组的内容而非地址
+
+```c++
+string s("hi");
+cout << debug_rep(s) << endl;
+```
+
+此调用只有第一个版本可行
+
+如果用一个指针调用debug_rep
+
+```c++
+cout << debug_rep(&s) << endl;
+```
+
+两个函数都生成可行的实例：
+
+- debug_rep(const string *&)，T被绑定到string *
+- debug_rep(string*)，T被绑定到const string
+
+第二个版本提供debug_rep的精确匹配，第一个版本的实例需要进行普通指针到const指针的转换。
+
+##### 多个可行模板
+
+```c++
+cosnt string *sp = &s;
+cout << debug_rep(sp) << endl;
+```
+
+- debug_rep(const string *&)，T被绑定到string *
+- debug_rep(const string*)，T被绑定到const string
+
+正常的函数匹配规则无法区分这两个函数，但是根据重载模板函数的匹配规则，此调用被解析为debug_rep(T*)这个更特例化的版本
+
+### 16.4 可变参数模板
+
+**可变参数模板**就是一个接受可变数目的模板函数或模板类。可变数目的参数被称为**参数包**。存在两种参数包
+
+- 模板参数包，表示零个或多个模板参数
+- 函数参数包，表示零个或多个函数参数
+
+使用**省略号**来指出一个模板参数或函数参数表示一个包
+
+- 在一个模板参数列表中，class...或typename...指出接下来参数表示零个或多个类型的列表；一个类型名后面跟一个省略号表示零个或多个给定类型的非类型参数的列表
+- 在函数参数列表中，如果一个参数的类型是一个模板参数包，则此参数也是一个函数参数包
+
+```c++
+template <typename T, typename... Args>
+void foo(const T &t, const Args& ... rest);
+```
+
+> Args是一个模板参数包，rest是一个函数参数包
+>
+> Args表示零个或多个模板类型参数
+>
+> rest表示零个或多个函数参数
+>
+> Args和rest是一一对应的
+
+##### sizeof...运算符
+
+想要知道包中有多少元素时，可以使用sizeof...运算符，sizeof...运算符也返回一个常量表达式，而且不会对其实参求值
+
+```c++
+sizeof...(Args)
+```
+
+#### 16.4.1 
 
 
 
