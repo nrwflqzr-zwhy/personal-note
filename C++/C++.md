@@ -5632,3 +5632,24 @@ auto book = get<0>(item);
 
 ### 17.2 bitset 类型
 
+[4.8]节中介绍了将整型运算对象当做二进制位集合处理的一些内置运算符。标准库还定义了 **bitset** 类，使得位运算的使用更加容易，并且能够处理超过最长整型类型大小的位集合。定义在 **bitset 头文件**中
+
+#### 17.2.1 定义和初始化 bitset
+
+类似 array 类，bitset 具有固定的大小，当我们定义 bitset 时，需要声明它包含多少个二进制位
+
+```c++
+bitset<32> bitvec(1U);
+```
+
+**大小必须是一个常量表达式**，bitset 中二进制位是未命名的，通过位置来访问它们，0是低位
+
+<center>初始化 bitset 方法</center>
+
+|              构造器              |                             描述                             |
+| :------------------------------: | :----------------------------------------------------------: |
+|          bitset\<n> b;           |      b有n位，每一个位均为0。此构造函数是一个 constexpr       |
+|         bitset\<n> b(u);         | b是 unsigned long long 值u的低n位的拷贝。如果n超过 unsigned long long 的大小，则b中超出 unsigned long long 的高位被置为 0。此构造函数是一个 constexpr |
+| bitset\<n> b(s,pos,m,zero,one);  | b是 string s 从位置pos开始m个字符的拷贝。s只能包含字符zero或one；如果s包含其他字符，构造函数会抛出invalid_argument异常。字符b中分别保存为zero和one。pos默认为0，m默认为 string::npos,zero默认为'0',one默认为'1' |
+| bitset\<n> b(cp,pos,m,zero,one); | 与上一个构造函数相同，但从cp指向的字符数组中拷贝字符，如果为提供m，则cp必须指向一个C风格字符串。如果提供了m，则从cp开始必须至少有m个zero或one字符 |
+
