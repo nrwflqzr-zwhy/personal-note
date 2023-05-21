@@ -5681,6 +5681,222 @@ bitset<32> bitvec(1U);
 | b.to_string(zero,one)           | 返回一个string，表示b中的位模式。zero和one的默认值分别为0和1，用来表示b中的0和1 |
 | os<<b;<br />is>>b;              | 将b中二进制位打印为字符1或0，打印到流os<br />从is读取字符存入b。当下一个字符不是1或0时，或是已经读入b.size()个位时，读取过程停止 |
 
+### 17.3 正则表达式
+
+正则表达式是一种描述字符序列的方法，是一种极其强大的计算工具
+
+C++正则表达式库RE库，定义在头文件regex中，它包含多个组件
+
+| 组件            | 描述                                                         |
+| --------------- | ------------------------------------------------------------ |
+| regex           | 表示有一个正则表达式的类                                     |
+| regex_match     | 将一个字符序列与一个正则表达式匹配                           |
+| regex_search    | 寻找第一个与正则表达式匹配的子序列                           |
+| regex_replace   | 使用给定格式替换一个正则表达式                               |
+| sregex_iterator | 迭代器适配器，调用regex_search来遍历一个string中所有匹配的子串 |
+| smatch          | 容器类，保存在string中搜索的结果                             |
+| ssub_match      | string中匹配的子表达式的结果                                 |
+
+==**regex**==类表示一个正则表达式。除了初始化和赋值外，regex还支持其他的操作
+
+| regex_search和regex_match的参数 |                                                              |
+| ------------------------------- | ------------------------------------------------------------ |
+| (seq,m,r,mft)<br />(seq,r,mft)  | 在字符序列seq中查找regex对象r中的正则表达式。seq可以是一个string、表示范围的一对迭代器以及一个指向空字符结尾的字符数组的指针<br />m是一个match对象，用来保存匹配结果的相关细节。m和seq必须具有兼容的类型<br />mft是一个可选的regex_constats::match_flag_type值。它们会影响匹配过程。见[表17.13](#表17.13) |
+
+#### 17.3.1 使用正则表达式库
+
+```c++
+string pattern("[^c]ei");
+pattern = "[[:alpha:]]*" + pattern + "[[:alpha:]]*";
+regex r(pattern); //构造一个用于查找模式的regex
+smatch results;
+string test_str = "receipt freind theif receive";
+if(regex_search(test_str, results, r))
+    cout << results.str() << endl;
+```
+
+首先定义一个string保存希望查找的正则表达式。默认情况下regex使用的正则表达式语言是ECMASript。使用该string初始化regex对象，smatch对象将会保存匹配位置的细节信息。接下来调用了regex_search，如果找到匹配子串就返回true。regex_search在输入序列中只要找到一个匹配子串就会停止查找
+
+##### 指定regex对象的选项
+
+当我们定义一个regex或是对一个regex调用assign为其赋予新值时，可以指定一些标志影响regex如何操作
+
+| 操作                           | 描述                                                         |
+| ------------------------------ | ------------------------------------------------------------ |
+| regex r(re)<br />regex r(re,f) | re表示一个正则表达式，它可以是一个string、一个表示字符范围的迭代器对、一个指向空字符结尾的字符数组的指针、一个字符指针和一个计数器或是一个花括号包围的字符列表。f是指出对象如何处理的标志。f通过下面的值来设置。如果未指定f，其默认值为ECMAScript |
+| r1 = re                        | 将r1中的正则表达式替换为re，re表示一个正则表达式，它可以是另一个regex对象、一个string、一个指向空字符结尾的字符数组的指针或是一个花括号包围的字符列表 |
+| r1.assign(re,f)                | 与赋值运算符效果相同，可选的标志f也与regex的构造函数中对应的参数含义相同 |
+| r.mark_count()                 | r中子表达式的数目[17.3.3]                                    |
+| r.flags()                      | 返回r的标志集                                                |
+
+<center>定义regex时指定的标志</center>
+
+定义在regex和regex_constants::syntax_option_type中
+
+| 标志       | 描述                          |
+| ---------- | ----------------------------- |
+| icase      | 在匹配过程中忽略大小写        |
+| nosubs     | 不保存匹配的子表达式          |
+| optimize   | 执行速度优先于构造速度        |
+| ECMAScript | 使用ECMA-262指定的语法        |
+| basic      | 使用POSIX基本的正则表达式语法 |
+| extended   | 使用POSIX扩展的正则表达式语法 |
+| awk        | 使用POSIX版本的awk语言的语法  |
+| grep       | 使用POSIX版本的grep的语法     |
+| egrep      | 使用POSIX版本的egrep的语法    |
+
+##### 指定或使用正则表达式时的错误
+
+正则表达式不是由C++编译器解释的，是在运行时当一个regex对象被初始化或被赋值一个新模式时，才被“编译”的。如果我们编写的正则表达式存在错误，则在运行时标准库会抛出一个类型为regex_error的异常
+
+类似标准异常类型，regex_error有一个what操作来描述发生了什么错误。regex_error还有一个code成员，返回某个错误类型对应的数值编码
+
+定义在regex和regex_constants::error_type中
+
+| 错误类型         | 描述                                          |
+| ---------------- | --------------------------------------------- |
+| error_collate    | 无效的元素校对请求                            |
+| error_ctype      | 无效的字符类                                  |
+| error_escape     | 无效的转义字符或无效的尾置转义                |
+| error_backref    | 无效的向后引用                                |
+| error_brack      | 不匹配的方括号([或])                          |
+| error_paren      | 不匹配的小括号((或))                          |
+| error_brace      | 不匹配的花括号({或})                          |
+| error_badbrace   | {}中无效的范围                                |
+| error_range      | 无效的字符范围(如[z-a])                       |
+| error_space      | 内存不足，无法处理此正则表达式                |
+| error_badrepeat  | 重复字符(*、？、+、{)之前没有有效的正则表达式 |
+| error_complexity | 要求的匹配过于复杂                            |
+| error_stack      | 栈空间不足，无法处理匹配                      |
+
+##### 正则表达式类和输入序列类型
+
+**regex对应char或者string**
+
+**wregex对应wchar_t或wstring**
+
+二者的操作完全相同，唯一差别是wregex的初始值必须使用wchar_t而不是char
+
+匹配和迭代器类型更为特殊，这些类型的差异不仅在于字符类型，还在于序列是在标准库string中还是在数组中：
+
+- smatch表示string类型的输入序列
+- cmatch表示字符数组序列
+- wsmatch表示宽字符串（wstring）输入
+- wcmatch表示宽字符数组
+
+RE库类型必须与输入序列类型匹配
+
+| 如果输入序列类型 | 则使用正则表达式类                             |
+| ---------------- | ---------------------------------------------- |
+| string           | regex、smatch、ssub_match、sregex_iterator     |
+| const char*      | regex、cmatch、csub_match、cregex_iterator     |
+| wstring          | wregex、wsmatch、wssub_match、wsregex_iterator |
+| const wchar_t*   | wregex、wcmatch、wcsub_match、wcregex_iterator |
+
+#### 17.3.2 匹配与Regex迭代器类型
+
+默认的匹配只返回第一个匹配的单词。可以使用**sregex_iterator**来获得所有匹配。regex迭代器是一种迭代器适配器，被绑定到一个输入序列和一个regex对象上
+
+<center>sregex_iterator操作</center>
+
+也适用于cregex_iterator、wsregex_iterator、wcregex_iterator
+
+| 操作                                                | 描述                                                         |
+| --------------------------------------------------- | ------------------------------------------------------------ |
+| sregex_iterator it(b,e,r)<br />sregex_iterator end; | 一个sregex_iterator，遍历迭代器b和e表示的string。它调用sregex_search(b,e,r)将it定位到输入中第一个匹配的位置<br />sregex_iterator的尾后迭代器 |
+| *it<br />it->                                       | 根据最后一个调用regex_search的结果，返回一个smatch对象的引用或一个指向smatch对象的指针 |
+| ++it<br />it++                                      | 从输入序列当前匹配位置开始调用regex_search。前置版本返回递增后迭代器；后置版本返回旧值 |
+| it1 == it2<br />it1 != it2                          | 如果两个sregex_iterator都是尾后迭代器，则它们两个相等；两个非尾后迭代器是从相同的输入序列和regex对象构造，则它们相等 |
+
+将一个sregex_iterator绑定到一个string和一个regex对象时，迭代器自动定位到给定string中第一个匹配的为止（对string和regex调用了regex_search）
+
+##### 使用匹配数据
+
+smatch和ssub_match允许我们获得匹配的上下文，匹配类型有两个名为**prefix和suffix**的成员，分别返回表示输入序列中当前匹配之前和之后部分的ssub_match对象。一个ssub_match对象有两个名为str和length的成员，分别返回匹配的string和该string的大小
+
+![image-20230521142057258](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20230521142057258.png)
+
+下述的操作也适用于cmatch、wsmatch、wcmath和对应的csub_match、wssub_match和wssub_match
+
+| 操作                                       | 描述                                                         |
+| ------------------------------------------ | ------------------------------------------------------------ |
+| m.ready()                                  | 如果已经通过调用regex_search或regex_match设置了m，则返回true；否则返回false。如果ready返回false，则对m进行操作时未定义的 |
+| m.size()                                   | 如果匹配失败，则返回0；否则返回最近一次匹配的正则表达式中子表达式的数目 |
+| m.empty()                                  | m.size() == 0 返回true                                       |
+| m.prefix()                                 | 一个ssub_match对象，表示当前匹配之前的序列                   |
+| m.suffix()                                 | 一个ssub_match对象，表示当前匹配之后的序列                   |
+| m.format(...)                              | 见[表17.12]                                                  |
+|                                            | 在接受一个索引的操作中，n的默认值为0且必须小于m.size()<br />第一个子匹配（索引为0）表示整个匹配 |
+| m.length(n)                                | 第n个匹配的子表达式的大小                                    |
+| m.position(n)                              | 第n个子表达式距序列开始的距离                                |
+| m.str(n)                                   | 第n个子表达式匹配的string                                    |
+| m[n]                                       | 对应第n个子表达式的ssub_match对象                            |
+| m.begin(),m.end()<br />m.cbegin(),m.cend() | 表示m中sub_match元素范围的迭代器。                           |
+
+#### 17.3.3 使用子表达式
+
+正则表达式的模式中通常包含一个或多个**子表达式**，一个子表达式是模式的一部分，本身也具有意义。正则表达式语法通常用括号表示子表达式。正则表达式通常用括号表示子表达式
+
+```c++
+regex r("([[:alnum:]]+)\\.(cpp|cxx|cc)$",regex::icase);
+```
+
+该模式中有两个括号括起来的子表达式：
+
+- ([[:alnum:]]+)，匹配一个或多个字符的序列
+- (cpp|cxx|cc)，匹配文件扩展名
+
+```c++
+if (regex_search(filename, results, r)){
+    cout << results.str(1) <<endl; //打印第一个子表达式
+}
+```
+
+匹配对象除了提供匹配整体相关信息外，还提供访问模式中每个子表达式的能力。==**子匹配是按位置来访问的。第一个子匹配位置为0，表示整个模式对应的匹配，随后是每个子表达式对应的匹配**==
+
+适用于ssub_match、csub_match、wssub_match、wcsub_match
+
+| 操作              | 描述                                                         |
+| ----------------- | ------------------------------------------------------------ |
+| matched           | 一个public bool 数据成员，指出此ssub_match是否匹配了         |
+| first<br />second | public数据成员，指向匹配序列首元素和尾后位置的迭代器。如果未匹配，则first和second是相等的 |
+| length()          | 匹配的大小                                                   |
+| str()             | 返回一个包含输入中匹配部分的string                           |
+| s = ssub          | 将ssub_match对象ssub转换为string对象s。等价于s=ssub.str()    |
+
+#### 17.3.4 使用regex_replace
+
+正则表达式不仅用在查找一个给定序列的时候，还用在想将找到的序列替换为另一个序列的时候
+
+希望在输入序列中查找并替换一个正则表达式时，可以调用regex_replace
+
+| 操作                                                         | 描述                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| m.format(dest,fmt,mft)<br />m.format(fmt,mft)                | 使用格式字符串fmt生成格式化输出，匹配在m中，可选的match_flag_type标志在mft中。第一个版本写入迭代器dest指向的目的位置并接受fmt参数，可以是一个string也可以是表示字符数组中范围的一对指针。第二个版本返回一个string，保存输出，并接受fmt参数，可以是一个string，也可以是一个指向空字符结尾的字符数组的指针。mft的默认值为format_default |
+| regex_replace(dest,seq,r,fmt,mft)<br />regex_replace(seq,r,fmt,mft) | 遍历seq，用regex_search查找与regex对象r匹配的子串。使用格式字符串fnt和可选的match_flag_type标志来生成输出。第一个版本将输出写到迭代器dest指向的位置，并接受一对迭代器seq表示范围。第二个版本返回一个string，保存输出，且seq即可以是一个string也可以是一个指向空字符结尾的字符数组的指针。在所有情况下，fmt既可以是一个string也可以是一个指向空字符结尾的字符数组的指针，且mft默认为match_default |
+
+<span id="表17.13">表 17.13 </span>
+
+![image-20230521151730269](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20230521151730269.png)
+
+### 17.4 随机数
+
+新标准出现之前，C/C++都依赖于一个简单的C库函数rand生成随机数。此函数生成均匀分布的伪随机整数，每个随机数的范围在0和一个系统相关的最大值（至少32767）之间
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
