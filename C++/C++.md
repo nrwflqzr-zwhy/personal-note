@@ -5495,13 +5495,140 @@ ostream &errorMsg(ostream &os, const Args&... rest){
 
 这个 print 调用使用了模式debug_rep(rest)。此模式表示希望对函数参数包 rest 中的每个元素调用 debug_rep。扩展结果将是一个逗号分隔的 debug_rep 调用列表
 
+#### 16.4.3 转发参数包
+
+可以组合使用可变参数模板与 forward 机制来编写函数，实现将其实参不变地传递给其他函数
+
+保持信息是一个两阶段的过程：
+
+1. 首先为了保持实参中的类型信息，我们必须将函数参数定义为模板类型参数的右值引用
+
+   ```c++
+   class StrVec{
+       public:
+       	template <class... Args> void emplace_back(Args&&...);
+   }
+   ```
+
+2. 当 emplace_back 将这些实参传递给 construct 时，必须使用 forward 来保持实参的原始类型
+
+   ```c++
+   template <class... Args>
+   inline
+   void StrVec::emplace_back(Args&&.. args){
+       //pass
+       alloc.construct(first_free++, std::forward<Args>(args)...);
+   }
+   ```
+
+   即扩展了模板参数包Args，也扩展了函数参数包args
 
 
 
+### 16.5 模板特例化
 
+编写单一模板使其对任何模板实参都是最适合的非常困难
 
+##### 定义函数模板特例化
 
+当我们特例化一个函数模板时，必须为原模板中的每个模板参数都提供实参。为了指出正在实例化一个模板，应使用关键字 template 后跟一个空尖括号对。空尖括号对指出我们将为原模板的所有模板参数提供实参
 
+```c++
+template <>
+int compare(const char* const &p1,const char* const &p2){
+    return strcmp(p1,p2);
+}
+```
 
+##### 函数重载与模板特例化
 
+定义函数模板的特例化版本的时候，本质上是接管了编译器的工作。重要的是清楚：**一个特例化版本本质上是一个实例，而非函数名的一个重载版本**
+
+##### 类模板特例化
+
+同样的需要 template 和 \<> ，定义时将需要的模板参数替换为对应的类型即可
+
+##### 类模板部分特例化
+
+与函数模板不同，类模板的特例化不必为所有模板参数提供实参。可以只指定一部分而非所有模板参数，或是参数的一部分而非全部特性。**一个类模板的部分特例化本身仍是一个模板，使用时用户还必须为未指定的模板参数提供实参**
+
+```c++
+template <class T> struct remove_reference{
+    typedef T type;
+};
+template <class T> struct remove_reference<T&>{
+    typedef T type;
+};
+template <class T> struct remove_reference<T&&>{
+    typedef T type;
+};
+```
+
+第一个模板提供了最通用的版本
+
+> 由于一个部分特例化版本本质上是一个模板，与往常一样，我们首先定义模板参数。类似任何其他特例化版本，部分特例化版本的名字与原模板的名字相同。对每个未完全确定类型的模板参数，在特例化版本的模板参数列表中都有一项与之对应。在类名之后，为要特例化的模板参数指定实参，这些实参列于模板名之后的尖括号中。这些实参与原始模板中的参数按位置对应。
+
+##### 特例化成员而不是类
+
+可以只特例化特定成员函数，例如 Foo 是一个模板类，包含一个成员 Bar
+
+```c++
+template <>
+void Foo<int>::Bar(){}
+```
+
+只特例化了 Foo\<int> 的一个成员，其他成员由 Foo 模板提供
+
+# 第 IV 部分 高级主题
+
+## 第十七章 标准库特殊设施
+
+### 17.1 tuple 类型
+
+tuple 是类似 pair 的模板。pair 的成员类型都不相同，但每个 pair 都恰好有两个成员。**不同 tuple 类型的成员类型也不相同，但一个 tuple 可以有任意数量的成员**。每个确定的 tuple 类型的成员数目是固定的，但一个 tuple 类型的成员数目可以与另一个 tuple 类型不同
+
+定义在 tuple 头文件中
+
+<center>tuple 支持的操作</center>
+
+|                 操作                  |                             说明                             |
+| :-----------------------------------: | :----------------------------------------------------------: |
+|        tuple\<T1,T2,...,Tn> t;        | t 是一个 tuple，成员数为 n，第 i 个成员的类型为 Ti，所有成员都进行值初始化 |
+| tuple\<T1,T2,...,Tn> t(v1,v2,...,vn); |     每个成员用对应的 vi 初始化，此构造函数是 explicit 的     |
+|       make_tuple(v1,v2,...,vn)        |                返回一个用给定值初始化的 tuple                |
+|               t1 == t2                | 当两个 tuple 具有相同数量的成员却成员对应相等时，两个 tuple 相等。 |
+|               t1 != t2                |                                                              |
+|              t1 relop t2              | tuple 的关系运算符使用字典序。两个 tuple 必须具有相同数量的成员。使用 < 运算符比较 t1 和 t2 |
+|              get\<i>(t)               | 返回 t 的第 i 个数据成员的引用；如果 t 是一个左值，结果是一个左值引用，否则右值引用。tuple 的所有成员都是 public 的 |
+|     tuple_size\<tupleType>::value     | 一个类模板，可以通过一个 tuple 类型来初始化。它有一个名为 value 的 public constexpr static 数据成员，类型为 size_t，表示给定 tuple 类型中成员的数量 |
+|  tuple_element\<i, tupleType>::type   | 一个类模板，可以通过一个整型常量和一个 tuple 类型来初始化。它有一个名为 type 的 public 成员，表示给定 tuple 类型中指定的成员 |
+
+#### 17.1.1 定义和初始化 tuple
+
+当定义一个 tuple 时，需要指出每个成员的类型
+
+默认构造函数会对每个成员进行值初始化，也可以为每个成员提供一个初始值，但是这个构造函数是 explicit 的，因此必须使用直接初始化语法
+
+```c++
+tuple<size_t, size_t, size_t> threeD = {1,2,3}; //错误
+tuple<size_t, size_t, size_t> threeD{1,2,3}; //正确
+```
+
+##### 访问 tuple 成员
+
+使用名为 get 的标准库函数模板来访问 tuple 的成员
+
+```c++
+auto book = get<0>(item);
+```
+
+==**尖括号中的值必须是整型常量表达式**==
+
+##### 关系和相等运算符
+
+只有两个 tuple 具有相同数量的成员是，才可以比较
+
+使用 tuple 的相等或不等运算符，对每对成员使用 == 运算符必须都是合法的；为了使用关系运算符，对每对成员使用 < 必须是合法的
+
+### 17.2 bitset 类型
 
