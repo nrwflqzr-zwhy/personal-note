@@ -5653,3 +5653,71 @@ bitset<32> bitvec(1U);
 | bitset\<n> b(s,pos,m,zero,one);  | b是 string s 从位置pos开始m个字符的拷贝。s只能包含字符zero或one；如果s包含其他字符，构造函数会抛出invalid_argument异常。字符b中分别保存为zero和one。pos默认为0，m默认为 string::npos,zero默认为'0',one默认为'1' |
 | bitset\<n> b(cp,pos,m,zero,one); | 与上一个构造函数相同，但从cp指向的字符数组中拷贝字符，如果为提供m，则cp必须指向一个C风格字符串。如果提供了m，则从cp开始必须至少有m个zero或one字符 |
 
+##### 用 unsigned 值初始化 bitset
+
+当我们使用整型值初始化 bitset 时，此值将被转换为 unsigned long long 类型并被当做位模式来处理。bitset 中的二进制位是此模式的一个副本。
+
+##### 从一个 string 初始化 bitset
+
+我们可以从一个string或一个字符数组指针来初始化 bitset。字符直接表示位模式（参考构造器）
+
+#### 17.2.2 bitset 操作
+
+<center>bitset 操作</center>
+
+| 操作                            | 描述                                                         |
+| ------------------------------- | ------------------------------------------------------------ |
+| b.any()                         | b中是否存在置位的二进制位                                    |
+| b.all()                         | b中所有位都置位了吗                                          |
+| b.none()                        | b中不存在置位的二进制位吗                                    |
+| b.count()                       | b中置位的位数                                                |
+| b.size()                        | 一个 constexpr 函数，返回b中的位数                           |
+| b.test(pos)                     | 若pos位置的位是置位的，则返回true，否则返回false             |
+| b.set(pos,v)<br />b.set()       | 将位置pos处的位设置为bool值v。v默认为true<br />若未传递实参，则将b中所有位置位 |
+| b.reset(pos)<br />b.reset()     | 将位置pos处的位复位或将b中所有位复位                         |
+| b.flip(pos)<br />b.flip()       | 改变位置pos处的位的状态或改变b中每一位的状态                 |
+| b[pos]                          | 访问b中位置pos出的位；如果b是const的，则当该位置位时b[pos]返回一个true，否则返回false |
+| b.to_ulong()<br />b.to_ullong() | 返回一个unsigned long或一个unsigned long long值，其位模式与b相同。如果b中位模式不能放入指定的结果类型，则抛出一个overflow_error异常 |
+| b.to_string(zero,one)           | 返回一个string，表示b中的位模式。zero和one的默认值分别为0和1，用来表示b中的0和1 |
+| os<<b;<br />is>>b;              | 将b中二进制位打印为字符1或0，打印到流os<br />从is读取字符存入b。当下一个字符不是1或0时，或是已经读入b.size()个位时，读取过程停止 |
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
