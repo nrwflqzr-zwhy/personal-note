@@ -5452,7 +5452,48 @@ void foo(const T &t, const Args& ... rest);
 sizeof...(Args)
 ```
 
-#### 16.4.1 
+#### 16.4.1 编写可变参数函数模板
+
+使用`initializer_list`可以定义一个可接受可变数目实参的函数，但是所有实参必须是同样的类型
+
+当实参数目和类型都不确定时，使用可变参数函数很有用
+
+**可变参数函数通常是递归的，**
+
+1. **调用处理包中的第一个实参**
+2. **用剩余实参调用自身**
+
+#### 16.4.2 包扩展
+
+对于一个参数包，除了**获取其大小**外，能够对它做的唯一的事情就是**扩展**。当扩展一个包时，还要提供用于每个扩展元素的模式。拓展一个包就是将它分解为构成的元素，对每个元素应用模式，获得扩展后的列表。**通过在模式右边放一个省略号来触发扩展操作**
+
+```c++
+template <typename T, typename... Args>
+ostream & 
+print(ostream &os, const T &t, const Args& ... rest){ //扩展Args
+    //
+    return print(os,rest...);//扩展rest
+}
+```
+
+第一个扩展模板参数包，为 print 生成函数参数列表
+
+第二个扩展函数参数包，为 print 生成实参列表
+
+##### 理解包扩展
+
+print 中的函数参数包仅仅将包扩展为其构成元素，C++语言支持更复杂的扩展模式
+
+可以对其每个参数调用某个方法
+
+```c++
+template <typename... Args>
+ostream &errorMsg(ostream &os, const Args&... rest){
+    return print(os, debug_rep(rest)...);
+}
+```
+
+这个 print 调用使用了模式debug_rep(rest)。此模式表示希望对函数参数包 rest 中的每个元素调用 debug_rep。扩展结果将是一个逗号分隔的 debug_rep 调用列表
 
 
 
