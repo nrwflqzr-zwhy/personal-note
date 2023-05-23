@@ -6526,9 +6526,9 @@ Qlib::Query q;
 
 ##### using声明：扼要概述
 
-一条using声明语句一次值引入命名空间的一个成员。使得我们清楚地知道程序使用的是哪个名字
+一条using声明语句一次只引入命名空间的一个成员。使得我们清楚地知道程序使用的是哪个名字
 
-using声明引入的名字遵守作用域规则：**有效范围从using声明开始，一直到using声明所在的作用域结束**。此时外层作用域的同名实体将被隐藏
+using声明引入的名字遵守作用域规则：**有效范围从using声明开始，一直到using声明==所在的作用域==结束**。此时**外层作用域的同名实体**将**被隐藏**
 
 一条using语句可以出现在全局作用域、局部作用域、命名空间作用域以及类作用域中。在类作用域中，这样的声明语句只能指向基类成员
 
@@ -6548,7 +6548,7 @@ using指示使得特定命名空间中的所有名字都可见
 
 using声明引入的作用域与using声明语句本身的作用域一致。
 
-using指示具有将命名空间成员提升到包含命名空间本身和using指示的最近作用域的能力
+using指示具有**将命名空间成员提升到包含命名空间本身**和**using指示的最近作用域**（using指示所属作用域？）的能力
 
 ##### 头文件与using声明或指示
 
@@ -6614,5 +6614,95 @@ int main(){
 
 #### 18.2.4 重载与命名空间
 
+命名空间对函数匹配过程有两方面影响
 
+- using声明或using指示能将某些函数添加到候选函数集
+- 另一个影响比较微妙
+
+##### 与实参相关的查找与重载
+
+对于接受类类型实参的函数来说，其名字查找将在实参类所属的命名空间中进行。这对于如何确定候选函数集有影响。我们将在每个实参类（及其基类）所属的命名空间中搜寻候选函数。在这些命名空间中所有与被调用函数同名的函数都将被添加到候选集当中，即使其中某些函数在调用语句处不可见
+
+```c++
+namespace NS{
+    class Quote{};
+    void display(const Quote&){}
+}
+class Bulk_item : public NS::Quote{};
+int main(){
+    Bulk_item.book1;
+    display(book1);
+    return 0;
+}
+```
+
+传递给display的实参属于类类型Bulk_item，因此该调用语句的候选函数不仅应该在调用语句所在的作用域中查找，也应该在Bulk_item及其基类Quote所属的命名空间中查找。命名空间中的函数display(const Quote&)也将被添加到候选函数集中
+
+##### 重载与using声明
+
+using声明语句生命的是一个名字，而非一个特定的函数
+
+```c++
+using NS::print(int); //错误：不能指定形参列表
+using NS::print; //正确
+```
+
+该函数的所有版本都将被引入到当前作用域中
+
+一个using声明囊括了重载函数的所有版本以确保不违反命名空间的接口
+
+一个using声明引入的函数将重载该声明语句所属作用域中已有的其他同名函数。如果using声明出现在局部作用域中，则引入的名字将隐藏外层作用域的相关声明。如果using声明所在作用域已经有一个函数与新引入的函数同名且形参列表相同，则该using声明将引发错误。
+
+##### 重载与using指示
+
+using指示将命名空间的成员提升到外层作用域中，如果命名空间的某个函数与该命名空间所属作用域的函数同名，则命名空间的函数将被添加到重载集合中
+
+```c++
+namespace libs_R_us{
+    extern void print(int);
+    extern void print(double);
+}
+void print(const std::string &);
+using namespace libs_R_us;
+void fooBar(int ival){
+    print("Value: ");
+    print(ival);
+}
+```
+
+与using声明不同，对于using指示，**引入一个与已有函数形参列表完全相同的函数并不会产生错误**，此时只需要指明使用的是哪个版本
+
+##### 跨越多个using指示的重载
+
+```c++
+namespace AW{
+	int print(int);
+}
+namespace Primer{
+	double print(double);
+}
+using namespace AW;
+using namespace Primer;
+long double print(long double);
+int main(){
+    print(1); //AW::print
+    print(3.1); //Primer::print
+    return 0;
+}
+```
+
+### 18.3 多重继承与虚继承
+
+多重继承是指从多个直接基类中产生派生类的能力。多重继承的派生类继承了所有父类的属性
+
+#### 18.3.1 多重继承
+
+```c++
+class Bear : public ZooAnimal{};
+class Panda : public Bear, public Endangered{};
+```
+
+每个基类包含一个可选的访问说明符
+
+与单继承一样，多继承的派生列表页只能包含已经**定义过**的类，而且这些类不能是final的
 
