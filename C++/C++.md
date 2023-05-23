@@ -6772,5 +6772,20 @@ struct D2 : public Base1, public Base2{
 
 #### 18.3.2 类型转换与多个基类
 
+可以令某个可访问基类的指针或引用直接指向一个派生类对象
 
+ZooAnimal、Bear、Endangered类型的指针或引用可以绑定到Panda对象上
+
+编译器不会在派生类向基类的转换中进行比较和选择，在它看来**转换到任意一种基类都一样好**
+
+```c++
+void print(const Bear&);
+void print(const Endangered&);
+Panda ying_yang("xxx");
+print(ying_yang); //二义性错误
+```
+
+##### 基于指针或引用类型的查找
+
+对象、指针和引用的**静态类型**决定了我们能够使用哪些成员（决定成员的可见性）
 
