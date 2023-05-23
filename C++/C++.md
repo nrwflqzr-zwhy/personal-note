@@ -6850,25 +6850,241 @@ class Panda : public Bear, public Raccoon, public Endangered{};
 
 #### 18.3.5 构造函数与虚继承
 
+**在虚派生中，虚基类是由最底层的派生类初始化的**。以上面的继承关系为例，当创建Panda时，由Panda的构造函数独自控制ZooAnimal的初始化过程。如果以普通初始化的方式，那么虚基类将会在多条继承路径上被重复初始化。
 
+继承体系中的每个类都可能在某个时刻成为”最底层的派生类“。只要我们能创建虚基类的派生类对象，该派生类的构造函数就必须初始化它的虚基类。
 
+例如，当创建一个Bear的对象时，它已经位于派生的最底层，因此Bear的构造函数将直接初始化其ZooAnimal基类部分；
 
+```c++
+Bear::Bear(std::string name,bool onExhibit) : ZooAnimal(name,onExhibit,"Bear");
+Raccoon::Raccoon(std::string name,bool onExhibit) : ZooAnimal(name,onExhibit,"Raccoon");
+```
 
+当创建一个Panda对象时，Panda位于派生的最底层并由它负责初始化共享的的ZooAnimal基类部分。即使ZooAnimal不是Panda的直接基类，Panda的构造函数也可以初始化ZooAnimal
 
+```c++
+Panda::Panda(std::string name, bool onExhibit) 
+:ZooAnimal(name,onExhibit,"Panda"),
+Bear(name, onExhibit),
+Raccoon(name,onExhibit),
+Endangered(Endangered::critical),
+sleeping_flag(false){}
+```
 
+##### 虚继承的对象的构造方式
 
+含有虚基类的对象的构造顺序与一般的顺序稍有区别：**首先使用提供给最底层派生类构造函数的初始值初始化该对象的虚基类子部分，接下来按照直接基类在派生列表中出现的次序依次对其进行初始化**
 
+如果Panda没有显式地初始化ZooAnimal基类，那么将调用ZooAnimal的默认构造函数
 
+##### 构造函数与析构函数的次序
 
+一个类可以有多个虚基类，这些虚的子对象按照它们在派生列表中出现的顺序从左向右依次构造
 
+编译器按照直接虚基类的声明顺序对其一次进行**检查**（不是构造），以确定其中是否含有虚基类。如果有，则先构造虚基类，然后按照声明顺序逐一构造其他非虚基类
 
+合成的拷贝和移动构造函数按照完全相同的顺序执行，合成的赋值运算符中的成员也按照该顺序执行。
 
+对象的销毁顺序与构造顺序正好相反
 
+## 第十九章 特殊工具与技术
 
+### 19.1 控制内存分配
 
+#### 19.1.1 重载new和delete
 
+当我们使用一条`new`表达式时：
 
+```c++
+string *sp = new string("a value"); //分配并初始化一个string对象
+string *arr = new string[10]; //分配10个默认初始化的string对象
+```
 
+实际执行了三步操作
+
+1. **new表达式调用一个名为operator new（或者operator new[])的标准库函数。该函数分配一块足够大、原始的、未命名的内存空间以便存储特定类型的对象（或对象的数组）**
+2. **编译器运行相应的构造函数以构造这些对象，并为其传入初始值**
+3. **对象被分配了空间并构造完成，返回一个指向该对象的指针**
+
+------
+
+当我们使用一个`delete`表达式删除一个动态分配的对象时：
+
+```c++
+delete sp; //销毁*sp，然后释放sp指向的内存空间
+delete [] arr; //销毁数组中的元素，然后释放对应的内存空间
+```
+
+实际执行了两步操作
+
+1. **对sp所指的对象或者arr所指的数组中的元素执行对应的析构函数**
+2. **编译器调用名为operator delete（或者operator delete[])的标准库函数释放内存空间**
+
+**如果应用程序希望控制内存分配过程，则需要自定义operator new 和 opertor delete**，既可以在全局作用域中定义operator new 和 opertor delete函数，也可以将它们定义为成员函数。
+
+当编译器发现一条new表达式或delete表达式后，将在程序中查找可供调用的operator函数。如果被分配（释放）的对象时类类型，则**编译器首先在类及其基类作用域中查找**，然后再在全局作用域查找匹配的函数，否则使用标准库定义的版本
+
+可以使用作用域运算符令new或delete表达式忽略定义在类中的函数，直接执行全局作用域中的版本。例如::new 、 ::delete
+
+##### operator new接口和operator delete接口
+
+标准库定义了operator new函数和operator delete函数的8个重载版本，其中前4个可能抛出bad_alloc异常，后4个版本不会抛出异常
+
+```c++
+//这些版本可能抛出异常
+void *operator new(size_t); //分配一个对象
+void *operator new[](size_t);//分配一个数组
+void *operator delete(void*) noexcept; //释放一个对象
+void *operator delete[](void*) noexcept;//释放一个数组
+//这些版本承诺不会抛出异常
+void *operator new(size_t,nothrow_t&) noexcept;
+void *operator new[](size_t,nothrow_t&) noexcept;
+void *operator delete(void*,nothrow_t&) noexcept;
+void *operator delete[](void*,nothrow_t&) noexcept;
+```
+
+类型nothrow_t是定义在头文件中的一个struct，在这个类型中不包含任何成员。new头文件还定义了一个名为nothrow的const对象，**用户可以通过这个对象请求new的非抛出版本**。**与析构函数类似，operator delete也不允许抛出异常**。当我们重载这些运算符时，必须使用noexcept异常说明符指定其不抛出异常
+
+应用程序可以自定义上面函数版本中的任意一个（位于全局作用域或者类作用域中），**上述运算符函数定义为类的成员时，它们是隐式静态的**（因为一个用在对象构造前，一个用在对象析构后，所以只能是静态的，而且不能操作类的任何成员）
+
+**对于operator new或者operator new[]，返回类型必须是void*，第一个形参必须是size_t（存储指定类型对象所需的字节数或者存储数组中所有元素所需的空间）且不能含有默认实参**，自定义operator new可以提供额外的形参，此时用到这些自定义函数的new表达式必须使用**new的定位形式**[12.1.2]将实参传给新增的形参。一般情况下我们可以定义具有任何形参的opertor new，但是**下面这个函数无论如何不能被用户重载：**
+
+```c++
+void *operator new(size_t,void*);//只供标准库使用，不能被用户重新定义
+```
+
+**对于operator delete或者operator delete[]，它们的返回类型必须是void，第一个形参的类型必须是void*，指向待释放内存的指针将初始化void\* 形参**
+
+当使用operator delete或operator delete[]定义成类的成员时，该函数可以包含另外一个类型为size_t的形参，该形参的初始值是第一个形参所指对象的字节数。size_t形参可用于删除继承体系中的对象，如果基类有一个虚析构函数，则传递给operator delete的字节数将因待删除指针所指对象的动态类型不同而有所区别。而且，实际运行的operator delete版本也由对象动态类型决定
+
+> new 表达式与operator new函数
+>
+> 标准库函数operator new 和 operator delete的名字容易让人误解。和其他operator函数不同（如operator=），这两个函数并没有重载new表达式或delete表达式。实际上我们根本无法自定义new表达或delete表达式的行为
+>
+> 一条new表达式的执行过程总是先调用operator new函数以获取内存空间，然后在得到的内存空间中构造对象。与之相反，一条delete的执行过程总是先销毁对象，然后调用operator delete函数释放对象所占的空间
+>
+> 改变operator new和operator delete的目的在于改变内存的分配方式
+
+##### malloc函数与free函数
+
+`cstdlib`头文件
+
+malloc函数接受一个表示待分配字节数的size_t，返回指向分配空间的指针或者返回0表示分配失败
+
+free函数接受一个void*，它是malloc返回的指针的副本，free将相关内存返回给系统。free(0)没意义
+
+#### 19.1.2 定位new表达式
+
+普通的代码也可以调用operator new和operator delete
+
+应该使用new的**定位new**形式构造对象。可以使用定位new传递一个地址
+
+```c++
+new (place_address) type;
+new (place_address) type(initializers);
+new (place_address) type [size];
+new (place_address) type [size] {braced initializer list};
+```
+
+其中place_address必须是个指针，同时在initializers中提供一个以逗号分隔的初始值列表用于构造新分配的对象
+
+当仅通过一个地址值调用时，定位new使用operator new(size_t,void*)分配它的内存。该函数不分配任何内存，只是简单地返回指针实参；然后new表达式负责在指定的地址初始化对象以完成整个工作。定位new允许在一个特定的、预先分配的内存地址上构造对象
+
+##### 显式地析构函数调用
+
+```c++
+string *sp = new string("a value");
+sp->~string();
+```
+
+调用析构函数可以清除给定的对象但是不会释放该对象所在的空间，如果需要的话，可以重新使用该空间
+
+### 19.2 运行时类型识别
+
+运行时类型识别（run-time type identification,RTTI)的功能由两个运算符实现：
+
+- typeid运算符，用于返回表达式的类型
+- dynamic_cast运算符，用于将基类的指针或引用安全的转换成派生类的指针或引用
+
+当将这两个运算符用于某种类型的指针或引用，并且该类型含有虚函数时，运算符将使用指针或引用所绑定对象的动态类型
+
+特别适用于以下情况：
+
+​	使用基类对象的指针或引用执行某个派生类操作并且该操作不是虚函数
+
+#### 19.2.1 dynamic_cast运算符
+
+dynamic_cast运算符的使用形式如下：
+
+```c++
+dynamic_cast<type*>(e);
+dynamic_cast<type&>(e);
+dynamic_cast<type&&>(e);
+```
+
+type必须是类类型（通常应该含有虚函数）。第一种形式e必须是有效指针，第二种形式e必须是左值，第三种形式e不能是左值
+
+e的类型必须符合以下三个条件之一
+
+- e的类型是目标type的公有派生类
+- e的类型是目标type的公有基类
+- e的类型就是目标type的类型
+
+符合，则类型转换可以成功，否则失败。如果转换目标是指针类型并且失败了，结果为0；如果是引用并且失败了，抛出bad_cast异常
+
+##### 指针类型的dynamic_cast
+
+Base至少有一个虚函数，有一个指向Base的指针bp，可以在运行时将它转换成指向派生类的指针
+
+```c++
+Derived *bp = dynamic_cast<Derived*>(bp);
+```
+
+> 可以对空指针执行dynamic_cast，结果是所需类型的空指针
+
+##### 引用类型的dynamic_cast
+
+引用类型的dynamic_cast与指针类型dynamic_cast在表示错误发生时略有不同（因为不存在所谓空引用），当引用类型的转换失败时，程序抛出一个名为std::bad_cast的异常（定义在typeinfo头文件）
+
+#### 19.2.2 typeid运算符
+
+typeid运算符允许程序向表达式提问：你的对象类型是什么？
+
+`typeid(e)`，e可以是任意表达式或类型的名字，操作结果是一个常量对象的引用，该对象的类型是标准库类型type_info（typeinfo头文件）或者type_info的公有派生类型
+
+typeid可以作用于任意类型的表达式。顶层const被忽略，**如果表达式是一个引用，则typeid返回该引用所引对象的类型**。**当typeid作用于数组或函数时，并不会执行向指针的标准类型转换，即对数组a执行typeid(a)所得结果是数组类型而非指针类型**
+
+运算对象不属于类类型或者是一个不包含任何虚函数的类时，typeid运算符指示的是运算对象的静态类型。当运算对象是定义了至少一个虚函数的类的左值时，typeid的结果直到运行时才会求得
+
+##### 使用typeid运算符
+
+```c++
+Derived *dp = new Derived;
+Base *bp = dp;
+if(typeid(*bp) == typeid(*dp)){
+    //
+}
+if(typeid(*bp) == typeid(Derived)){
+    
+}
+```
+
+typeid应该作用于对象，因此我们使用*bp而非bp
+
+```c++
+if(typeid(bp) == typeid(Derived)){
+    
+}
+```
+
+比较的是类型Base*和Derived，尽管指针所指类型是一个含有虚函数的类，但是指针本身不是一个类类型对象。类型Base*在编译时求值，显然上面的条件永远不会满足
+
+typeid是否需要运行时检查决定了表达式是否会被求值。只有当类型含有虚函数时，编译器才会对表达式求值，反之，返回表达式静态类型（无须对表达式求值也能知道表达式静态类型）
+
+如果表达式的动态类型可能与静态类型不同，必须在运行时对表达式求值以确定返回的类型。这条规则适用于typeid(\*p)，如果p所指类型不含虚函数，则p不必非要有效；否则\*p将会在运行时求值，那么p必须是有效指针；如果p是一个空指针，则typeid(*p)将抛出bad_typeid异常
+
+#### 19.2.3 使用RTTI
 
 
 
