@@ -7230,3 +7230,676 @@ enum的声明和定义必须匹配，即所有声明和定义中的成员大小�
 ##### 形参匹配与枚举类型
 
 初始化一个enum对象，必须使用enum类型的另一个对象或枚举成员，因此即使某个整型值与枚举成员值相等，也不能作为函数的enum使用
+
+尽管不能直接将整型值传给enum形参，但是可以将一个不限定作用域的枚举类型的对象或枚举成员传给整型形参
+
+### 19.4 类成员指针
+
+**成员指针**是指可以指向类的非静态成员的指针。一般情况，指针指向一个对象，但是成员指针指示的是类的成员，而非类的对象
+
+成员指针的类型囊括了类的类型以及成员的类型。当**初始化**这样一个指针时，我们令其指向类的某个成员，但是不指定该成员所属的对象；直到使用成员指针时，才提供成员所属的对象
+
+```c++
+class Screen{
+    public:
+    	typedef std::string::size_type pos;
+    	char get_cursor() const {return contents[cursor];}
+    	char get() const;
+    	char get(pos ht, pos wd) const;
+    private:
+    	std::string contents;
+    	pos cursor;
+    	pos height, width;
+};
+```
+
+#### 19.4.1 数据成员指针
+
+声明成员指针时也使用*表示当前声明的是一个指针。与普通指针不同，成员指针还必须包含成员所属的类（这与上面的初始化指针时不指定该成员所属的对象不矛盾？）
+
+```c++
+const string Screen::*pdata;
+```
+
+指向Screen类的const string成员的指针
+
+当初始化成员指针时，需指定它所指的成员
+
+```c++
+pdata = &Screen::contents;
+```
+
+C++11中声明成员指针最简单的方法是使用auto或decltype
+
+```c++
+auto pdata = &Screen::contents;
+```
+
+##### 使用数据成员指针
+
+初始化一个成员指针或为成员指针赋值时，指针并未指向任何数据。成员指针指定了成员而非该成员所属的对象，只有解引用成员指针时才提供对象的信息
+
+==`.*`和`->*`可以解引用指针并获得该对象的成员==
+
+```c++
+Screen myScreen, *pScreen = &myScreen;
+auto s = myScreen.*pdata;
+s = pScreen->*pdata;
+```
+
+##### 返回数据成员指针的函数
+
+常规的访问控制规则对成员指针同样有效。例如，Screen的contents成员是私有的，因此之前对于pdata的使用必须位于Screen类的成员或友元内部，否则程序将发生错误
+
+返回值为指向该成员的指针的函数如下定义
+
+```c++
+class Screen{
+    public:
+    static const std::string Screen::*data(){return &Screen::contents;}
+};
+```
+
+返回指向contents成员的指针
+
+```c++
+const string Screen::*pdata = Screen::data();
+```
+
+#### 19.4.2 成员函数指针
+
+与指向数据成员的指针类似，想要创建一个指向成员函数的指针，使用auto来推断类型比较简单
+
+```c++
+auto pmf = &Screen::get_cursor;
+```
+
+使用classname::*的方式声明一个指向成员函数的指针。**指向成员函数的指针也需要指定目标函数的返回类型和形参列表。如果成员函数是const成员或者引用成员，则必须将const限定符或引用限定符包含进来**
+
+```c++
+char (Screen::*pmf2)(Screen::pos,Screen::pos) const;
+pmf2 = &Screen::get;
+```
+
+与普通函数指针不同，成员函数和指向该成员的指针之间不存在自动转换规则
+
+```c++
+pmf = &Screen::get;
+pmf = Screen::get; //错误
+```
+
+##### 使用成员函数指针
+
+使用`.*`或`->*`运算符作用于指向成员函数的指针，以调用类的成员函数
+
+```c++
+Screen myScreen, *pScreen = &myScreen;
+(myScreen.*pmf2)(0,0);
+(pScreen->*pmf2)(0,0);
+```
+
+##### 使用成员指针的类型别名
+
+使用类型别名或typedef可以让成员指针更容易理解
+
+```c++
+using Action = char (Screen::*)(Screen::pos,Screen::pos) const;
+```
+
+Action是某类型的另外一个名字，该类型是指向Screen类的常量成员函数的指针，这个成员函数接受两个pos形参，返回一个char
+
+```c++
+Action get = &Screen::get; //get就类似于上述的pmf2
+```
+
+**可以将指向成员函数的指针作为某个函数的返回类型或形参类型**，指向成员的指针形参也可以拥有默认实参
+
+```c++
+Screen& action(Screen&,Action = &Screen::get);
+```
+
+```c++
+Screen myScreen;
+action(myScreen); //默认实参
+action(myScreen, get); //使用的是定义的Action get
+action(myScreen, &Screen::get); //显式传入地址
+```
+
+##### 成员指针函数表
+
+对于普通函数指着和指向成员函数的指针来说，一种常见用法是将其存入一个函数表中。如果一个类含有几个相同类型的成员，则这样一张函数表可以帮我们从这些成员中选择一个
+
+```c++
+class Screen{
+    public:
+    Screen& home();
+    Screen& forward();
+    Screen& back();
+    Screen& up();
+    Screen& down();
+};
+```
+
+可以定义一个move函数，使其可以调用上面任意一个函数并执行对应的操作
+
+```c++
+class Screen{
+    public:
+    //其他定义保持不变
+    using Action = Screen& (Screen::*)();
+    enum Directions{Home,FORWARD,BACK,UP,DOWN};
+    Screen& move(Directions);
+    private:
+    static Action Menu[]; //函数表
+}
+```
+
+数组Menu依次保存每个光标移动函数的指针
+
+```c++
+Screen& Screen::move(Directions cm){
+    return (this->*Menu[cm])();
+}
+```
+
+#### 19.4.3 将成员函数用作可调用对象
+
+成员指针并不是一个可调用对象（因为需要先利用.\*和->*运算符将指针绑定到特定对象上），所以不能直接将一个成员函数的指针传递给算法
+
+```c++
+auto fp = &string::empty; //fp指向empty函数
+find_if(svec.begin(),svec.end(),fp);// 错误，fp不是一个可调用对象
+```
+
+find_if需要一个可调用对象，但是我们提供的是一个指向成员函数的指针fp，因此再find_if的内部将执行如下形式的代码，从而导致无法通过编译：
+
+```c++
+if(fp(*it)) //显然该语句试图直接调用fp
+```
+
+##### 使用function生成一个可调用对象
+
+```c++
+function<bool (const string&)> fcn = &string::empty;
+find_if(svec.begin(),svec.end(),fcn);
+```
+
+我们告诉function一个事实，empty是一个接受string参数并返回bool值的函数。通常情况下，**执行成员函数的对象将被传给隐式的this形参**。当我们使用function为成员函数生成一个可调用对象是，必须首先“翻译”代码，**使得隐式的形参变成显式的**(我们自己传入一个形参，把这个认为是this)
+
+当function包含有一个指向成员函数的指针时，function类直到它必须使用正确的指向成员的指针运算符来执行调用函数
+
+```c++
+if(fcn(*it)) //假设fcn是find_if内部的一个可调用对象的名字
+if(((*it).*p)()) //p时fcn内部的一个指向成员函数的指针
+```
+
+当我们定义一个function对象时，必须指定该对象所能表示的函数类型，**如果可调用对象是一个成员函数，第一个形参必须表示该成员是在哪个（一般是隐式的）对象上执行的**。同时提供给function的形式中还必须指明对象是以指针还是引用的形式传参
+
+```c++
+vector<string*> pvec;
+function<bool (const string*)> fp = &string::empty;
+find_if(pvec.begin(),pvec.end(),fp);
+```
+
+##### 使用mem_fn生成一个可调用对象
+
+使用function必须提供成员的调用形式，也可以使用标准库功能mem_fn来让编译器负责推断成员的类型
+
+```c++
+find_if(svec.begin(),svec.end(),mem_fn(&string::empty)); //该对象接受一个string实参，返回一个bool值
+```
+
+mem_fn生成的可调用对象可以通过对象调用，也可以指针调用
+
+```c++
+auto f = mem_fn(&string::empty);
+f(*svec.begin()); //使用.*
+f(&svec[0]);//使用->*
+//可以认为mem_fn生成的可调用对象含有一对重载的函数调用运算符，一个接受指针另一个接受对象
+```
+
+##### 使用bind生成一个可调用对象
+
+```c++
+auto it = find_if(svec.begin(),svec.end(),bind(&string::empty,_1));
+```
+
+与function类似，使用bind时，必须将函数中用于表示执行对象的隐式形参转换成显式的。
+
+与mem_fn类似的地方是，bind生成的可调用对象的第一个实参既可以是string指针，也可以是string引用
+
+```c++
+auto f = bind(&string::empty,_1);
+f(*svec.begin()); //使用.*
+f(&svec[0]);//使用->*
+```
+
+### 19.5 嵌套类
+
+一个类可以定义在另一个类的内部
+
+**嵌套类是一个独立的类，与外层类基本没什么关系**。外层类的对象和嵌套类的对象是相互独立的。**嵌套类的对象中不包含任何外层类定义的成员；外层类的对象中也不包含任何嵌套类定义的成员**
+
+嵌套类的名字在外层类作用域中是可见的，在外层类作用域外不可见；嵌套类的名字不会和别的作用域中的同一个名字冲突
+
+外层类对嵌套类的成员没有特殊的访问权限，嵌套类对外层类也是如此
+
+嵌套类在其外层类中定义了一个类型成员。该类型的访问权限由外层类决定。
+
+位于外层类public部分的嵌套类实际上定义了一种可以随处访问的类型；位于外层类protected部分的嵌套类定义的类型只能被外层类及其友元和派生类访问；位于外层类private部分的嵌套类定义的类型只能被外层类的成员和友元访问
+
+##### 声明一个嵌套类
+
+```c++
+class TextQuery{
+    public:
+    class QueryResult;
+};
+```
+
+##### 在外层类之外定义一个嵌套类
+
+嵌套类必须声明在类的内部，但是可以定义在类的内部或外部。当在外层类之外定义嵌套类时，必须以外层类的名字限定嵌套类的名字
+
+```c++
+class TextQuery::QueryResult{
+    friend std::ostream& print(std::ostream&, const QueryResult);
+    public:
+    QueryResult(//形参列表);
+};
+```
+
+##### 定义嵌套类的成员
+
+使用外层类的名字限定嵌套类的名字
+
+```c++
+TextQuery::QueryResult::QueryResult(xxx):xxx{}
+```
+
+##### 嵌套类的静态成员定义
+
+如果嵌套类声明了一个静态成员，则该成员的**定义**将**位于外层类的作用域之外**
+
+```c++
+int TextQuery::QueryResult::static_mem = 1024;
+```
+
+##### 嵌套类作用域中的名字查找
+
+名字查找的一般规则在嵌套类中同样适用。因为嵌套类本身是一个嵌套作用域，所以还必须查找嵌套类的外层作用域
+
+嵌套类是其外层类的一个类型成员，因此外层类的成员可以像使用任何其他类型成员一样使用嵌套的名字。所以TextQuery的query成员中可以直接使用QueryResult（返回类型并不在作用域中，所以返回类型需要指明作用域）
+
+##### 嵌套类和外层类是相互独立的
+
+外层类的对象和嵌套类的对象没有任何关系。嵌套类的对象只包含嵌套类定义的成员；外层类的对象只包含外层类定义的成员
+
+### 19.6 union一种节省空间的类
+
+联合是一种特殊的类，一个union可以有多个数据成员，但是**在任意时刻只有一个数据成员可以有值。当给union的某个成员赋值后，该union的其他成员就变成未定义状态了**
+
+分配一个union对象的存储空间至少要能够容纳它的最大的数据成员
+
+union不能含有引用类型的成员
+
+union可以为其成员指定public、protected、private等标记。默认是public的
+
+union可以定义构造函数和析构函数和其他成员函数，但是不能继承自其他类，也不能作为基类使用，所以union不能含有虚函数
+
+##### 定义union
+
+```c++
+union Token{
+    char cval;
+    int ival;
+    double dval;
+};
+```
+
+首先是关键字union，然后是union的名字（可选），以及成员声明
+
+##### 使用union
+
+默认情况union是未初始化的，可以使用一对花括号内的初始值显示地初始化一个union
+
+```c++
+Token first_token = {'a'};
+Token last_token;
+Token *pt = new Token;
+```
+
+**如果指定了初始值，该初始值被用于初始化第一个成员**
+
+##### 匿名union
+
+**未命名的union，并且右花括号和分号之间没有任何声明**的union是匿名union。**定义匿名的union，编译器会自动地为该union创建一个未命名的对象**
+
+```c++
+union{
+    char cval;
+    int ival;
+    double dval;
+};
+cval = 'c';//未匿名union对象赋一个新值
+ival = 42;
+```
+
+**匿名union的定义所在的作用域内该union的成员都是可以直接访问的**
+
+匿名union不能包含保护和私有成员，也不能定义成员函数
+
+##### 含有类类型成员的union
+
+union包含的是内置类型的成员时，可以使用普通的赋值语句改变union的值；对于含有特殊类类型成员的union若想改变值，必须分别构造或析构该类类型成员：当将union的值改为类类型成员对应的值时，必须运行该类型的构造函数；反之，将类类型成员的值改为其他值时，必须运行该类型的析构函数
+
+union包含的时内置类型成员时，编译器将按照成员的次序依次合成默认构造或拷贝控制成员。如果union含有类类型成员，并且该类型自定义了默认构造或拷贝控制成员，则编译器将为union合成对应的版本并将其声明为删除的
+
+> 例如string定义了5个拷贝控制成员以及一个默认构造函数。如果union含有string类型的成员，并且没有自定义默认构造函数或某个拷贝控制成员，则编译器将合成缺少的成员并将其声明称删除的。如果某个类中含有union成员，而且该成员含有删除的拷贝控制成员，则该类与之对应的拷贝控制操作也将是删除的
+
+##### 使用类管理union成员
+
+对于union，想要构造或销毁类类型的成员非常复杂。因此通常把含有类类型成员的union内嵌在另一个类中，使用该类管理并控制与union的类类型成员有关的状态转换
+
+> 例如，为union添加了一个string成员，并将union定义成匿名union，最后将它作为Token类的一个成员。此时Token可以管理union成员
+
+为了追踪union中到底存储了什么类型的值，通常会定义一个独立的对象，该对象称为**union的判别式**。可以使用判别式辨认union存储的值。
+
+> 为了使判别式与union同步，将判别式也作为Token的成员，我们的类将定义一个枚举类型追踪union成员的状态
+
+```c++
+class Token{
+    public:
+    Token() : tok(INT),ival{0}{} //初始化时用花括号
+    Token(const Token &t) : tok(t.tok){
+        copyUnion(t);
+    }
+    Token& operator=(const Token&);
+    ~Token(){
+        if(tok == STR)
+            sval.~string(); //显式析构掉
+    }
+    Token& operator=(const std::string&);
+    Token& operator=(char);
+    Token& operator=(int);
+    Token& operator=(double);
+    private:
+    enum{INT,CHAR,DBL,STR} tok;
+    union{
+        char cval;
+        int ival;
+        double dval;
+        std::string sval;
+    };
+    void copyUnion(const Token&);
+};
+```
+
+> 主要说明一下析构函数
+>
+> 作为union组成部分的类成员无法自动销毁，因为析构函数不清楚union存储的值是什么类型，所以它无法确定应该销毁那个成员，所以我们自定义析构函数
+
+##### 管理判别式并销毁string
+
+类的赋值运算符设置tok并为union赋值。与析构函数相同，这些运算符在为union赋值时必须首先销毁string（如果当前值确实是string的话，tol == STR)
+
+赋值运算符形参是string时更加的复杂
+
+```c++
+Token& Token::operator=(const std::string&){
+    if(tok == STR)
+        sval = s;
+    else
+        new(&sval) string(s);  //定位new表达式
+    tok = STR;
+    return *this;
+}
+```
+
+##### 管理需要拷贝控制的联合成员
+
+拷贝时也需要考虑上述赋值运算符和析构函数中考虑的问题
+
+```c++
+void Token::copyUnion(const Token&){
+    switch(t.tok){
+        case Token::INT : ival = t.ival; break;
+        case Token::CHAR : cval = t.cval; break; 
+        case Token::DBL : dval = t.dval; break;
+        case Token::STR : new(&sval) string(t.sval); break;
+    }
+}
+```
+
+如果本身union中就是string，copyUnion在该内存重新构造string；如果不是string，则构造string
+
+```c++
+Token& Token::operator=(const Token &t){
+    if(tok ==STR && t.tok!=STR) sval.~string(); //本身是string，赋值的参数不是string
+    if(tok == STR && t.tok == STR)
+        sval = t.sval; //本身和赋值参数都是string，直接赋值
+    else
+        copyUnion(t); //本身不是string，赋值是不是string都直接copyUnion即可,如果赋值的是内置类型，则直接赋值；如果是string类型，那么会调用定位new构造string
+    tok = t.tok;
+    return *this;
+}
+```
+
+### 19.7 局部类
+
+类可以定义在某个函数内部，称为**局部类**。局部类定义的类型只在定义它的作用域内可见，和嵌套类不同，局部类的成员受到严格的限制
+
+局部类的所有成员都必须完整定义在类的内部
+
+局部类中不允许声明静态数据成员（因为我们无法定义这样的成员）
+
+##### 局部类不能使用函数作用域中的变量
+
+**局部类只能访问外层作用域定义的类型名、静态变量以及枚举成员。如果局部类定义在某个函数内部，则该函数的普通局部变量不能被该局部类使用**
+
+```c++
+int a,val;
+void foo(int val){
+    static int si;
+    enum Loc {a = 1024,b};
+    struct Bar{
+        Loc locVal; //正确：使用局部类型名
+        int barVal;
+        void fooBar(Loc l = a){ //正确：默认实参是Loc::a
+            barVal = val; //错误，val是foo的局部变量
+            barVal = ::val; //正确，使用一个全局对象
+            barVal = si; //正确，静态局部对象
+            locVal = b； //正确，枚举成员
+        }
+    }；
+}
+```
+
+###### 常规的访问保护规则对局部类同样适用
+
+外层函数对局部类的私有成员没有访问特权。局部类可以将外层函数声明为友元（就可以访问private了）。局部类封装在函数作用域中
+
+###### 局部类中的名字查找
+
+如果某个名字不是局部类的成员，则继续在外层函数作用域中查找；如果找不到，则在外层函数所在的作用域查找
+
+##### 嵌套的局部类
+
+可以在局部类的内部再嵌套一个类。嵌套类的定义可以出现在局部类之外，不过嵌套类必须定义在与局部类相同的作用域中
+
+```c++
+void foo(){
+    class Bar{
+        public:
+        class Nested;
+    };
+    class Bar::Nested{
+        
+    };
+}
+```
+
+局部类内的嵌套类也是一个局部类，必须满足局部类的各种规定。嵌套类的所有成员都必须定义在嵌套类内部
+
+### 19.8 固有的不可移植的特性
+
+不可移植的特性是指因机器而异的特性（从一台机器上转移到另一台机器上时，通常需要重新编写程序）
+
+#### 19.8.1 位域
+
+**类可以将其（非静态）数据成员定义为位域**，在一个位域中含有一定数量的二进制位。当一个程序需要向其他程序或硬件设备传递二进制数据时，通常会用到位域
+
+> 位于在内存中的布局是与机器相关的
+
+位域的类型必须是整型或枚举类型。因为带符号位域的行为由具体实现确定，所以通常使用无符号类型保存一个位域。
+
+位域的声明形式是在成员名字之后紧跟一个冒号以及一个常量表达式，该表达式用于指定成员所占的二进制位数
+
+```c++
+typedef unsigned int Bit;
+class File{
+    Bit mode:2;
+    Bit modified:1;
+    Bit prot_owner:3;
+    Bit prot_group:3;
+    Bit prot_world:3;
+    public:
+    enum modes {READ = 01, WRITE = 02, EXECUTE = 03};
+    File &open(modes);
+    void close();
+    void write();
+    bool isRead() const;
+    void setWrite();
+};
+```
+
+如果可能的话，在类的内部连续定义的位域压缩在同一整数的相邻位，从而提供压缩存储
+
+取地址符不能作用于位域，因此任何指针都无法指向类的位域
+
+##### 使用位域
+
+位域的使用方式与访问类的成员的方式非常相似：
+
+```c++
+void File::write(){
+    modified = 1;
+}
+void File::close(){
+    if(modified)
+}
+```
+
+**通常使用内置的位运算符操作超过1位的位域**
+
+```c++
+File& File::open(File::modes m){
+    mode |= READ;
+    if(m & WRITE)
+        //
+    return *this;
+}
+```
+
+如果一个类定义了位域成员，通常会定义一组内联成员函数以检验或设置位域的值
+
+```c++
+inline bool File::isRead() const {return mode & READ;}
+inline bool File::setWrite() const {return mode | WRITE;}
+```
+
+#### 19.8.2 volatile限定符
+
+volatile的确切含义与机器有关
+
+直接处理硬件的程序通常包含这样的数据元素，它们的值由程序直接控制之外的过程控制。当对象的值可能在程序的控制或检测之外被改变时（比如可能包含一个由系统时钟定时更新的变量），应该将该对象声明为volatile。关键字volatile告诉编译器不应对这样的对象进行优化
+
+```c++
+volatile int display_register; //该int值可能发生改变
+volatile Task *curr_task; //curr_task指向一个volatile对象
+volatile int iax[max_size]; //iax的每个元素都是volatile
+volatile Screen bitmapBuf; //bitmapBuf的每个成员都是volatile
+```
+
+const和volatile互相没什么影响，某种类型可能既是const的也是volatile的，此时具有二者的属性
+
+类可以将成员函数定义为volatile的，只有volatile的成员函数才能被volatile对象调用
+
+volatile限定符和指针的关系与const限定符和指针的关系类似：可以声明volatile指针、指向volatile对象的指针以及指向volatile对象的volatile指针
+
+##### 合成的拷贝对volatile对象无效
+
+**不能使用合成的拷贝/移动构造函数及赋值运算符初始化volatile对象或从volatile对象赋值**。合成的成员接受的形参是（非volatile）常量引用，显然不能把非volatile引用绑定到volatile对象上。所以我们必须自定义拷贝或移动操作（普通对象可以赋值给volatile对象）
+
+#### 19.8.3 链接指示：extern "C"
+
+C++程序有时需要调用其他语言编写的函数，最常见的是C语言编写的。
+
+像所有其他名字一样，其他语言中的函数名字也必须在C++中进行声明，并且该声明必须指定返回类型和形参列表。对于其他语言编写的函数来说，编译器检查其调用的方式与处理普通C++函数的方式相同，但是生成的代码有所区别。
+
+C++使用链接指示指出任意非C++函数所用的语言
+
+> 要想将C++代码和其他语言（包括C）的代码放在一起使用，要求我们有权访问该语言的编译器，且该编译器与当前C++编译器兼容
+
+##### 声明一个非C++函数
+
+链接指示有两种形式：**单个的或复合的**。链接指示不能出现在类定义或函数定义的内部。同样的链接指示必须在函数的每个声明中都出现
+
+```c++
+//<cstring>中的某些C函数是如何声明的
+extern "C" size_t strlen(const char *);
+extern "C" {
+    int strcmp(const char*, const char*);
+    char *strcat(char*, const char*);
+}
+```
+
+链接指示的第一种形式包含一个关键字extern，后面是一个字符串字面值常量以及一个"普通的"函数声明，其中的字符串字面值常量指出了编写函数所用的语言。编译器应该支持对C语言的链接指示。编译器也可能会支持其他语言的链接指示，如extern "Ada"、extern "FORTRAN"
+
+##### 链接指示与头文件
+
+链接指示后跟上花括号括起来的若干函数声明，从而一次性建立多个链接。花括号中声明的函数名字就是可见的，就好像在花括号之外声明的一样
+
+```c++
+extern "C" {
+    #include <string.h>
+}
+```
+
+链接指示可以嵌套，因此如果头文件包含带自带链接指示的函数，则该函数的链接不受影响
+
+##### 指向extern "C" 函数的指针
+
+**编写函数所用的语言是函数类型的一部分**，因此对于使用链接指示定义的函数来说，它的每个声明都必须使用相同的链接指示。所以指向其他语言编写的函数的指针必须与函数本身使用相同的链接指示
+
+```c++
+extern "C" void (*pf)(int);
+```
+
+使用pf调用函数时，编译器认定当前调用的是一个C函数。一个指向C函数的指针不能用在执行初始化或赋值操作后指向C++函数
+
+##### 链接指示对整个声明都有效
+
+当我们使用链接指示时，它不仅对函数有效，而且对作为返回类型或形参类型的函数指针也有效
+
+```c++
+extern "C" void f1(void(*)(int));
+```
+
+链接指示不仅对f1有效，对参数也有效，必须给f1传递一个C函数的名字或者指向C函数的指针
+
+###### 导出C++函数到其他语言
+
+通过使用链接指示对函数进行定义，可以另一个C++函数在其他语言编写的程序中可用
+
+```c++
+extern "C" double calc(double dparm){}
+```
+
+编译器将为该函数生成适合于指定语言的代码
+
+可被多种语言共享的函数的返回类型或形参类型受到很多限制
+
+##### 重载函数与链接指示
+
+链接指示与重载函数的相互作用依赖于目标语言。如果目标语言支持重载函数，则为该语言实现链接指示的编译器很可能也支持重载这些C++函数
