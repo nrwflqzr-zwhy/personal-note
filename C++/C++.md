@@ -7086,5 +7086,41 @@ typeid是否需要运行时检查决定了表达式是否会被求值。只有�
 
 #### 19.2.3 使用RTTI
 
+示例，通过比较运算符展示，如果两个对象类型相等且对应数据成员取值相同，则两个对象可以认为是相等的。但是虚函数的基类版本和派生类版本必须具有相同的形参类型，如果定义一个虚函数equal，则函数形参必须是基类的引用，此时equal只能使用基类成员，这时就用到RTTI解决问题了
 
+```c++
+class Base{
+    friend bool operator==(const Base&, const Base&);
+    public:
+    	//
+    protected:
+    	virtual bool equal(const Base&) const;
+};
+class Derived:public Base{
+    public:
+    	//
+    protected:
+    	bool equal(const Base&) const;
+};
+```
+
+**类型敏感的相等运算符**
+
+```c++
+bool operator==(const Base& lhs,const Base& rhs){
+    return typeid(lhs) == typeid(rhs) && lhs.equal(rhs);
+}
+```
+
+如果运算类型不同则返回false，否则运算类型相同，则运算符将工作委托给equal虚函数。这样能够实现多态，能够完成相对应的比较操作
+
+**虚equal函数**
+
+继承体系中的每个类必须定义自己的equal函数。第一件事就是将实参的类型转换为派生类类型
+
+```c++
+auto r = dynamic_cast<const Derived&>(rhs);
+```
+
+#### 19.2.4 type_info类
 
