@@ -7124,3 +7124,109 @@ auto r = dynamic_cast<const Derived&>(rhs);
 
 #### 19.2.4 type_info类
 
+type_info的精确定义随着编译器的不同略有差异。不过C++标准规定type_info类必须定义在typeinfo头文件中并至少提供以下操作
+
+| 操作          | 说明                                                         |
+| ------------- | ------------------------------------------------------------ |
+| t1 == t2      | 如果type_info对象t1和t2表示同一种类型，返回true              |
+| t1 != t2      | 与上述操作类似                                               |
+| t.name()      | 返回一个C风格字符串，表示类型名字的可打印形式。类型名字的生成方式因系统而异 |
+| t1.before(t2) | 返回一个bool值，表示t1是否位于t2之前。before所采用的顺序关系依赖于编译器 |
+
+type_info一般作为基类出现，所以它还应该提供一个公有的虚析构函数。当编译器希望提供而外的类型信息时，通常在type_info的派生类中完成
+
+type_info没有默认构造，拷贝和移动构造以及赋值运算符都是删除的。所以无法定义type_info类型对象，也不能type_info类型赋值。创建type_info对象的唯一途径是使用typeid运算符
+
+对于name返回值的唯一要求是，类型不同则返回的字符串必须有所区别
+
+### 19.3 枚举类型
+
+枚举类型使一组**整型常量**组织在一起。枚举类型属于字面值常量类型
+
+C++包含两种枚举：限定作用域或不限定作用域的（C++11引入）
+
+- 限定作用域的枚举类型的一般形式是：首先关键字 enum class（enum struct），随后是枚举类型名字以及花括号括起来的枚举成员列表
+
+	```c++
+	enum class open_modes{input, output, append};
+	```
+
+- 不限定作用域的枚举类型：省略掉关键字class（struct），枚举类型的名字是可选的
+
+	```c++
+	enum color{red,yellow,green};
+	enum {floatPrec = 6, doublePrec = 10, double_doublePrec = 10};
+	```
+
+如果enum是未命名的，则只能在定义该enum时定义它的对象。在enum定义的右侧花括号和分号之间提供声明列表
+
+##### 枚举成员
+
+限定作用域的枚举类型中，枚举成员的名字遵循常规的作用域准则，并且在枚举类型的作用域外不可访问；不限定作用域的枚举类型中，枚举成员的作用域与枚举类型本身的作用域相同
+
+```c++
+enum color{red,yellow,green};
+enum stoplight{red,yellow,green}; //错误重复定义了枚举成员
+enum class peppers {red,yellow,green};//正确：枚举成员被隐藏了
+color eyes = green; //正确：不限定作用域的枚举类型的枚举成员位于有效的作用域中
+peppers p = green; //错误：peppers的枚举成员不在有效的作用域中  //color::green在作用域中，但是类型错误
+color hair = color::red;//正确
+peppers p2 = peppers::red;//正确：使用peppers::red
+```
+
+**默认情况，枚举值从0开始，依次加1**，也可以指定专门的值。枚举值不一定唯一，如果没有显式地提供初始值，则当前枚举成员的值为前一枚举成员的值加1
+
+```c++
+enum class intTypes{
+    charTyp = 8, shortTyp = 16, intTyp = 16, longTyp = 32, long_longTyp = 64
+};
+```
+
+枚举成员是const，因此初始化枚举成员时必须是常量表达式
+
+##### 枚举定义新的类型
+
+**初始化enum对象或者为enum对象赋值**，必须使用该类型的一个枚举成员或该类型的另一个对象
+
+```c++
+open_modes om = 2; //错误：2不属于类型open_modes
+om = open_modes::input; //正确
+```
+
+**不限定作用域的枚举类型的对象或枚举成员自动地转换成整型，因此可以在需要整型值的地方使用它们**
+
+```c++
+int i = color::red;
+int j = pepers::red; //错误：限定作用域的枚举类型不会隐式转换
+```
+
+##### 指定enum的大小
+
+实际上enum是由某种整数类型表示的。可以在enum的名字后加上冒号以及我们想使用的类型
+
+```c++
+enum intValues : unsigned long long{
+    charTyp = 255, shortTyp = 65535, intTyp = 65536,
+    longTyp = 4294967295UL,
+    long_longTyp = 18446744073709661615ULL
+};
+```
+
+**默认情况下，是int类型的**
+
+对于不限定作用域的枚举类型来说，枚举成员不存在默认类型，但是类型足够大
+
+##### 枚举类型的前置说明
+
+enum的前置声明必须指定成员的大小
+
+```c++
+enum intValues : unsigned long long; //不限定作用域的，必须指定成员类型，因为没有默认大小
+enum class open_modes;//默认未int
+```
+
+enum的声明和定义必须匹配，即所有声明和定义中的成员大小必须一致。而且不能再同一作用域中声明同名的限定作用域的enum名字和不限定作用域的enum名字
+
+##### 形参匹配与枚举类型
+
+初始化一个enum对象，必须使用enum类型的另一个对象或枚举成员，因此即使某个整型值与枚举成员值相等，也不能作为函数的enum使用
