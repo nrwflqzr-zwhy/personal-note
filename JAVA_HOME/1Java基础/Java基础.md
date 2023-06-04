@@ -2,7 +2,7 @@
 
 # Java 基础
 
-![image-20220630140049387](Java基础.images\image-20220630140049387.png)
+![image-20220630140049387](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220630140049387.png)
 
 ## 一、Java语言概述
 
@@ -56,7 +56,7 @@ once , Run Anywhere”
 
 Virtual Machine) 即可。由JVM来负责Java程序在该系统中的运行。
 
-<img src="Java基础.images\image-20220630142414409.png" alt="image-20220630142414409" style="zoom:67%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220630142414409.png" alt="image-20220630142414409" style="zoom:67%;" />
 
 > 因为有了 JVM ，同一个 Java 程序在三个不同的操作系统中都可以执行。这样就实现了 Java 程序的跨平台性
 
@@ -78,7 +78,7 @@ JDK是提供给Java开发人员使用的，其中包含了java的开发工具，
 
 包括Java虚拟机(JVM Java Virtual Machine)和Java程序所需的核心类库等，如果想要运行一个开发好的Java程序，计算机中只需要安装JRE即可。
 
-<img src="Java基础.images\image-20220630143509379.png" alt="image-20220630143509379" style="zoom:50%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220630143509379.png" alt="image-20220630143509379" style="zoom:50%;" />
 
 ### 1.3 Java编译运行过程
 
@@ -90,7 +90,7 @@ JDK是提供给Java开发人员使用的，其中包含了java的开发工具，
 
 3. 通过 java 命令对生成的 .class 文件进行**运行**。
 
-![image-20220630144653133](Java基础.images\image-20220630144653133.png)
+![image-20220630144653133](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220630144653133.png)
 
 > 字节码文件名是.java文件的**类名**
 
@@ -141,7 +141,7 @@ Java中的注释类型：
 
 > 注释内容可以被JDK提供的工具 javadoc 所解析，生成一套以网页文件形式体现的该程序的说明文档。
 
-<img src="Java基础.images\image-20220630150615339.png" alt="image-20220630150615339" style="zoom:67%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220701110025818.png" alt="image-20220630150615339" style="zoom:67%;" />
 
 ### 1.6 总结
 
@@ -214,7 +214,7 @@ Java中的注释类型：
 
 #### 2.3.2 Java定义的数据类型
 
-<img src="Java基础.images\image-20220701110025818.png" alt="image-20220701110025818" style="zoom:67%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220630150615339.png" alt="image-20220701110025818" style="zoom:67%;" />
 
 **一、变量按照数据类型来分：**
 
@@ -225,7 +225,7 @@ Java中的注释类型：
 
    ③ 通常，定义整型变量时，使用`int`型。
 
-   <img src="Java基础.images\image-20220701110646366.png" alt="image-20220701110646366" style="zoom:67%;" />
+   <img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220701110646366.png" alt="image-20220701110646366" style="zoom:67%;" />
 
 2. **浮点型：`float`(4字节) \ `double`(8字节)**
    ① 浮点型，表示带小数点的数值
@@ -238,7 +238,7 @@ Java中的注释类型：
 
    ⑤`float`的有效位数大约为==6-7位==，`double`的有效位数大约为==15位==
 
-   <img src="Java基础.images\image-20220701111322252.png" alt="image-20220701111322252" style="zoom:60%;" />
+   <img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220701111322252.png" alt="image-20220701111322252" style="zoom:60%;" />
 
    ⑥所有的浮点数值计算都遵循`IEEE 754`规范。具体来说，下面是用于表示溢出和出错情况的三个特殊的浮点数值：
 
@@ -361,13 +361,13 @@ class StringTest{
 
 #### 2.4.3 比较运算符
 
-![image-20220701173117500](Java基础.images\image-20220701173117500.png)
+![image-20220701173117500](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220701173117500.png)
 
 > 比较运算符的结果都是boolean型，也就是要么是true，要么是false。 比较运算符“==”不能误写成“=”
 
 #### 2.4.4 逻辑运算符
 
-![image-20220702095358054](Java基础.images\image-20220702095358054.png)
+![image-20220702095358054](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220702101016569.png)
 
 1. 逻辑运算符操作的都是`boolean`类型的变量
 
@@ -389,7 +389,7 @@ class StringTest{
 
 #### 2.4.5 位运算符
 
-![image-20220702101016569](Java基础.images\image-20220702101016569.png)
+![image-20220702101016569](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220702095358054.png)
 
 > 位运算符是直接对整数的二进制进行的运算
 >
@@ -418,7 +418,7 @@ class HelloWorld{
 
 #### 2.4.6 三元运算符
 
-<img src="Java基础.images\image-20220702104310985.png" alt="image-20220702104310985" style="zoom:67%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220703144117499.png" alt="image-20220702104310985" style="zoom:67%;" />
 
 1. 结构：(条件表达式)? 表达式1：表达式2;
 
@@ -445,7 +445,7 @@ System.out.println(maxStr); //m和n一样大
 
 如右表，上一行运算符总优先于下一行。只有**单目运算符、三元运算符、赋值运算符是从右向左**运算的
 
-<img src="Java基础.images\image-20220702110355938.png" alt="image-20220702110355938" style="zoom:80%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220702110355938.png" alt="image-20220702110355938" style="zoom:80%;" />
 
 ### 2.5 程序流程控制
 
@@ -707,9 +707,9 @@ for(int i=0; i<names,length; i++){
 
 JVM内存结构：
 
-<img src="Java基础.images\image-20220703144117499.png" alt="image-20220703144117499" style="zoom:67%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220702104310985.png" alt="image-20220703144117499" style="zoom:67%;" />
 
-<img src="Java基础.images\image-20220703144810228.png" alt="image-20220703144810228" style="zoom:67%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220703144810228.png" alt="image-20220703144810228" style="zoom:67%;" />
 
 > 0x78cd会被Java的垃圾回收机制回收
 
@@ -829,7 +829,7 @@ class Person{
 
 ==方法区（Method Area）==，用于存储已被==虚拟机加载的类信息、常量、静态变量、即时编译器编译后的代码等数据。==
 
-<img src="Java基础.images\image-20220703174910465.png" alt="image-20220703174910465" style="zoom: 67%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220704095222522.png" alt="image-20220703174910465" style="zoom: 67%;" />
 
 #### ==4.2.3 属性（成员变量） vs  局部变量==
 
@@ -952,7 +952,7 @@ static、final、abstract也可以修饰方法
 
 1. 引用类型的变量，只可能存储两类值：null 或 地址值（含变量的类型）
 
-   <img src="Java基础.images\image-20220704095222522.png" alt="image-20220704095222522" style="zoom:67%;" />
+   <img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220708153413167.png" alt="image-20220704095222522" style="zoom:67%;" />
 
 ### 4.4 匿名对象的使用
 
@@ -1084,7 +1084,7 @@ double add(double x,double y){return x+y;}
 2. 4种权限可以用来修饰类及类的内部结构：属性、方法、构造器、内部类
 3. **修饰类**（不包括内部类）的话只能使用：缺省、public
 
-<img src="Java基础.images\image-20220708153413167.png" alt="image-20220708153413167" style="zoom:50%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220703174910465.png" alt="image-20220708153413167" style="zoom:50%;" />
 
 
 
@@ -1315,21 +1315,21 @@ class A extends B{
 
 - 父类中方法为void，子类中的重写方法也只能是void
 - 父类中方法的范围值类型为A类，则子类中重写的方法的返回值的类型可以是A类或A的子类（多态...）
-- 父类中方法的范围值类型为基本数据类型（eg double），则子类中重写的方法的返回值的类型必须是相同的基本数据类型（double）
+- 父类中方法的范围值类型为基本数据类型（e.g. double），则子类中重写的方法的返回值的类型必须是相同的基本数据类型（double）
 - 子类重写的方法抛出的异常类型不大于父类被重写的方法抛出的异常类型（7.2.2）
 - 子类和父类中同名同参的方法要么都声明为非static的（考虑重写），要么都声明为static的（不是重写）
 
 ### 5.3 关键字：super
 
-1. 我们可以在子类的方法或构造器中，通过使用super.属性或super.方法的方式，显式调用父类中声明的属性和方法，通常情况下我们省略super
+1. 可以在子类的方法或构造器中，通过使用super.属性或super.方法的方式，显式调用父类中声明的属性和方法，通常情况下我们省略super
 2. 特殊情况：当子类和父类定义了同名的属性时，我们要调用父类的属性必须显式使用super
 3. 当子类重写了父类中的方法以后，我们想在子类的方法中调用父类被重写的方法时，必须显式的使用super.方法
 4. super调用构造器
-   - 我们可以在子类的构造器中显式的使用super(形参列表)的方式，调用父类中声明的指定的构造器
+   - 可以在子类的构造器中显式的使用super(形参列表)的方式，调用父类中声明的指定的构造器
    - super(形参列表)必须声明在==子类构造器的首行==
-   - this(形参列表)、super(形参列表)只能二选一，不能同时出现
+   - this(形参列表)、super(形参列表)只能二选一，不能同时出现(因为二者都需要出现在子类构造器的首行)
    - 若没有显式的写出this、super默认调用super()
-   - 在类的多个构造器中至少有一个类的构造器中使用了super(形参列表)，调用父类中的构造器
+   - 在类的多个构造器中**至少有一个类**的构造器中使用了super(形参列表)，调用父类中的构造器
 
 ### 5.4 子类对象实例化过程
 
@@ -1343,7 +1343,7 @@ class A extends B{
 
    当我们通过子类的构造器创建子类对象时，我们一定会直接或间接的调用其父类的构造器，直到调用了java.lang.Object类的构造器，然后才能够加载所有的父类的结构，才可以在内存中看到父类的结构。
 
-   虽然创建子类对象时调用了父类的构造器但是自始至终只有一个对象被创建，即子类对象。
+   虽然创建子类对象时调用了父类的构造器但是自始至终只有一个对象被创建，即子类对象。（那么java的子类部分与父类部分是否是分开存放的？）
 
 ### 5.5 ==多态性==
 
@@ -1353,11 +1353,11 @@ class A extends B{
 
 1. 何为多态性
 
-   对象的多态性：父类的引用指向子类对象，拿父类的引用调用方法时，调用的为子类重写的方法
+   对象的多态性：父类的引用指向子类对象，拿父类的引用调用方法时，调用的为子类重写的方法（动态属性的方法）
 
 2. 多态的使用：虚拟方法调用
 
-   有了对象的多态性以后，我们在编译期，只能调用父类中声明的方法，但在运行期间，我们实际执行的是子类重写父类的方法。总结：编译看左，执行看右
+   有了对象的多态性以后，我们在编译期，只能调用父类中声明的方法，但在运行期间，我们实际执行的是子类重写父类的方法。总结：可见性依赖于静态声明类型，实际执行的是动态类型的方法
 
 3. 多态性的使用前提：
 
@@ -1369,9 +1369,9 @@ class A extends B{
 
 ==**虚拟方法调用(多态情况下)**==
 
-子类中定义了与父类同名同参数的方法，在多态情况下，将此时父类的方法称为虚拟方法，父类根据赋给它的不同子类对象，动态调用属于子类的该方法。这样的方法调用在编译期是无法确定的。
+子类中定义了与父类同名同参数的方法，在多态情况下，将此时父类的方法称为**虚拟方法**，父类根据赋给它的不同子类对象，动态调用属于子类的该方法。这样的方法调用在编译期是无法确定的。
 
-> 多态是运行时行为
+> **多态是运行时行为**
 
 #### 5.5.2 方法的重载与重写
 
@@ -1379,7 +1379,7 @@ class A extends B{
 
 **2.** **从编译和运行的角度看：**
 
-1. 重载，是指允许存在多个同名方法，而这些方法的参数不同。编译器根据方法不同的参数表，对同名方法的名称做修饰。对于编译器而言，这些同名方法就成了不同的方法。它们的调用地址在编译期就绑定了。Java的重载是可以包括父类和子类的，即子类可以重载父类的同名不同参数的方法。所以：对于重载而言，在方法调用之前，编译器就已经确定了所要调用的方法，这称为**“早绑定”或“静态绑定”**； 
+1. 重载，是指**允许存在多个同名方法，而这些方法的参数不同**。编译器根据方法不同的参数表，对同名方法的名称做修饰。对于编译器而言，这些同名方法就成了不同的方法。它们的调用地址在编译期就绑定了。Java的重载是可以包括父类和子类的，即子类可以重载父类的同名不同参数的方法。所以：对于重载而言，在方法调用之前，编译器就已经确定了所要调用的方法，这称为**“早绑定”或“静态绑定”**； 
 
 2. 而对于多态，只有等到方法调用的那一刻，解释运行器才会确定所要调用的具体方法，这称为**“晚绑定”或“动态绑定”**。
 
@@ -1387,7 +1387,7 @@ class A extends B{
 
 #### 5.5.3 向下转型
 
-![image-20220709134625100](Java基础.images\image-20220709134625100.png)
+![image-20220709134625100](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220710100316829.png)
 
 #### 5.5.4 运算符：instanceof
 
@@ -1534,7 +1534,7 @@ public class InterviewTest {
 
    ​	③由于类只会加载一次，静态变量在内存中只会存在一份，存在方法区的静态域中
 
-   <img src="Java基础.images\image-20220709173113033.png" alt="image-20220709173113033" style="zoom:80%;" />
+   <img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220709134625100.png" alt="image-20220709173113033" style="zoom:80%;" />
 
 4. ==使用`static`修饰方法：==
 
@@ -1706,7 +1706,7 @@ class Worker extends Person{
 
 接口的本质是契约，标准，规范，就像我们的法律一样。制定好后大家都要遵守。
 
-<img src="Java基础.images\image-20220710100316829.png" alt="image-20220710100316829" style="zoom:67%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220709173113033.png" alt="image-20220710100316829" style="zoom:67%;" />
 
 1. 使用`interface`定义结构
 
@@ -1947,7 +1947,7 @@ public void method(){
 
 - 数组角标越界
 
-<img src="Java基础.images\image-20220710160617972.png" alt="image-20220710160617972" style="zoom: 80%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220711104028313.png" alt="image-20220710160617972" style="zoom: 80%;" />
 
 1. 异常体系结构
 
@@ -2072,7 +2072,7 @@ class SubClass extends SuperClass{
 2. 提供全局常量：serialVersionUID
 3. 提供重载的构造器
 
-![image-20220711104028313](Java基础.images\image-20220711104028313.png)
+![image-20220711104028313](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220710160617972.png)
 
 
 
@@ -2098,7 +2098,7 @@ class SubClass extends SuperClass{
 
 - 一个进程中的多个线程共享相同的内存单元/内存地址空间它们从同一堆中分配对象，可以访问相同的变量和对象。这就使得线程间通信更简便、高效。但多个线程操作共享的系统资源可能就会带来安全的隐患。
 
-<img src="Java基础.images\QQ图片20220712111741.jpg" alt="QQ图片20220712111741" style="zoom:67%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220712143405293.png" alt="QQ图片20220712111741" style="zoom:67%;" />
 
 > 虚拟机栈、程序计数器每一个线程一份，方法区、堆一个进程一份（线程共享）
 
@@ -2289,7 +2289,7 @@ public class ThreadPool {
 
 **调度策略**
 
-​		<img src="Java基础.images\image-20220712143405293.png" alt="image-20220712143405293" style="zoom: 50%;" />
+​		<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/QQ图片20220712111741.jpg" alt="image-20220712143405293" style="zoom: 50%;" />
 
 **Java的调度方法**
 
@@ -2363,7 +2363,7 @@ public class ThreadPool {
 
 **死亡：**线程完成了它的全部工作或线程被提前强制性地中止或出现异常导致结束
 
-![image-20220712154932029](Java基础.images\image-20220712154932029.png)
+![image-20220712154932029](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220712154932029.png)
 
 ### 8.4 线程的同步
 
@@ -2495,7 +2495,7 @@ String类：代表字符串。Java 程序中的所有字符串字面值（如 "a
 
 4. String：代表一个不可变的字符序列
 
-<img src="Java基础.images\image-20220713093548930.png" alt="image-20220713093548930" style="zoom: 50%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220713093548930.png" alt="image-20220713093548930" style="zoom: 50%;" />
 
 
 
@@ -2504,7 +2504,7 @@ String类：代表字符串。Java 程序中的所有字符串字面值（如 "a
 
 #### 9.1.2 String对象的创建
 
-<img src="Java基础.images\image-20220713100600008.png" alt="image-20220713100600008" style="zoom:50%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220713101702798.png" alt="image-20220713100600008" style="zoom:50%;" />
 
 
 
@@ -2522,7 +2522,7 @@ String类：代表字符串。Java 程序中的所有字符串字面值（如 "a
 2. 只要其中有一个是变量，结果就在堆中
 3. 如果拼接的结果调用intern()方法，返回值就在常量池中
 
-<img src="Java基础.images\image-20220713101702798.png" alt="image-20220713101702798" style="zoom:50%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220713141625885.png" alt="image-20220713101702798" style="zoom:50%;" />
 
 ```java
 public class StringTest {
@@ -2721,7 +2721,7 @@ String的执行时间：276
 
 
 
-<img src="Java基础.images\image-20220713141625885.png" alt="image-20220713141625885" style="zoom:80%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220713165037951.png" alt="image-20220713141625885" style="zoom:80%;" />
 
 1. **java.lang.System类**
 
@@ -2843,19 +2843,19 @@ public class IDEADebug {
 
 Instant：时间线上的一个瞬时点。 这可能被用来记录应用程序中的事件时间戳
 
-<img src="Java基础.images\image-20220713165037951.png" alt="image-20220713165037951" style="zoom:50%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220713100600008.png" alt="image-20220713165037951" style="zoom:50%;" />
 
 
 
 **3. java.time.format.DateTimeFormatter(用来格式化)**
 
-<img src="Java基础.images\image-20220713165613090.png" alt="image-20220713165613090" style="zoom:50%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220713165613090.png" alt="image-20220713165613090" style="zoom:50%;" />
 
 **4. 其他API**
 
-<img src="Java基础.images\image-20220713170444754.png" alt="image-20220713170444754" style="zoom:50%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220713170538129.png" alt="image-20220713170444754" style="zoom:50%;" />
 
-<img src="Java基础.images\image-20220713170538129.png" alt="image-20220713170538129" style="zoom:50%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220713173442386.png" alt="image-20220713170538129" style="zoom:50%;" />
 
 
 
@@ -2916,7 +2916,7 @@ System类代表系统，系统级的很多属性和控制方法都放置在该�
 
 - **String getProperty(String key)**：该方法的作用是获得系统中属性名为key的属性对应的值。系统中常见的属性名以及属性的作用如下表所示
 
-  <img src="Java基础.images\image-20220713173442386.png" alt="image-20220713173442386" style="zoom:50%;" />
+  <img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220713173810910.png" alt="image-20220713173442386" style="zoom:50%;" />
 
 
 
@@ -2924,7 +2924,7 @@ System类代表系统，系统级的很多属性和控制方法都放置在该�
 
 **java.lang.Math提供了一系列静态方法用于科学计算。其方法的参数和返回值类型一般为double型**
 
-<img src="Java基础.images\image-20220713173810910.png" alt="image-20220713173810910" style="zoom:67%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220713182355705.png" alt="image-20220713173810910" style="zoom:67%;" />
 
 ### 9.7 BigInteger与BigDecimal
 
@@ -2934,7 +2934,7 @@ java.math包的**BigInteger可以表示不可变的任意精度的整数**。Big
 
 构造器 **BigInteger**(String val)：根据字符串构建BigInteger对象
 
-<img src="Java基础.images\image-20220713174028981.png" alt="image-20220713174028981" style="zoom:67%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220713174028981.png" alt="image-20220713174028981" style="zoom:67%;" />
 
  
 
@@ -3097,7 +3097,7 @@ enum Season1 implements Info{
 
 **toString()**：返回当前枚举类对象常量的名称
 
-<img src="Java基础.images\image-20220713180923954.png" alt="image-20220713180923954" style="zoom:67%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220713170444754.png" alt="image-20220713180923954" style="zoom:67%;" />
 
 
 
@@ -3173,9 +3173,9 @@ Annotation 的成员变量在 Annotation 定义中以无参数方法的形式来
 
 ​	Servlet3.0提供了注解(annotation),使得不再需要在web.xml文件中进行Servlet的部署。
 
-<img src="Java基础.images\image-20220713182355705.png" alt="image-20220713182355705" style="zoom:67%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220713182412615.png" alt="image-20220713182355705" style="zoom:67%;" />
 
-<img src="Java基础.images\image-20220713182412615.png" alt="image-20220713182412615" style="zoom:67%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220715180954868.png" alt="image-20220713182412615" style="zoom:67%;" />
 
 
 
@@ -3268,7 +3268,7 @@ Annotation 的成员变量在 Annotation 定义中以无参数方法的形式来
 
 
 
-<img src="Java基础.images\image-20220715105051665.png" alt="image-20220715105051665" style="zoom:67%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220715105051665.png" alt="image-20220715105051665" style="zoom:67%;" />
 
 
 
@@ -3395,7 +3395,7 @@ public class IteratorTest {
     }
 ```
 
-<img src="Java基础.images\image-20220715114352655.png" alt="image-20220715114352655" style="zoom:67%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220715114352655.png" alt="image-20220715114352655" style="zoom:67%;" />
 
 
 
@@ -3605,7 +3605,7 @@ TreeSet：可以按照添加对象的指定属性，进行排序
 
 ### 12.3 Map接口
 
-![image-20220715180954868](Java基础.images\image-20220715180954868.png)
+![image-20220715180954868](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220715195110687.png)
 
 #### Map的实现类结构
 
@@ -3712,7 +3712,7 @@ MIN_TREEIFY_CAPACITY：桶中的Node被树化时最小的hash表容量:64
 
 #### 12.3.3 LinkedHashMap的底层实现原理（了解）
 
-<img src="Java基础.images\image-20220715195110687.png" alt="image-20220715195110687" style="zoom:67%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220716111003145.png" alt="image-20220715195110687" style="zoom:67%;" />
 
 
 
@@ -3861,7 +3861,7 @@ boolean replaceAll(List list，Object oldVal，Object newVal)：使用新值替�
 
 **Collections 类中提供了多个 synchronizedXxx() 方法，该方法可使将指定集合包装成线程同步的集合，从而可以解决多线程并发访问集合时的线程安全问题**
 
-![image-20220716111003145](Java基础.images\image-20220716111003145.png)
+![image-20220716111003145](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20221030205111504.png)
 
 ### 12.5 Queue接口
 
@@ -3869,7 +3869,7 @@ Queue 接口在 java.utils 包下 ， 继承了 Collection 接口， **用于保
 
 #### 12.5.1 Queue 层次结构
 
-![image-20221030205111504](Java基础.images\image-20221030205111504.png)
+![image-20221030205111504](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220716170249418.png)
 
 #### 12.5.2 Queue接口声明
 
@@ -4123,15 +4123,15 @@ java.io包下提供了各种“流”类和接口，用以获取不同种类的�
 
 按流的**角色**的不同分为：**节点流，处理流**
 
-<img src="Java基础.images\image-20220716170034429.png" alt="image-20220716170034429" style="zoom:70%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220716200858606.png" alt="image-20220716170034429" style="zoom:70%;" />
 
-<img src="Java基础.images\image-20220716170249418.png" alt="image-20220716170249418" style="zoom:67%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220716170034429.png" alt="image-20220716170249418" style="zoom:67%;" />
 
 #### I/O流体系
 
 4个抽象基类非常的重要（蓝色的比较重要）
 
-<img src="Java基础.images\image-20220716170511051.png" alt="image-20220716170511051" style="zoom:100%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220717111740188.png" alt="image-20220716170511051" style="zoom:100%;" />
 
 |   抽象基类   |              节点流（或文件流）               |                   缓冲流（处理流的一种）                   |
 | :----------: | :-------------------------------------------: | :--------------------------------------------------------: |
@@ -4261,7 +4261,7 @@ java.io包下提供了各种“流”类和接口，用以获取不同种类的�
 
 ==**处理流的一种**==
 
-<img src="Java基础.images\image-20220716200858606.png" alt="image-20220716200858606" style="zoom:75%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220716170511051.png" alt="image-20220716200858606" style="zoom:75%;" />
 
 1. 转换流：属于字符流（看后缀）
 
@@ -4498,7 +4498,7 @@ public class OtherStreamTest {
 
 ObjectOutputStream和ObjectInputStream不能序列化static和transient修饰的成员变量
 
-<img src="Java基础.images\image-20220717111740188.png" alt="image-20220717111740188" style="zoom:80%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220828114620022.png" alt="image-20220717111740188" style="zoom:80%;" />
 
 #### 对象的序列化机制
 
@@ -4571,11 +4571,11 @@ ObjectOutputStream和ObjectInputStream不能序列化static和transient修饰的
 
   ​		Path path = Paths.get("index.html");
 
-  ![image-20220717122905149](Java基础.images\image-20220717122905149.png)
+  ![image-20220717122905149](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220717144003214.png)
 
-![image-20220828114620022](Java基础.images\image-20220828114620022.png)
+![image-20220828114620022](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220717143453146.png)
 
-![image-20220828114632215](Java基础.images\image-20220828114632215.png)
+![image-20220828114632215](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220717122905149.png)
 
 
 
@@ -4625,13 +4625,13 @@ Java提供的网络类库，可以实现无痛的网络连接，联网的底层�
 
 ### 15.3 通信要素2：网络通信协议
 
-![image-20220717143439402](Java基础.images\image-20220717143439402.png)
+![image-20220717143439402](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220828114632215.png)
 
-![image-20220717143453146](Java基础.images\image-20220717143453146.png)
+![image-20220717143453146](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220717160829505.png)
 
-![image-20220717144003214](Java基础.images\image-20220717144003214.png)
+![image-20220717144003214](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220717152343256.png)
 
-![image-20220717144012521](Java基础.images\image-20220717144012521.png)
+![image-20220717144012521](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220717165254499.png)
 
 
 
@@ -4897,7 +4897,7 @@ public class UDPTest {
 
 **URL(Uniform Resource Locator)**：统一资源定位符，它表示 Internet 上**某一资源**的地址
 
-![image-20220717152343256](Java基础.images\image-20220717152343256.png)
+![image-20220717152343256](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220717144012521.png)
 
 ```java
 public class URLTest1 {
@@ -4954,7 +4954,7 @@ Reflection（反射）是被视为动态语言的关键，反射机制允许程�
 
 **加载完类**之后，在**堆内存的方法区**中就产生了一个Class类型的对象（一个类只有一个Class对象），这个对象就包含了完整的类的结构信息。我们可以通过这个对象看到类的结构。这个对象就像一面镜子，透过这个镜子看到类的结构，所以，我们形象的称之为：**反射**
 
-![image-20220717160829505](Java基础.images\image-20220717160829505.png)
+![image-20220717160829505](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220717143439402.png)
 
 **Java反射机制提供的功能**
 
@@ -5080,7 +5080,7 @@ public void test4(){
 
 当程序主动使用某个类时，如果该类还未被加载到内存中，则系统会通过如下三个步骤来对该类进行初始化
 
-![image-20220717165254499](Java基础.images\image-20220717165254499.png)
+![image-20220717165254499](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220717170717174.png)
 
 
 
@@ -5104,7 +5104,7 @@ public void test4(){
 
 #### 16.3.1 类加载器
 
-![image-20220717170426773](Java基础.images\image-20220717170426773.png)
+![image-20220717170426773](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220708170522878.png)
 
 **类加载器的作用：**
 
@@ -5116,7 +5116,7 @@ public void test4(){
 
 类加载器作用是用来把类(class)装载进内存的。JVM 规范定义了如下类型的类的加载器
 
-![image-20220717170717174](Java基础.images\image-20220717170717174.png)
+![image-20220717170717174](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220717170426773.png)
 
 ```java
     public void test1(){
@@ -5427,7 +5427,7 @@ JavaBean是一种Java语言写成的可重用组件
 
 ### 扩展知识 UML类图
 
-<img src="Java基础.images\image-20220708170522878.png" alt="image-20220708170522878" style="zoom:80%;" />
+<img src="https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220710110606978.png" alt="image-20220708170522878" style="zoom:80%;" />
 
 1. +表示public、-表示private、#表示protected
 
@@ -5590,7 +5590,7 @@ class SubTemplate extends Template{
 
 代理模式是Java开发中使用较多的一种设计模式。代理设计就是为其他对象提供一种代理以控制对这个对象的访问。
 
-![image-20220710110606978](Java基础.images\image-20220710110606978.png)
+![image-20220710110606978](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220718110938617.png)
 
 ```java
 /**
@@ -5785,7 +5785,7 @@ public class LambdaTest1 {
 
 **其他函数式接口**
 
-![image-20220718110938617](Java基础.images\image-20220718110938617.png)
+![image-20220718110938617](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220718120947085.png)
 
 #### 方法引用与构造器引用
 
@@ -5975,33 +5975,33 @@ public class ConstructorRefTest {
 
 ##### 创建Stream API方式
 
-![image-20220718120916630](Java基础.images\image-20220718120916630.png)
+![image-20220718120916630](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220718120916630.png)
 
-![image-20220718120930489](Java基础.images\image-20220718120930489.png)
+![image-20220718120930489](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220718120930489.png)
 
-![image-20220718120947085](Java基础.images\image-20220718120947085.png)
+![image-20220718120947085](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220718120959327.png)
 
-![image-20220718120959327](Java基础.images\image-20220718120959327.png)
+![image-20220718120959327](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220718121023239.png)
 
 ##### Stream的中间操作
 
-![image-20220718121023239](Java基础.images\image-20220718121023239.png)
+![image-20220718121023239](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220718122947441.png)
 
-![image-20220718121119289](Java基础.images\image-20220718121119289.png)
+![image-20220718121119289](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220718152146523.png)
 
-![image-20220718122352006](Java基础.images\image-20220718122352006.png)
+![image-20220718122352006](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220718152223683.png)
 
-![image-20220718122947441](Java基础.images\image-20220718122947441.png)
+![image-20220718122947441](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220718152200394.png)
 
 ##### Stream终止操作
 
-![image-20220718152146523](Java基础.images\image-20220718152146523.png)
+![image-20220718152146523](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220718121119289.png)
 
-![image-20220718152200394](Java基础.images\image-20220718152200394.png)
+![image-20220718152200394](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220718122352006.png)
 
-![image-20220718152215340](Java基础.images\image-20220718152215340.png)
+![image-20220718152215340](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220718152215340.png)
 
-![image-20220718152223683](Java基础.images\image-20220718152223683.png)
+![image-20220718152223683](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220718173912854.png)
 
 
 
@@ -6009,7 +6009,7 @@ public class ConstructorRefTest {
 
 Optional\<T> 类(java.util.Optional) 是一个容器类，它可以保存类型T的值，代表这个值存在。或者仅仅保存null，表示这个值不存在。原来用 null 表示一个值不存在，现在 Optional 可以更好的表达这个概念。并且可以避免空指针异常
 
-![image-20220718154737209](Java基础.images\image-20220718154737209.png)
+![image-20220718154737209](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220718162414391.png)
 
 ### Java9&Java10Java11新特性
 
@@ -6027,7 +6027,7 @@ Java 运行环境的膨胀和臃肿。每次JVM启动的时候，至少会有30�
 
 模块将由通常的类和新的模块声明文件（module-info.java）组成。该文件是位于java代码结构的顶层，该模块描述符明确地定义了我们的模块需要什么依赖关系，以及哪些模块被外部使用。在exports子句中未提及的所有包默认情况下将封装在模块中，不能在外部使用
 
-![image-20220718162414391](Java基础.images\image-20220718162414391.png)
+![image-20220718162414391](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220718154737209.png)
 
 
 
@@ -6104,7 +6104,7 @@ System.out.println(namesList);
 
 Java9中的方式
 
-![image-20220718165723698](Java基础.images\image-20220718165723698.png)
+![image-20220718165723698](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220718165723698.png)
 
 List firsnamesList = List.of(“Joe”,”Bob”,”Bill”);调用集合中静态方法of()，可以将不同数量的参数传输到此工厂方法中。此功能可用于Set和List，也可用于Map的类似形式。此时得到的集合，是不可变的：在创建后，继续添加元素到这些集合会导致 “UnsupportedOperationException” 。由于Java 8中接口方法的实现，可以直接在List，Set和Map的接口内定义这些方法，便于调用
 
@@ -6306,13 +6306,13 @@ public class Java10Test {
 
 ##### 新增了一系列字符串处理方法
 
-![image-20220718173912854](Java基础.images\image-20220718173912854.png)
+![image-20220718173912854](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220718174305491.png)
 
 ##### Optional加强
 
 Optional 也增加了几个非常酷的方法，现在可以很方便的将一个 Optional 转换成一个 Stream, 或者当一个空 Optional 时给它一个替代的
 
-![image-20220718174305491](Java基础.images\image-20220718174305491.png)
+![image-20220718174305491](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220718174934932.png)
 
 ##### 局部变量类型推断升级
 
@@ -6326,5 +6326,5 @@ Consumer<String> con2 = (@Deprecated var t) -> System.out.println(t.toUpperCase(
 
 ##### 全新的HTTP客户端API
 
-![image-20220718174934932](Java基础.images\image-20220718174934932.png)
+![image-20220718174934932](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/image-20220713180923954.png)
 
