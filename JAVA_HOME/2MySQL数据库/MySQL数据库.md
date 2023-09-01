@@ -1779,7 +1779,7 @@ FROM employees;
 > - 在数学运算中，0不能用作除数，在MySQL中，一个数除以0为NULL。
 
 **3．求模（求余）运算符**
-将t22表中的字段i对3和5进行求模（求余）运算。
+将t22表中的字段i对3和5进行求模（求余）运算。  取模的结果的符号与被模数相同
 
 ```mysql
 mysql> SELECT 12 % 3, 12 MOD 5 FROM dual;
@@ -3495,7 +3495,7 @@ mysql> SELECT NULLIF('mysql','mysql'),NULLIF('mysql', '');
 
 ### 4. 日期和时间函数
 
- 4.1 获取日期、时间
+####  4.1 获取日期、时间
 
 | 函数                                                         | 用法                           |
 | ------------------------------------------------------------ | ------------------------------ |
@@ -3514,7 +3514,7 @@ FROM DUAL;
 
 ![image-20211025193742633](MySQL数据库.images\image-20211025193742633.png)
 
- 4.2 日期与时间戳的转换
+####  4.2 日期与时间戳的转换
 
 | 函数                     | 用法                                                         |
 | ------------------------ | ------------------------------------------------------------ |
@@ -3568,7 +3568,7 @@ mysql> SELECT FROM_UNIXTIME(1576380910);
 1 row in set (0.00 sec)
 ```
 
- 4.3 获取月份、星期、星期数、天数等函数
+####  4.3 获取月份、星期、星期数、天数等函数
 
 | 函数                                     | 用法                                            |
 | ---------------------------------------- | ----------------------------------------------- |
@@ -3602,7 +3602,7 @@ FROM DUAL;
 
 ![image-20211025214818623](MySQL数据库.images\image-20211025214818623.png)
 
- 4.4 日期的操作函数
+####  4.4 日期的操作函数
 
 | 函数                    | 用法                                       |
 | ----------------------- | ------------------------------------------ |
@@ -3620,7 +3620,7 @@ EXTRACT( QUARTER FROM NOW()),EXTRACT( MINUTE_SECOND FROM NOW())
 FROM DUAL;
 ```
 
- 4.5 时间和秒钟转换的函数
+####  4.5 时间和秒钟转换的函数
 
 
 | 函数                 | 用法                                                         |
@@ -3650,7 +3650,7 @@ mysql> SELECT SEC_TO_TIME(78774);
 1 row in set (0.12 sec)
 ```
 
- 4.6 计算日期和时间的函数
+####  4.6 计算日期和时间的函数
 
 **第1组：**
 
@@ -3805,7 +3805,7 @@ mysql> SELECT TO_DAYS(NOW());
 SELECT COUNT(*) as num FROM new_user WHERE TO_DAYS(NOW())-TO_DAYS(regist_time)<=7
 ```
 
- 4.7 日期的格式化与解析
+####  4.7 日期的格式化与解析
 
 | 函数                              | 用法                                       |
 | --------------------------------- | ------------------------------------------ |
@@ -3919,7 +3919,7 @@ SELECT CASE
 SELECT CASE 1 
 　　WHEN 1 THEN '我是1'
 　　WHEN 2 THEN '我是2'
-ELSE '你是谁'
+   ELSE '你是谁'
 ```
 
 ```mysql
@@ -4411,31 +4411,32 @@ GROUP BY department_id;
 
 WHERE 和 HAVING 也不是互相排斥的，我们可以在一个查询里面同时使用 WHERE 和 HAVING。包含分组统计函数的条件用 HAVING，普通条件用 WHERE。这样，我们就既利用了 WHERE 条件的高效快速，又发挥了 HAVING 可以使用包含分组统计函数的查询条件的优点。当数据量特别大的时候，运行效率会有很大的差别。
 
-### 4. SELECT的执行过程
+### 4. `SELECT的执行过程`
 
  4.1 查询的结构
 
 ```mysql
-方式1：
-SELECT ...,....,...
+方式1：sql92 没有join on
+SELECT ...,....,...（存在聚合函数）
 FROM ...,...,....
 WHERE 多表的连接条件
-AND 不包含组函数的过滤条件
+	AND 不包含聚合函数的过滤条件
 GROUP BY ...,...
-HAVING 包含组函数的过滤条件
+HAVING 包含聚合函数函数的过滤条件
 ORDER BY ... ASC/DESC
 LIMIT ...,...
 
 方式2：
 SELECT ...,....,...
-FROM ... JOIN ... 
-ON 多表的连接条件
-JOIN ...
-ON ...
-WHERE 不包含组函数的过滤条件
-AND/OR 不包含组函数的过滤条件
+FROM ... 
+(LEFT / RIGHT)JOIN ... 
+	ON 多表的连接条件
+(LEFT / RIGHT)JOIN ...
+	ON ...
+WHERE 不包含聚合函数的过滤条件
+AND/OR 不包含聚合函数的过滤条件
 GROUP BY ...,...
-HAVING 包含组函数的过滤条件
+HAVING 包含聚合函数的过滤条件
 ORDER BY ... ASC/DESC
 LIMIT ...,...
 
@@ -4449,7 +4450,7 @@ LIMIT ...,...
 （7）limit：分页
 ```
 
- 4.2 SELECT执行顺序
+ 4.2 `SELECT执行顺序`
 
 你需要记住 SELECT 查询时的两个顺序：
 
@@ -8770,7 +8771,7 @@ age tinyint check(age >20) 或 sex char(2) check(sex in(‘男’,’女’))
 CHECK(height>=0 AND height<3)
 ```
 
-    8. DEFAULT约束
+### 8. DEFAULT约束
 
  8.1 作用
 
@@ -8970,9 +8971,9 @@ mysql> desc employee;
 
 **面试2、为什么不想要 null 的值**
 
-答:（1）不好比较。null是一种特殊值，比较时只能用专门的is null 和 is not null来比较。碰到运算符，通常返回null。
+答:（1）不好比较。null是一种特殊值，比较时只能用专门的 is null 和 is not null来比较。碰到运算符，通常返回null。
 
-​     （2）效率不高。影响提高索引效果。因此，我们往往在建表时 not null default '' 或 default 0
+   （2）效率不高。影响提高索引效果。因此，我们往往在建表时 not null default '' 或 default 0
 
 **面试3、带AUTO_INCREMENT约束的字段值是从1开始的吗？**
 在MySQL中，默认AUTO_INCREMENT的初始值是1，每新增一条记录，字段值自动加1。设置自增属性（AUTO_INCREMENT）的时候，还可以指定第一条插入记录的自增字段的值，这样新插入的记录的自增字段值从初始值开始递增，如在表中插入第一条记录，同时指定id值为5，则以后插入的记录的id值就会从6开始往上增加。添加主键约束时，往往需要设置字段自动增加属性。
@@ -9905,7 +9906,7 @@ WHERE ROUTINE_NAME='count_by_id'　AND　ROUTINE_TYPE = 'FUNCTION' \G
 
  5.2 修改
 
-修改存储过程或函数，不影响存储过程或函数功能，只是修改相关特性。使用ALTER语句实现。
+修改存储过程或函数，不影响存储过程或函数功能，只是**修改相关特性**。使用ALTER语句实现。
 
 ```mysql
 ALTER {PROCEDURE | FUNCTION} 存储过程或函数的名 [characteristic ...]
