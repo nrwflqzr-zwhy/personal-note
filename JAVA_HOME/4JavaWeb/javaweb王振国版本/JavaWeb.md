@@ -2815,7 +2815,7 @@ new Vue({
 
 所谓设置其实就是通过修改一个一个的**参数**，告诉**应用软件**它该**怎么工作**。
 
-![./images](JavaWeb.images\img001.9cf30fd6.png)
+![./images](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/img001.9cf30fd6.png)
 
 ##### ②配置
 
