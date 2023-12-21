@@ -166,7 +166,7 @@
 
 下面是前面例子中 jar 包之间的依赖关系：
 
-![images](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/img006.ab4f2e31.png)
+![images](Maven_doc.images/img006.ab4f2e31.png)
 
 而实际上 jar 包之间的依赖关系是普遍存在的，如果要由程序员手动梳理无疑会增加极高的学习成本，而这些工作又对实现业务功能毫无帮助。
 
@@ -180,7 +180,7 @@
 
 #### ②脱离 IDE 环境仍需构建
 
-![images](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/img010.74e515e5.png)
+![images](Maven_doc.images/img010.74e515e5.png)
 
 ### 3、结论
 
@@ -250,7 +250,7 @@ Java 项目开发过程中，构建指的是使用**『原材料生产产品』*
 
 ### 3、Maven 的工作机制
 
-![./images](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/img003.f9cc536c.png)
+![./images](Maven_doc.images/img003.f9cc536c.png)
 
 # 第二章 Maven 核心程序解压和配置
 
@@ -268,7 +268,7 @@ Java 项目开发过程中，构建指的是使用**『原材料生产产品』*
 
 下载链接：
 
-![images](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/img015.9ab3ebd3.png)
+![images](Maven_doc.images/img015.9ab3ebd3.png)
 
 具体下载地址：https://dlcdn.apache.org/maven/maven-3/3.8.4/binaries/apache-maven-3.8.4-bin.zip
 
@@ -466,11 +466,11 @@ WARNING
 
 #### ②在工作空间目录下打开命令行窗口
 
-![./images](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/img010.7f3addf6.png)
+![./images](Maven_doc.images/img010.7f3addf6.png)
 
 #### ③使用命令生成Maven工程
 
-![images](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/img008.be45c9ad.png)
+![images](Maven_doc.images/img008.be45c9ad.png)
 
 运行 **mvn archetype:generate** 命令
 
@@ -569,7 +569,7 @@ POM 理念集中体现在 Maven 工程根目录下 **pom.xml** 这个配置文�
 
 #### ①各个目录的作用
 
-![./images](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/img011.621b1ac3.png)
+![./images](Maven_doc.images/img011.621b1ac3.png)
 
 另外还有一个 target 目录专门存放构建操作输出的结果。
 
@@ -587,7 +587,7 @@ Maven 对于目录结构这个问题，没有采用配置的方式，而是基�
 
 ### [#](http://heavy_code_industry.gitee.io/code_heavy_industry/pro002-maven/chapter03/verse02.html#_1、主体程序)1、主体程序
 
-![./images](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/img012.0bcc2c5d.png)
+![./images](Maven_doc.images/img012.0bcc2c5d.png)
 
 主体程序指的是被测试的程序，同时也是将来在项目中真正要使用的程序。
 
@@ -605,7 +605,7 @@ public class Calculator {
 
 ### [#](http://heavy_code_industry.gitee.io/code_heavy_industry/pro002-maven/chapter03/verse02.html#_2、测试程序)2、测试程序
 
-![./images](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/img013.8b57a581.png)
+![./images](Maven_doc.images/img013.8b57a581.png)
 
 ```java
 package com.atguigu.maven;
@@ -715,7 +715,7 @@ D:\maven-rep1026\com\atguigu\maven\pro01-maven-java\1.0-SNAPSHOT\pro01-maven-jav
 
 使用 mvn archetype:generate 命令生成 Web 工程时，需要使用一个专门的 archetype。这个专门生成 Web 工程骨架的 archetype 可以参照官网看到它的用法：
 
-![./images](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/img014.942770a3.png)
+![./images](Maven_doc.images/img014.942770a3.png)
 
 参数 archetypeGroupId、archetypeArtifactId、archetypeVersion 用来指定现在使用的 maven-archetype-webapp 的坐标。
 
@@ -831,13 +831,13 @@ DANGER
 
 上面的错误信息说明：我们的 Web 工程用到了 HttpServlet 这个类，而 HttpServlet 这个类属于 servlet-api.jar 这个 jar 包。此时我们说，Web 工程需要依赖 servlet-api.jar 包。
 
-![./images](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/img018.f836f056.png)
+![./images](Maven_doc.images/img018.f836f056.png)
 
 ### [#](http://heavy_code_industry.gitee.io/code_heavy_industry/pro002-maven/chapter03/verse04.html#_8、配置对-servlet-api-jar-包的依赖)8、配置对 servlet-api.jar 包的依赖
 
 对于不知道详细信息的依赖可以到https://mvnrepository.com/网站查询。使用关键词搜索，然后在搜索结果列表中选择适合的使用。
 
-![./images](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/img019.46741083.png)
+![./images](Maven_doc.images/img019.46741083.png)
 
 比如，我们找到的 servlet-api 的依赖信息：
 
@@ -928,7 +928,7 @@ mvn test
 
 mvn package
 
-![./images](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/img024.91b00e04.png)
+![./images](Maven_doc.images/img024.91b00e04.png)
 
 通过查看 war 包内的结构，我们看到被 Web 工程依赖的 Java 工程确实是会变成 Web 工程的 WEB-INF/lib 目录下的 jar 包。
 
@@ -1046,7 +1046,7 @@ public class Calculator {
 
 其实就是验证：通过compile范围依赖的jar包会放入war包，通过test范围依赖的jar包不会放入war包。
 
-![./images](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/img026.0ad36150.png)
+![./images](Maven_doc.images/img026.0ad36150.png)
 
 #### [#](http://heavy_code_industry.gitee.io/code_heavy_industry/pro002-maven/chapter03/verse06.html#_4验证provided范围对测试程序有效)④验证provided范围对测试程序有效
 
@@ -1188,7 +1188,7 @@ TIP
 
 当 A 依赖 B，B 依赖 C 而且 C 可以传递到 A 的时候，A 不想要 C，需要在 A 里面把 C 排除掉。而往往这种情况都是为了避免 jar 包之间的冲突。
 
-![./images](https://nrwflqzr.oss-cn-beijing.aliyuncs.com/typora-img/img027.2faff879.png)
+![./images](Maven_doc.images/img027.2faff879.png)
 
 所以配置依赖的排除其实就是阻止某些 jar 包的传递。因为这样的 jar 包传递过来会和其他 jar 包冲突。
 

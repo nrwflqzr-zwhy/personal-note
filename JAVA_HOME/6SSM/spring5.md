@@ -34,7 +34,7 @@
 
 ​		Beans、Core、Context、Expression 是 spring 的核心，必须包含
 
-![image-20230112185034668](spring5.images\image-20230112185034668.png)
+![image-20230112185034668](spring5.images/image-20230112185034668-17031318186741.png)
 
 ​		添加如下 jar 包
 
