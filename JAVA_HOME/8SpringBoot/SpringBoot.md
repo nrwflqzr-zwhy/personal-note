@@ -1066,3 +1066,345 @@ person:
 </build>
 ```
 
+# 05、web 开发
+
+![image-20240114175326804](SpringBoot.assets/image-20240114175326804.png)
+
+## 1、SpringMVC 自动配置概览
+
+Spring Boot provides auto-configuration for Spring MVC that **works well with most applications.(大多场景我们都无需自定义配置)**
+
+The auto-configuration adds the following features on top of Spring’s defaults:
+
+- Inclusion of `ContentNegotiatingViewResolver` and `BeanNameViewResolver` beans.
+
+- - 内容协商视图解析器和BeanName视图解析器
+
+- Support for serving static resources, including support for WebJars (covered [later in this document](https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-spring-mvc-static-content))).
+
+- - 静态资源（包括webjars）
+
+- Automatic registration of `Converter`, `GenericConverter`, and `Formatter` beans.
+
+- - 自动注册 `Converter，GenericConverter，Formatter `
+
+- Support for `HttpMessageConverters` (covered [later in this document](https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-spring-mvc-message-converters)).
+
+- - 支持 `HttpMessageConverters` （后来我们配合内容协商理解原理）
+
+- Automatic registration of `MessageCodesResolver` (covered [later in this document](https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-spring-message-codes)).
+
+- - 自动注册 `MessageCodesResolver` （国际化用）
+
+- Static `index.html` support.
+
+- - 静态index.html 页支持
+
+- Custom `Favicon` support (covered [later in this document](https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-spring-mvc-favicon)).
+
+- - 自定义 `Favicon`  
+
+- Automatic use of a `ConfigurableWebBindingInitializer` bean (covered [later in this document](https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-spring-mvc-web-binding-initializer)).
+
+- - 自动使用 `ConfigurableWebBindingInitializer` ，（DataBinder负责将请求数据绑定到JavaBean上）
+
+> If you want to keep those Spring Boot MVC customizations and make more [MVC customizations](https://docs.spring.io/spring/docs/5.2.9.RELEASE/spring-framework-reference/web.html#mvc) (interceptors, formatters, view controllers, and other features), you can add your own `@Configuration` class of type `WebMvcConfigurer` but **without** `@EnableWebMvc`.
+>
+> **不用@EnableWebMvc注解。使用** `@Configuration` **+** `WebMvcConfigurer` **自定义规则**
+
+> If you want to provide custom instances of `RequestMappingHandlerMapping`, `RequestMappingHandlerAdapter`, or `ExceptionHandlerExceptionResolver`, and still keep the Spring Boot MVC customizations, you can declare a bean of type `WebMvcRegistrations` and use it to provide custom instances of those components.
+>
+> **声明** `WebMvcRegistrations` **改变默认底层组件**
+
+> If you want to take complete control of Spring MVC, you can add your own `@Configuration` annotated with `@EnableWebMvc`, or alternatively add your own `@Configuration`-annotated `DelegatingWebMvcConfiguration` as described in the Javadoc of `@EnableWebMvc`.
+>
+> **使用** `@EnableWebMvc+@Configuration+DelegatingWebMvcConfiguration 全面接管SpringMVC`
+
+## 2、简单功能分析
+
+### 2.1、静态资源访问
+
+#### 1、静态资源目录 
+
+只要静态资源放在类路径下： `/static` (or `/public` or `/resources` or `/META-INF/resources`
+
+访问 ： 当前项目根路径/ + 静态资源名 
+
+------
+
+原理： 静态映射/**。（默认的静态映射为 /\*\*) 意为所有的请求
+
+请求进来，先去找Controller看能不能处理。不能处理的所有请求又都交给静态资源处理器。静态资源也找不到则响应404页面
+
+改变默认的静态资源路径
+
+```yaml
+spring:
+  mvc:
+  	static-path-pattern: /res/**   # 改变默认的静态映射，则在浏览器需要使用 /res + 静态资源名来访问资源，这里并不是修改静态资源放置的位置，放置的位置仍旧是 /static 的路径下
+  resources:
+  	static-locations: [classpath:/haha/] # 这里是改变默认的静态资源的位置，使用一个数组表示
+```
+
+#### 2、webjar（一些静态资源 jar 包）
+
+自动映射 /[webjars](http://localhost:8080/webjars/jquery/3.5.1/jquery.js)/**
+
+https://www.webjars.org/
+
+    <dependency>
+    	<groupId>org.webjars</groupId>
+    	<artifactId>jquery</artifactId>
+    	<version>3.5.1</version>
+    </dependency>
+
+访问地址：[http://localhost:8080/webjars/jquery/3.5.1/jquery.js](http://localhost:8080/webjars/jquery/3.5.1/jquery.js)   后面地址要按照依赖里面的包路径
+
+jquery.js 在引入的 jar 包中存放在 META-INF/resources/jquery/3.5.1/ 下，那么默认的访问路径应该是 http://localhost:8080/jquery/3.5.1/jquery.js, 但是因为这是 webjar 资源，因此需要在类路径后面加上 webjar。
+
+### 2.2、欢迎页支持
+
+- 静态资源路径下的 index.html
+
+	- 可以配置静态资源路径
+
+	- 但是无法配置静态资源的访问前缀（会导致 index.html 无法被默认访问)
+
+		```yaml
+		spring:
+		#  mvc:
+		#    static-path-pattern: /res/**   这个会导致welcome page功能失效
+		
+		  resources:
+		    static-locations: [classpath:/haha/]
+		```
+
+- controller 能够处理 index 请求（如果要使用静态资源的访问前缀的解决办法）
+
+### 2.3、自定义 Favicon
+
+favicon.ico 放在静态资源目录下即可
+
+```yaml
+spring:
+#  mvc:
+#    static-path-pattern: /res/**   这个会导致 favicon.ico 功能失效
+```
+
+### 2.4、静态资源配置原理
+
+- SpringBoot 启动默认加载 xxxAutoConfiguration 类（自动配置类）
+
+- SpringMVC 功能的自动配置类 WebMvcAutoConfiguration（判断条件是否都生效）
+
+	```java
+	@Configuration(proxyBeanMethods = false)
+	@ConditionalOnWebApplication(type = Type.SERVLET)
+	@ConditionalOnClass({ Servlet.class, DispatcherServlet.class, WebMvcConfigurer.class })
+	@ConditionalOnMissingBean(WebMvcConfigurationSupport.class)
+	@AutoConfigureOrder(Ordered.HIGHEST_PRECEDENCE + 10)
+	@AutoConfigureAfter({ DispatcherServletAutoConfiguration.class, TaskExecutionAutoConfiguration.class,
+			ValidationAutoConfiguration.class })
+	public class WebMvcAutoConfiguration {}
+	```
+
+- 给容器中配置的内容
+
+	```java
+	@Configuration(proxyBeanMethods = false)
+	@Import(EnableWebMvcConfiguration.class)
+	@EnableConfigurationProperties({ WebMvcProperties.class, ResourceProperties.class }) // 有两个和配置文件绑定的类 WebMvcProperties 和 ResourceProperties
+	@Order(0)
+	public static class WebMvcAutoConfigurationAdapter implements WebMvcConfigurer {}
+	```
+
+	WebMvcProperties 与 spring.mvc 前缀的属性进行了绑定（例如上述的静态资源访问前缀）
+
+	ResourceProperties 与 spring.resources 前缀的属性进行了绑定（例如上述的静态资源访问路径）
+
+#### 2.4.1、配置类只有一个有参构造器
+
+```java
+//有参构造器所有参数的值都会从容器中确定
+//ResourceProperties resourceProperties；获取和 spring.resources 绑定的所有的值的对象
+//WebMvcProperties mvcProperties 获取和 spring.mvc 绑定的所有的值的对象
+//ListableBeanFactory beanFactory Spring 的 beanFactory
+//ObjectProvider<HttpMessageConverters> 找到所有的 HttpMessageConverters
+//ResourceHandlerRegistrationCustomizer 找到资源处理器的自定义器
+//DispatcherServletPath  
+//ServletRegistrationBean   给应用注册 Servlet、Filter 等
+	public WebMvcAutoConfigurationAdapter(ResourceProperties resourceProperties, WebMvcProperties mvcProperties,
+				ListableBeanFactory beanFactory, ObjectProvider<HttpMessageConverters> messageConvertersProvider,
+				ObjectProvider<ResourceHandlerRegistrationCustomizer> resourceHandlerRegistrationCustomizerProvider,
+				ObjectProvider<DispatcherServletPath> dispatcherServletPath,
+				ObjectProvider<ServletRegistrationBean<?>> servletRegistrations) {
+			this.resourceProperties = resourceProperties;
+			this.mvcProperties = mvcProperties;
+			this.beanFactory = beanFactory;
+			this.messageConvertersProvider = messageConvertersProvider;
+			this.resourceHandlerRegistrationCustomizer = resourceHandlerRegistrationCustomizerProvider.getIfAvailable();
+			this.dispatcherServletPath = dispatcherServletPath;
+			this.servletRegistrations = servletRegistrations;
+		}
+```
+
+#### 2.4.2、资源处理的默认规则
+
+```java
+@Override
+public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    if (!this.resourceProperties.isAddMappings()) { //resourceProperties 绑定了前缀为 spring.resources 的属性，如果这个 add-mappings 为 false，则关闭了默认的资源处理操作（默认为 true 是开启的）
+        logger.debug("Default resource handling disabled");
+        return;
+    }
+    Duration cachePeriod = this.resourceProperties.getCache().getPeriod(); //获取一个缓存时间（可以配置，参考 respurceProperties 中的写法）
+    CacheControl cacheControl = this.resourceProperties.getCache().getCachecontrol().toHttpCacheControl();
+    //webjars的规则
+    if (!registry.hasMappingForPattern("/webjars/**")) {
+        customizeResourceHandlerRegistration(registry.addResourceHandler("/webjars/**")
+                                             .addResourceLocations("classpath:/META-INF/resources/webjars/")
+                                             .setCachePeriod(getSeconds(cachePeriod)).setCacheControl(cacheControl));
+    }
+
+    //
+    String staticPathPattern = this.mvcProperties.getStaticPathPattern();
+    if (!registry.hasMappingForPattern(staticPathPattern)) { // 这个 if 获取静态资源路径
+        customizeResourceHandlerRegistration(registry.addResourceHandler(staticPathPattern)
+                                             .addResourceLocations(getResourceLocations(this.resourceProperties.getStaticLocations()))
+                                             .setCachePeriod(getSeconds(cachePeriod)).setCacheControl(cacheControl));
+    }
+}
+```
+
+```yaml
+spring:
+#  mvc:
+#    static-path-pattern: /res/**
+
+  resources:
+    add-mappings: false   禁用所有静态资源规则
+```
+
+```java
+@ConfigurationProperties(prefix = "spring.resources", ignoreUnknownFields = false)
+public class ResourceProperties {
+
+	private static final String[] CLASSPATH_RESOURCE_LOCATIONS = { "classpath:/META-INF/resources/",
+			"classpath:/resources/", "classpath:/static/", "classpath:/public/" };
+
+	/**
+	 * Locations of static resources. Defaults to classpath:[/META-INF/resources/,
+	 * /resources/, /static/, /public/].
+	 */
+	private String[] staticLocations = CLASSPATH_RESOURCE_LOCATIONS;
+```
+
+#### 2.4.3、欢迎页的处理规则
+
+```java
+HandlerMapping：处理器映射。保存了每一个Handler能处理哪些请求。	
+
+    @Bean
+    public WelcomePageHandlerMapping welcomePageHandlerMapping(ApplicationContext applicationContext, FormattingConversionService mvcConversionService, ResourceUrlProvider mvcResourceUrlProvider) {
+    WelcomePageHandlerMapping welcomePageHandlerMapping = new WelcomePageHandlerMapping(
+        new TemplateAvailabilityProviders(applicationContext), applicationContext, getWelcomePage(),
+        this.mvcProperties.getStaticPathPattern()); //调用了构造器
+    welcomePageHandlerMapping.setInterceptors(getInterceptors(mvcConversionService, mvcResourceUrlProvider));
+    welcomePageHandlerMapping.setCorsConfigurations(getCorsConfigurations());
+    return welcomePageHandlerMapping;
+}
+
+WelcomePageHandlerMapping(TemplateAvailabilityProviders templateAvailabilityProviders,
+                          ApplicationContext applicationContext, Optional<Resource> welcomePage, String staticPathPattern) {
+    if (welcomePage.isPresent() && "/**".equals(staticPathPattern)) {
+        //要用欢迎页功能，必须是/** ，这就是为什么配置了静态资源访问前缀，欢迎页功能会失效，因为这里要求访问前缀必须是 /**
+        logger.info("Adding welcome page: " + welcomePage.get());
+        setRootViewName("forward:index.html");
+    }
+    else if (welcomeTemplateExists(templateAvailabilityProviders, applicationContext)) {
+        // 调用Controller  /index （解决方法，放到 controller 去处理这个请求）
+        logger.info("Adding welcome page template: index");
+        setRootViewName("index");
+    }
+}
+```
+
+## 3、请求参数处理
+
+### 3.1、请求映射
+
+#### 3.1.1 rest 使用与原理
+
+Rest 风格支持（使用 HTTP 请求方式来表示对资源的操作）
+
+- 之前的方式：/getUser  获取用户    /deleteUser 删除用户   /editUser  修改用户     /saveUser 保存用户
+- Restful方式： /user    GET-获取用户   DELETE-删除用户     PUT-修改用户      POST-保存用户
+- 核心为：HiddenHttpMethodFilter（替换 method 参数，然后放行）
+	- 用法：表单的请求方式设置为 post，设置隐藏域 _method=put/delete
+	- 需要在 SpringBoot 配置文件中手动开启, spring.mvc.hiddenmethod.filter.enabled 设置为 true
+
+```java
+    @RequestMapping(value = "/user",method = RequestMethod.GET)
+    public String getUser(){
+        return "GET-张三";
+    }
+
+    @RequestMapping(value = "/user",method = RequestMethod.POST)
+    public String saveUser(){
+        return "POST-张三";
+    }
+
+
+    @RequestMapping(value = "/user",method = RequestMethod.PUT)
+    public String putUser(){
+        return "PUT-张三";
+    }
+
+    @RequestMapping(value = "/user",method = RequestMethod.DELETE)
+    public String deleteUser(){
+        return "DELETE-张三";
+    }
+
+	// 在容器中注入 HiddenHttpMethodFilter
+	@Bean
+	@ConditionalOnMissingBean(HiddenHttpMethodFilter.class)
+	@ConditionalOnProperty(prefix = "spring.mvc.hiddenmethod.filter", name = "enabled", matchIfMissing = false)
+	public OrderedHiddenHttpMethodFilter hiddenHttpMethodFilter() {
+		return new OrderedHiddenHttpMethodFilter();
+	}
+
+
+	//自定义filter
+    @Bean
+    public HiddenHttpMethodFilter hiddenHttpMethodFilter(){
+        HiddenHttpMethodFilter methodFilter = new HiddenHttpMethodFilter();
+        methodFilter.setMethodParam("_m");
+        return methodFilter;
+    }
+```
+
+Rest 原理
+
+- 表单提交会带上隐藏域 _method=put/delete （大小写无关）
+
+- 请求会被 HiddenHttpMethodFilter 拦截
+
+	- 请求是 POST，并且请求是正常的
+
+		- 获取 _method 的值
+		- 判断是否是以下请求 PUT、DELETE、PATCH
+		- 将原来的 request 中的 method 替换为 PUT、DELETE、PATCH，并重写了 getMethod 方法（后续获得的 method 都是改变后的）
+		- 过滤器链放行的时候用 wrapper。以后的方法调用 getMethod 是调用 requesWrapper 的（装饰器模式）
+
+
+
+> Rest 使用客户端工具能够直接发送 put、delete 等方式请求，无需 Filter。因此 SpringBoot 没有默认开启。(前后端分离时可能接触不到表单提交，只有表单提交需要)
+
+```java
+spring:
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: true   #开启页面表单的Rest功能
+```
+
