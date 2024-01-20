@@ -2199,3 +2199,36 @@ WebAsyncTask
 		![image.png](SpringBoot.assets/1605173657818-73331882-6086-490c-973b-af46ccf07b32.png)
 
 		导入了 jackson 处理 xml 的包，xml 的 converter 就会自动进来
+
+5. 自定义 MessageConverter
+
+	**实现多协议数据兼容。json、xml、x-guigu**
+
+	**0、**@ResponseBody 响应数据出去 调用 **RequestResponseBodyMethodProcessor** 处理
+
+	1、Processor 处理方法返回值。通过 **MessageConverter** 处理
+
+	2、所有 **MessageConverter** 合起来可以支持各种媒体类型数据的操作（读、写）
+
+	3、内容协商找到最终的 **messageConverter**；
+
+	SpringMVC 的什么功能。一个入口给容器中添加一个 WebMvcConfigurer
+
+	```java
+	 @Bean
+	public WebMvcConfigurer webMvcConfigurer(){
+	    return new WebMvcConfigurer() {
+	
+	        @Override
+	        public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+	
+	        }
+	    }
+	}
+	```
+
+	![image.png](SpringBoot.assets/1605260623995-8b1f7cec-9713-4f94-9cf1-8dbc496bd245.png)
+
+	![image.png](SpringBoot.assets/1605261062877-0a27cc41-51cb-4018-a9af-4e0338a247cd.png)
+
+	
