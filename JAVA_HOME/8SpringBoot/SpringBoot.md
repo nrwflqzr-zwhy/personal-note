@@ -1461,3 +1461,741 @@ protected void doDispatch(HttpServletRequest request, HttpServletResponse respon
 	}
 ```
 
+### 3.2、普通参数与基本注解
+
+#### 3.2.1 注解
+
+- @PathVariable
+- @RequestHeader
+- @ModelAttribute
+- @RequestParam
+- @MatrixVariable
+- @CookieValue
+- @RequestBody
+
+对应的参数解析器能够解析上述的参数
+
+```java
+@RestController
+public class ParameterTestController {
+
+    //  car/2/owner/zhangsan
+    @GetMapping("/car/{id}/owner/{username}")
+    public Map<String,Object> getCar(@PathVariable("id") Integer id,
+                                     @PathVariable("username") String name,
+                                     @PathVariable Map<String,String> pv,
+                                     @RequestHeader("User-Agent") String userAgent,
+                                     @RequestHeader Map<String,String> header,
+                                     @RequestParam("age") Integer age,
+                                     @RequestParam("inters") List<String> inters,
+                                     @RequestParam Map<String,String> params,
+                                     @CookieValue("_ga") String _ga,
+                                     @CookieValue("_ga") Cookie cookie){
+
+
+        Map<String,Object> map = new HashMap<>();
+
+//        map.put("id",id);
+//        map.put("name",name);
+//        map.put("pv",pv);
+//        map.put("userAgent",userAgent);
+//        map.put("headers",header);
+        map.put("age",age);
+        map.put("inters",inters);
+        map.put("params",params);
+        map.put("_ga",_ga);
+        System.out.println(cookie.getName()+"===>"+cookie.getValue());
+        return map;
+    }
+
+    @PostMapping("/save")
+    public Map postMethod(@RequestBody String content){
+        Map<String,Object> map = new HashMap<>();
+        map.put("content",content);
+        return map;
+    }
+	//矩阵变量
+    //1、语法： 请求路径：/cars/sell;low=34;brand=byd,audi,yd
+    //2、SpringBoot默认是禁用了矩阵变量的功能
+    //      手动开启：原理。对于路径的处理。UrlPathHelper进行解析。
+    //              removeSemicolonContent（移除分号内容）支持矩阵变量的
+    //3、矩阵变量必须有url路径变量才能被解析
+    @GetMapping("/cars/{path}")
+    public Map carsSell(@MatrixVariable("low") Integer low,
+                        @MatrixVariable("brand") List<String> brand,
+                        @PathVariable("path") String path){
+        Map<String,Object> map = new HashMap<>();
+
+        map.put("low",low);
+        map.put("brand",brand);
+        map.put("path",path);
+        return map;
+    }
+
+    // /boss/1;age=20/2;age=10
+    @GetMapping("/boss/{bossId}/{empId}")
+    public Map boss(@MatrixVariable(value = "age",pathVar = "bossId") Integer bossAge,
+                    @MatrixVariable(value = "age",pathVar = "empId") Integer empAge){
+        Map<String,Object> map = new HashMap<>();
+
+        map.put("bossAge",bossAge);
+        map.put("empAge",empAge);
+        return map;
+    }
+}
+```
+
+#### 3.2.2 ServletAPI
+
+- WebRequest
+- ServletRequest
+- MultipartRequest
+- HttpSession
+- javax.servlet.http.PushBuilder
+- Principal
+- InputStream
+- Reader
+- HttpMethod
+- Locale
+- TimeZone
+- ZoneId
+
+**ServletRequestMethodArgumentResolver  能够解析以上的参数**
+
+```java
+//判断是否能够支持这种参数	
+	@Override
+	public boolean supportsParameter(MethodParameter parameter) {
+		Class<?> paramType = parameter.getParameterType();
+		return (WebRequest.class.isAssignableFrom(paramType) ||
+				ServletRequest.class.isAssignableFrom(paramType) ||
+				MultipartRequest.class.isAssignableFrom(paramType) ||
+				HttpSession.class.isAssignableFrom(paramType) ||
+				(pushBuilder != null && pushBuilder.isAssignableFrom(paramType)) ||
+				Principal.class.isAssignableFrom(paramType) ||
+				InputStream.class.isAssignableFrom(paramType) ||
+				Reader.class.isAssignableFrom(paramType) ||
+				HttpMethod.class == paramType ||
+				Locale.class == paramType ||
+				TimeZone.class == paramType ||
+				ZoneId.class == paramType);
+	}
+```
+
+#### 3.2.3 复杂参数
+
+**Map**、**Model（Map、Model里面的数据会被放在request的请求域  相当于 request.setAttribute）、**Errors/BindingResult、**RedirectAttributes（ 重定向携带数据）**、**ServletResponse（Response）**、SessionStatus、UriComponentsBuilder、ServletUriComponentsBuilder
+
+```java
+Map<String,Object> map,  Model model, HttpServletRequest request //可以给request域中放数据，
+request.getAttribute(); // 获取数据
+```
+
+**Map、Model类型的参数**，会返回 mavContainer.getModel（）；---> BindingAwareModelMap 是Model 也是Map
+
+**mavContainer**.getModel(); 获取到值的
+
+![img](SpringBoot.assets/1603271442869-63b4c3c7-c721-4074-987d-cbe5999273ae.png)
+
+![img](SpringBoot.assets/1603271678813-d8e1a1e5-94fa-412c-a7f1-6f27174fd127.png)
+
+![img](SpringBoot.assets/1603271813894-037be041-92a5-49af-a49c-c350b3dd587a.png)
+
+#### 3.2.4 自定义对象参数
+
+可以自动类型转换与格式化，可以级联封装。
+
+```java
+/**
+ *     姓名： <input name="userName"/> <br/>
+ *     年龄： <input name="age"/> <br/>
+ *     生日： <input name="birth"/> <br/>
+ *     宠物姓名：<input name="pet.name"/><br/>
+ *     宠物年龄：<input name="pet.age"/>
+ */
+@Data
+public class Person {
+    
+    private String userName;
+    private Integer age;
+    private Date birth;
+    private Pet pet;
+    
+}
+
+@Data
+public class Pet {
+
+    private String name;
+    private String age;
+
+}
+
+result
+```
+
+### 3.3 POJO 封装过程
+
+ServletModelAttributeMethodProcessor
+
+### 3.4 参数处理原理
+
+- HandlerMapping 中找到能够处理请求的 Handler （Controller.method）
+- 为当前 Handler 寻找一个适配器 HandlerAdapter； RequestMappingHandlerAdapter
+- 为适配器执行目标方法并确定方法参数的每一个值
+
+#### 3.3.1 HandlerAdapter
+
+![image.png](SpringBoot.assets/1603262942726-107353bd-f8b7-44f6-93cf-2a3cad4093cf.png)
+
+0 - 支持方法上标注@RequestMapping 
+
+1 - 支持函数式编程的
+
+#### 3.3.2 执行目标方法
+
+```java
+// Actually invoke the handler.
+//DispatcherServlet -- doDispatch
+mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
+```
+
+```java
+
+mav = invokeHandlerMethod(request, response, handlerMethod); //执行目标方法
+
+
+//ServletInvocableHandlerMethod
+Object returnValue = invokeForRequest(webRequest, mavContainer, providedArgs);
+//获取方法的参数值
+Object[] args = getMethodArgumentValues(request, mavContainer, providedArgs);
+```
+
+#### 3.3.3 参数解析器-HandlerMethodArgumentResolver
+
+确定将要执行的目标方法的每一个参数的值是什么;
+
+SpringMVC目标方法能写多少种参数类型。取决于参数解析器。
+
+![image.png](SpringBoot.assets/1603263283504-85bbd4d5-a9af-4dbf-b6a2-30b409868774.png)
+
+![image.png](SpringBoot.assets/1603263394724-33122714-9d06-42ec-bf45-e440e8b49c05.png)
+
+- 当前解析器是否支持解析这种参数
+- 支持就调用 resolveArgument
+
+#### 3.3.4 返回值处理器
+
+![image.png](SpringBoot.assets/1603263524227-386da4be-43b1-4b17-a2cc-8cf886346af9.png)
+
+#### 3.3.5 如何确定目标方法每一个参数的值
+
+```java
+============InvocableHandlerMethod==========================
+protected Object[] getMethodArgumentValues(NativeWebRequest request, @Nullable ModelAndViewContainer mavContainer,
+			Object... providedArgs) throws Exception {
+
+		MethodParameter[] parameters = getMethodParameters();
+		if (ObjectUtils.isEmpty(parameters)) {
+			return EMPTY_ARGS;
+		}
+
+		Object[] args = new Object[parameters.length];
+		for (int i = 0; i < parameters.length; i++) {
+			MethodParameter parameter = parameters[i];
+			parameter.initParameterNameDiscovery(this.parameterNameDiscoverer);
+			args[i] = findProvidedArgument(parameter, providedArgs);
+			if (args[i] != null) {
+				continue;
+			}
+			if (!this.resolvers.supportsParameter(parameter)) {
+				throw new IllegalStateException(formatArgumentError(parameter, "No suitable resolver"));
+			}
+			try {
+				args[i] = this.resolvers.resolveArgument(parameter, mavContainer, request, this.dataBinderFactory);
+			}
+			catch (Exception ex) {
+				// Leave stack trace for later, exception may actually be resolved and handled...
+				if (logger.isDebugEnabled()) {
+					String exMsg = ex.getMessage();
+					if (exMsg != null && !exMsg.contains(parameter.getExecutable().toGenericString())) {
+						logger.debug(formatArgumentError(parameter, exMsg));
+					}
+				}
+				throw ex;
+			}
+		}
+		return args;
+	}
+```
+
+##### 3.3.5.1 挨个判断所有参数解析器那个支持解析这个参数
+
+```java
+	@Nullable
+	private HandlerMethodArgumentResolver getArgumentResolver(MethodParameter parameter) {
+		HandlerMethodArgumentResolver result = this.argumentResolverCache.get(parameter);
+		if (result == null) {
+			for (HandlerMethodArgumentResolver resolver : this.argumentResolvers) {
+				if (resolver.supportsParameter(parameter)) {
+					result = resolver;
+					this.argumentResolverCache.put(parameter, result);
+					break;
+				}
+			}
+		}
+		return result;
+	}
+```
+
+##### 3.3.5.2 解析这个参数的值
+
+```java
+调用各自 HandlerMethodArgumentResolver 的 resolveArgument 方法即可
+```
+
+##### 3.3.5.3 自定义数据类型 封装 POJO
+
+**ServletModelAttributeMethodProcessor  这个参数处理器支持**
+
+ **是否为简单类型。**
+
+```java
+public static boolean isSimpleValueType(Class<?> type) {
+		return (Void.class != type && void.class != type &&
+				(ClassUtils.isPrimitiveOrWrapper(type) ||
+				Enum.class.isAssignableFrom(type) ||
+				CharSequence.class.isAssignableFrom(type) ||
+				Number.class.isAssignableFrom(type) ||
+				Date.class.isAssignableFrom(type) ||
+				Temporal.class.isAssignableFrom(type) ||
+				URI.class == type ||
+				URL.class == type ||
+				Locale.class == type ||
+				Class.class == type));
+	}
+```
+
+```java
+@Override
+	@Nullable
+	public final Object resolveArgument(MethodParameter parameter, @Nullable ModelAndViewContainer mavContainer,
+			NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) throws Exception {
+
+		Assert.state(mavContainer != null, "ModelAttributeMethodProcessor requires ModelAndViewContainer");
+		Assert.state(binderFactory != null, "ModelAttributeMethodProcessor requires WebDataBinderFactory");
+
+		String name = ModelFactory.getNameForParameter(parameter);
+		ModelAttribute ann = parameter.getParameterAnnotation(ModelAttribute.class);
+		if (ann != null) {
+			mavContainer.setBinding(name, ann.binding());
+		}
+
+		Object attribute = null;
+		BindingResult bindingResult = null;
+
+		if (mavContainer.containsAttribute(name)) {
+			attribute = mavContainer.getModel().get(name);
+		}
+		else {
+			// Create attribute instance
+			try {
+				attribute = createAttribute(name, parameter, binderFactory, webRequest);
+			}
+			catch (BindException ex) {
+				if (isBindExceptionRequired(parameter)) {
+					// No BindingResult parameter -> fail with BindException
+					throw ex;
+				}
+				// Otherwise, expose null/empty value and associated BindingResult
+				if (parameter.getParameterType() == Optional.class) {
+					attribute = Optional.empty();
+				}
+				bindingResult = ex.getBindingResult();
+			}
+		}
+
+		if (bindingResult == null) {
+			// Bean property binding and validation;
+			// skipped in case of binding failure on construction.
+			WebDataBinder binder = binderFactory.createBinder(webRequest, attribute, name);
+			if (binder.getTarget() != null) {
+				if (!mavContainer.isBindingDisabled(name)) {
+					bindRequestParameters(binder, webRequest);
+				}
+				validateIfApplicable(binder, parameter);
+				if (binder.getBindingResult().hasErrors() && isBindExceptionRequired(binder, parameter)) {
+					throw new BindException(binder.getBindingResult());
+				}
+			}
+			// Value type adaptation, also covering java.util.Optional
+			if (!parameter.getParameterType().isInstance(attribute)) {
+				attribute = binder.convertIfNecessary(binder.getTarget(), parameter.getParameterType(), parameter);
+			}
+			bindingResult = binder.getBindingResult();
+		}
+
+		// Add resolved attribute and BindingResult at the end of the model
+		Map<String, Object> bindingResultModel = bindingResult.getModel();
+		mavContainer.removeAttributes(bindingResultModel);
+		mavContainer.addAllAttributes(bindingResultModel);
+
+		return attribute;
+	}
+```
+
+**WebDataBinder binder = binderFactory.createBinder(webRequest, attribute, name);**
+
+**WebDataBinder : web 数据绑定器，将请求参数的值绑定到指定的 JavaBean 里面**
+
+**WebDataBinder 利用它里面的 Converters 将请求数据转成指定的数据类型。再次封装到 JavaBean 中**
+
+
+
+**GenericConversionService：在设置每一个值的时候，找它里面的所有 converter 那个可以将这个数据类型（request带来参数的字符串）转换到指定的类型（JavaBean -- Integer）**
+
+**byte -- > file**
+
+@FunctionalInterface **public interface** Converter<S, T>
+
+![image.png](SpringBoot.assets/1603337871521-25fc1aa1-133a-4ce0-a146-d565633d7658.png)
+
+![image.png](SpringBoot.assets/1603338486441-9bbd22a9-813f-49bd-b51b-e66c7f4b8598.png)
+
+未来我们可以给WebDataBinder里面放自己的Converter；
+
+**private static final class** StringToNumber<T **extends** Number> **implements** Converter<String, T>
+
+自定义 Converter
+
+```java
+    //1、WebMvcConfigurer定制化SpringMVC的功能
+    @Bean
+    public WebMvcConfigurer webMvcConfigurer(){
+        return new WebMvcConfigurer() {
+            @Override
+            public void configurePathMatch(PathMatchConfigurer configurer) {
+                UrlPathHelper urlPathHelper = new UrlPathHelper();
+                // 不移除；后面的内容。矩阵变量功能就可以生效
+                urlPathHelper.setRemoveSemicolonContent(false);
+                configurer.setUrlPathHelper(urlPathHelper);
+            }
+
+            @Override
+            public void addFormatters(FormatterRegistry registry) {
+                registry.addConverter(new Converter<String, Pet>() {
+
+                    @Override
+                    public Pet convert(String source) {
+                        // 啊猫,3
+                        if(!StringUtils.isEmpty(source)){
+                            Pet pet = new Pet();
+                            String[] split = source.split(",");
+                            pet.setName(split[0]);
+                            pet.setAge(Integer.parseInt(split[1]));
+                            return pet;
+                        }
+                        return null;
+                    }
+                });
+            }
+        };
+    }
+```
+
+#### 3.3.6 目标方法执行完成
+
+将所有的数据都放在 **ModelAndViewContainer**；包含要去的页面地址 View。还包含 Model 数据。
+
+![image.png](SpringBoot.assets/1603272018605-1bce3142-bdd9-4834-a028-c753e91c52ac.png)
+
+#### 3.3.7 处理派发结果
+
+processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);
+
+renderMergedOutputModel(mergedModel, getRequestToExpose(request), response);
+
+```java
+InternalResourceView：
+@Override
+	protected void renderMergedOutputModel(
+			Map<String, Object> model, HttpServletRequest request, HttpServletResponse response) throws Exception {
+
+		// Expose the model object as request attributes.
+		exposeModelAsRequestAttributes(model, request);
+
+		// Expose helpers as request attributes, if any.
+		exposeHelpers(request);
+
+		// Determine the path for the request dispatcher.
+		String dispatcherPath = prepareForRendering(request, response);
+
+		// Obtain a RequestDispatcher for the target resource (typically a JSP).
+		RequestDispatcher rd = getRequestDispatcher(request, dispatcherPath);
+		if (rd == null) {
+			throw new ServletException("Could not get RequestDispatcher for [" + getUrl() +
+					"]: Check that the corresponding file exists within your web application archive!");
+		}
+
+		// If already included or response already committed, perform include, else forward.
+		if (useInclude(request, response)) {
+			response.setContentType(getContentType());
+			if (logger.isDebugEnabled()) {
+				logger.debug("Including [" + getUrl() + "]");
+			}
+			rd.include(request, response);
+		}
+
+		else {
+			// Note: The forwarded resource is supposed to determine the content type itself.
+			if (logger.isDebugEnabled()) {
+				logger.debug("Forwarding to [" + getUrl() + "]");
+			}
+			rd.forward(request, response);
+		}
+	}
+```
+
+```java
+暴露模型作为请求域属性
+// Expose the model object as request attributes.
+		exposeModelAsRequestAttributes(model, request);
+```
+
+```java
+protected void exposeModelAsRequestAttributes(Map<String, Object> model,
+			HttpServletRequest request) throws Exception {
+
+    //model中的所有数据遍历挨个放在请求域中
+		model.forEach((name, value) -> {
+			if (value != null) {
+				request.setAttribute(name, value);
+			}
+			else {
+				request.removeAttribute(name);
+			}
+		});
+	}
+```
+
+### 3.5 数据响应与内容协商
+
+![image-20240120200122400](SpringBoot.assets/image-20240120200122400.png)
+
+#### 3.5.1 响应 JSON
+
+##### 3.5.1.1 jackson.jar+@ResponseBody
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+web场景自动引入了json场景
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-json</artifactId>
+    <version>2.3.4.RELEASE</version>
+    <scope>compile</scope>
+</dependency>
+```
+
+利用 jackson 包完成功能
+
+![image.png](SpringBoot.assets/1605151090728-f7c60e6f-d0c0-4541-bfa3-8cc805dfd5d6.png)
+
+
+
+给前端自动返回json数据；
+
+1. 返回值解析器
+
+	![image.png](SpringBoot.assets/1605151359370-01cd1fbe-628a-4eea-9430-d79a78f59125.png)
+
+	```java
+	try {
+	    this.returnValueHandlers.handleReturnValue(
+	        returnValue, getReturnValueType(returnValue), mavContainer, webRequest);
+	}
+	```
+
+	```java
+	@Override
+	public void handleReturnValue(@Nullable Object returnValue, MethodParameter returnType,
+	                              ModelAndViewContainer mavContainer, NativeWebRequest webRequest) throws Exception {
+	
+	    HandlerMethodReturnValueHandler handler = selectHandler(returnValue, returnType);
+	    if (handler == null) {
+	        throw new IllegalArgumentException("Unknown return value type: " + returnType.getParameterType().getName());
+	    }
+	    handler.handleReturnValue(returnValue, returnType, mavContainer, webRequest);
+	}
+	```
+
+	```java
+	RequestResponseBodyMethodProcessor 类	
+	    @Override
+	    public void handleReturnValue(@Nullable Object returnValue, MethodParameter returnType,
+	                                  ModelAndViewContainer mavContainer, NativeWebRequest webRequest)
+	    throws IOException, HttpMediaTypeNotAcceptableException, HttpMessageNotWritableException {
+	
+	    mavContainer.setRequestHandled(true);
+	    ServletServerHttpRequest inputMessage = createInputMessage(webRequest);
+	    ServletServerHttpResponse outputMessage = createOutputMessage(webRequest);
+	
+	    // Try even with null return value. ResponseBodyAdvice could get involved.
+	    // 使用消息转换器进行写出操作
+	    writeWithMessageConverters(returnValue, returnType, inputMessage, outputMessage);
+	}
+	```
+
+2. 返回值解析器原理
+
+	![image.png](SpringBoot.assets/1605151728659-68c8ce8a-1b2b-4ab0-b86d-c3a875184672.png)
+
+	1. 返回值处理器判断是否支持这种类型返回值 supportsReturnType
+	2. 返回值处理器调用 handleReturnValue 进行处理
+	3. RequestResponseBodyMethodProcessor 可以处理返回值标了 @ResponseBody 注解的。
+		1. 利用 MessageConverters 进行处理，将数据写为 json
+			- 内容协商（浏览器默认会以请求头的方式告诉服务器他能接受什么样的内容类型）
+			- 服务器最终根据自己自身的能力，决定服务器能生产出什么样内容类型的数据，
+			- SpringMVC会挨个遍历所有容器底层的 HttpMessageConverter，找到能处理的 HttpMessageConverter
+				- 得到 MappingJackson2HttpMessageConverter 可以将对象写为 json
+				- 利用 MappingJackson2HttpMessageConverter 将对象转为 json 再写出去
+
+	![image.png](SpringBoot.assets/1605163005521-a20d1d8e-0494-43d0-8135-308e7a22e896.png)
+
+##### 3.5.1.2 SpringMVC 到底支持哪些返回值
+
+```java
+ModelAndView
+Model
+View
+ResponseEntity 
+ResponseBodyEmitter
+StreamingResponseBody
+HttpEntity
+HttpHeaders
+Callable
+DeferredResult
+ListenableFuture
+CompletionStage
+WebAsyncTask
+有 @ModelAttribute 且为对象类型的
+@ResponseBody 注解 ---> RequestResponseBodyMethodProcessor；
+```
+
+##### 3.5.1.3 HTTPMessageConverter 原理
+
+1. MessageConverter 规范
+
+	![image.png](SpringBoot.assets/1605163447900-e2748217-0f31-4abb-9cce-546b4d790d0b.png)
+
+	HttpMessageConverter: 看是否支持将此 Class 类型的对象，转为 MediaType 类型的数据。
+
+	例子：Person对象转为JSON。或者 JSON转为Person
+
+2. 默认的 MessageConverter
+
+	![image.png](SpringBoot.assets/1605163584708-e19770d6-6b35-4caa-bf21-266b73cb1ef1.png)
+
+	![img](SpringBoot.assets/1605163584708-e19770d6-6b35-4caa-bf21-266b73cb1ef1-170575247129513.png)
+
+	0 - 只支持Byte类型的
+
+	1 - String
+
+	2 - String
+
+	3 - Resource
+
+	4 - ResourceRegion
+
+	5 - DOMSource.**class \** SAXSource.**class**) \ StAXSource.**class \**StreamSource.**class \**Source.**class**
+
+	**6 -** MultiValueMap
+
+	7 - **true** 
+
+	**8 - true**
+
+	**9 - 支持注解方式xml处理的**
+
+	最终 MappingJackson2HttpMessageConverter 把对象转为 JSON（利用底层的 jackson 的 objectMapper 转换的）
+
+	![img](https://cdn.nlark.com/yuque/0/2020/png/1354552/1605164243168-1a31e9af-54a4-463e-b65a-c28ca7a8a2fa.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_34%2Ctext_YXRndWlndS5jb20g5bCa56GF6LC3%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+
+
+
+
+
+#### 3.5.2 内容协商
+
+根据客户端接收能力不同，返回不同媒体类型的数据。
+
+1. 引入 xml 依赖
+
+	```xml
+	<dependency>
+	    <groupId>com.fasterxml.jackson.dataformat</groupId>
+	    <artifactId>jackson-dataformat-xml</artifactId>
+	</dependency>
+	```
+
+2. postman 分别测试返回 json 和 xml
+
+	只需要改变请求头中 Accept 字段。Http 协议中规定的，告诉服务器本客户端可以接收的数据类型
+
+	![image.png](SpringBoot.assets/1605173127653-8a06cd0f-b8e1-4e22-9728-069b942eba3f.png)
+
+3. 开启浏览器参数方式内容协商功能
+
+	为了方便内容协商，开启基于请求参数的内容协商功能
+
+	```xml
+	spring:
+	    contentnegotiation:
+	      favor-parameter: true  #开启请求参数内容协商模式
+	```
+
+	发请求： http://localhost:8080/test/person?format=json | [http://localhost:8080/test/person?format=xml](http://localhost:8080/test/person?format=xml)
+
+	![image.png](SpringBoot.assets/1605230907471-b0ed34bc-6782-40e7-84b7-615726312f01.png)
+
+	确定客户端接收什么样的内容类型；
+
+	1. Parameter 策略优先确定是要返回 json 数据（获取请求头中的 format 的值）
+
+		![image.png](SpringBoot.assets/1605231074299-25f5b062-2de1-4a09-91bf-11e018d6ec0e.png)
+
+	2. 最终进行内容协商返回给客户端 json 即可
+
+4. 内容协商原理
+
+	1. 判断当前响应头中是否已经有确定的媒体类型。MediaType
+
+	2. **获取客户端（PostMan、浏览器）支持接收的内容类型。（获取客户端Accept请求头字段）[application/xml]**
+
+		- **contentNegotiationManager 内容协商管理器 默认使用基于请求头的策略**
+
+			![image.png](SpringBoot.assets/1605230462280-ef98de47-6717-4e27-b4ec-3eb0690b55d0.png)
+
+		- **HeaderContentNegotiationStrategy  确定客户端可以接收的内容类型**
+
+		- ![image.png](SpringBoot.assets/1605230546376-65dcf657-7653-4a58-837a-f5657778201a.png)
+
+	3. 遍历循环所有当前系统的 **MessageConverter**，看谁支持操作这个对象（Person）
+
+	4. 找到支持操作 Person 的 converter，把 converter 支持的媒体类型统计出来
+
+	5. 客户端需要[application/xml]。服务端能力[10种、json、xml]
+
+		![image.png](SpringBoot.assets/1605173876646-f63575e2-50c8-44d5-9603-c2d11a78adae.png)
+
+	6. 进行内容协商的最佳匹配媒体类型
+
+	7. 用支持将对象转为最佳匹配媒体类型的 converter。调用它进行转化。
+
+		![image.png](SpringBoot.assets/1605173657818-73331882-6086-490c-973b-af46ccf07b32.png)
+
+		导入了 jackson 处理 xml 的包，xml 的 converter 就会自动进来
