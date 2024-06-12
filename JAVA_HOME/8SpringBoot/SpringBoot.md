@@ -314,7 +314,7 @@ server.port=8888
 2、只要引入 starter，这个场景的所有常规需要的依赖我们都自动引入
 3、SpringBoot 所有支持的场景
 https://docs.spring.io/spring-boot/docs/current/reference/html/using-spring-boot.html#using-boot-starter
-4、见到的  *-spring-boot-starter： 第三方为我们提供的简化开发的场景启动器。
+4、见到的 *-spring-boot-starter： 第三方为我们提供的简化开发的场景启动器。
 5、所有场景启动器最底层的依赖
 <dependency>
   <groupId>org.springframework.boot</groupId>
@@ -357,39 +357,44 @@ https://docs.spring.io/spring-boot/docs/current/reference/html/using-spring-boot
 
 - 自动配好 SpringMVC
 
-- - 引入 SpringMVC 全套组件
-	- 自动配好 SpringMVC 常用组件（功能）
+  - 引入 SpringMVC 全套组件
+
+  - 自动配好 SpringMVC 常用组件（功能）
 
 - 自动配好 Web 常见功能，如：字符编码问题
 
-- - SpringBoot 帮我们配置好了所有 web 开发的常见场景
+  - SpringBoot 帮我们配置好了所有 web 开发的常见场景
 
 - 默认的包结构
 
-- - **主程序所在包及其下面的所有子包**里面的组件都会被默认扫描进来
-	- 无需以前的包扫描配置
-	- 想要改变扫描路径，@SpringBootApplication(scanBasePackages=**"com.atguigu"**)
+  - **主程序所在包及其下面的所有子包**里面的组件都会被默认扫描进来
 
-- - - 或者@ComponentScan 指定扫描路径
+  - 无需以前的包扫描配置
 
-			```java
-			@SpringBootApplication
-			等同于
-			@SpringBootConfiguration
-			@EnableAutoConfiguration
-			@ComponentScan("com.atguigu.boot")
-			```
+  - 想要改变扫描路径，@SpringBootApplication(scanBasePackages=**"com.atguigu"**)
+
+  	- 或者@ComponentScan 指定扫描路径
+
+  		```java
+  		@SpringBootApplication
+  		等同于
+  		@SpringBootConfiguration
+  		@EnableAutoConfiguration
+  		@ComponentScan("com.atguigu.boot") // 主程序所在的包路径
+  		```
 
 - 各种配置拥有默认值
 
-- - 默认配置最终都是映射到某个类上，如：MultipartProperties(文件上传解析器)
-	- 配置文件的值最终会绑定每个类上，这个类会在容器中创建对象
+  - 默认配置最终都是映射到某个类上，如：MultipartProperties(文件上传解析器)
+
+  - 配置文件的值最终会绑定每个类上，这个类会在容器中创建对象
 
 - 按需加载所有自动配置项
 
-- - 非常多的 starter
-	- 引入了哪些场景这个场景的自动配置才会开启
-	- SpringBoot 所有的自动配置功能都在 spring-boot-autoconfigure 包里面
+  - SpringBoot 提供了很多 starter
+
+  - 引入了哪些场景这个场景的自动配置才会开启
+  - SpringBoot 所有的自动配置功能都在 spring-boot-autoconfigure 包
 
 ## 2、容器功能
 
@@ -698,16 +703,16 @@ public @interface EnableAutoConfiguration {}
 public @interface AutoConfigurationPackage {}
 
 //利用 Registrar 给容器中导入一系列组件
-//将指定的一个包下的所有组件导入进来？MainApplication 所在包下。
+//将指定的一个包下的所有组件导入进来----MainApplication 所在包下。
 ```
 
 ##### 3.1.3.2 @Import(AutoConfigurationImportSelector.class)
 
 > 1、利用getAutoConfigurationEntry(annotationMetadata);给容器中批量导入一些组件
 >
-> 2、调用List<String> configurations = getCandidateConfigurations(annotationMetadata, attributes)获取到所有需要导入到容器中的配置类
+> 2、调用List\<String> configurations = getCandidateConfigurations(annotationMetadata, attributes)获取到所有需要导入到容器中的配置类
 >
-> 3、利用工厂加载 Map<String, List<String>> loadSpringFactories(@Nullable ClassLoader classLoader)；得到所有的组件
+> 3、利用工厂加载 Map<String, List\<String>> loadSpringFactories(@Nullable ClassLoader classLoader)；得到所有的组件
 >
 > 4、从META-INF/spring.factories位置来加载一个文件。
 > 	默认扫描我们当前系统里面所有META-INF/spring.factories位置的文件
@@ -881,16 +886,21 @@ public CharacterEncodingFilter characterEncodingFilter() {
 
 总结：
 
-- SpringBoot先加载所有的自动配置类  xxxxxAutoConfiguration
+- SpringBoot先加载所有的自动配置类  xxxAutoConfiguration
+
 - 每个自动配置类按照条件进行生效，默认都会绑定配置文件指定的值。xxxProperties和配置文件进行了绑定
+
 - 生效的配置类就会给容器中装配很多组件
-- 只要容器中有这些组件，相当于这些功能就有了
+
+- 只要容器中有这些组件，就有相应的功能
+
 - 定制化配置
 
-- - 用户直接自己 @Bean 替换底层的组件
+	- 用户直接自己 @Bean 替换底层的组件
+
 	- 用户修改配置文件进行定制化配置
 
-**xxxxxAutoConfiguration ---> 组件  --->** **xxxxProperties里面拿值  ----> application.properties**
+**xxxAutoConfiguration ---> 组件  --->** **xxxProperties里面拿值  ----> application.properties**
 
 ### 3.4、最佳实践
 
