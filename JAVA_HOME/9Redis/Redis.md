@@ -538,7 +538,7 @@ Redis提供了Bitmaps这个“数据类型”可以实现对位的操作：
 1. setbit
 
 	```shell
-	setbit <key> <offset> <value> 设置某个偏移量的值（0 or 1），偏移量从 0 开始
+	setbit <key> <offset> <value> # 设置某个偏移量的值（0 or 1），偏移量从 0 开始
 	```
 
 	每个独立用户是否访问过网站存放在Bitmaps中，将访问的用户记做1，没有访问的用户记做0， 用偏移量作为用户的id。
@@ -548,3 +548,273 @@ Redis提供了Bitmaps这个“数据类型”可以实现对位的操作：
 	![image-20240612165723766](Redis.assets/image-20240612165723766.png)
 
 	在第一次初始化Bitmaps时， 假如偏移量非常大， 那么整个初始化过程执行会比较慢， 可能会造成Redis的阻塞。
+
+2.   getbit
+
+     ```shell
+     getbit <key> <offset> # 获取 Bitmaps 中某个偏移的值
+     ```
+
+     ![image-20240613143244484](Redis.images/image-20240613143244484.png)
+
+     100的偏移值不存在所以返回0
+
+3.   bitcount
+
+     统计**字符串**被设置为1的bit数。一般情况下，给定的整个字符串都会被进行计数，通过指定额外的 start 或 end 参数，可以让计数只在特定的位上进行。start 和 end 参数的设置，都可以使用负数值：比如 -1 表示最后一个位，而 -2 表示倒数第二个位，start、end 是指**bit组的字节的下标数**，二者皆包含。
+
+     ```shell
+     bitcount key [start end]
+     ```
+
+     redis的setbit设置或清除的是bit位置，而bitcount计算的是byte位置。
+
+4.   bitop
+
+     ```shell
+     bitop and(or/not/xor) <destkey> [key ...]
+     ```
+
+     bitop是一个复合操作， 它可以做多个 Bitmaps 的 and（交集) 、 or（并集）、not（非）、xor（异或）操作并将结果保存在 destkey 中
+
+## 6.2 HyperLogLog
+
+### 6.2.1 简介
+
+在工作当中，我们经常会遇到与统计相关的功能需求，比如统计网站PV（PageView页面访问量）,可以使用Redis的incr、incrby轻松实现。
+
+但像UV（UniqueVisitor，独立访客）、独立IP数、搜索记录数等需要去重和计数的问题如何解决？这种求集合中不重复元素个数的问题称为基数问题。
+
+解决基数问题有很多种方案：
+
+（1）数据存储在MySQL表中，使用distinct count计算不重复个数
+
+（2）使用Redis提供的hash、set、bitmaps等数据结构来处理
+
+以上的方案结果精确，但随着数据不断增加，导致占用空间越来越大，对于非常大的数据集是不切实际的。
+
+能否能够降低一定的精度来平衡存储空间？Redis推出了HyperLogLog
+
+Redis HyperLogLog 是用来做基数统计的算法，HyperLogLog 的优点是，在输入元素的数量或者体积非常非常大时，计算基数所需的空间总是固定的、并且是很小的。
+
+在 Redis 里面，每个 HyperLogLog 键只需要花费 12 KB 内存，就可以计算接近 2^64 个不同元素的基数。这和计算基数时，元素越多耗费内存就越多的集合形成鲜明对比。
+
+但是，因为 HyperLogLog 只会根据输入元素来计算基数，而不会储存输入元素本身，所以 HyperLogLog 不能像集合那样，返回输入的各个元素。
+
+什么是基数?
+
+比如数据集 {1, 3, 5, 7, 5, 7, 8}， 那么这个数据集的基数集为 {1, 3, 5 ,7, 8}, 基数(不重复元素)为5。 基数估计就是在误差可接受的范围内，快速计算基数。
+
+### 6.2.2 命令
+
+1.   pfadd
+
+     ```shell
+     pfadd <key> <element> [element ...] # 添加指定元素到 HyperLogLog 中
+     ```
+
+     ![image-20240613151629213](Redis.images/image-20240613151629213.png)
+
+     将所有元素添加到指定HyperLogLog数据结构中。如果执行命令后HLL估计的近似基数发生变化，则返回1，否则返回0。
+
+2.   pfcount
+
+     ```shell
+     pfcount <key> [key ...] # 计算 HLL 的近似基数，可以计算多个 HLL
+     ```
+
+     ![image-20240613151757922](Redis.images/image-20240613151757922.png)
+
+3.   pfmerge
+
+     ```shell
+     pfmerge <destkey> <sourcekey> [sourcekey ...] # 将一个或多个HLL合并后的结果存储在另一个 HLL 中，比如每月活跃用户可以使用每天的活跃用户来合并计算可得
+     ```
+
+     ![image-20240613151914911](Redis.images/image-20240613151914911.png)
+
+
+
+## 6.3 Geospatial
+
+### 6.3.1 简介
+
+Redis 3.2 中增加了对GEO类型的支持。GEO，Geographic，地理信息的缩写。该类型，就是元素的2维坐标，在地图上就是经纬度。redis基于该类型，提供了经纬度设置，查询，范围查询，距离查询，经纬度Hash等常见操作。
+
+### 6.3.2 命令
+
+1.   geoadd
+
+     ```shell
+     geoadd <key> <longitude> <latitude> <member> [longitude latitude member...] # 添加地理位置（经度，纬度，名称）
+     ```
+
+     ![image-20240613152432081](Redis.images/image-20240613152432081.png)
+
+     -   两极无法直接添加，一般会下载城市数据，直接通过 Java 程序一次性导入
+     -   有效的经度从 -180 度到 180 度。有效的纬度从 -85.05112878 度到 85.05112878 度
+     -   当坐标位置超出指定范围时，该命令将会返回一个错误
+     -   已经添加的数据，是无法再次往里面添加的
+
+2.   geopos
+
+     ```shell
+     geopos <key> <member> [member ...] # 获得指定地区的坐标
+     ```
+
+     ![image-20240613153234240](Redis.images/image-20240613153234240.png)
+
+3.   geodist
+
+     ```shell
+     geodist <key> <member1> <member2> [m|km|ft|mi] # 获取两个位置之间的直线距离
+     ```
+
+     ![image-20240613153331124](Redis.images/image-20240613153331124.png)
+
+     ![image-20240613153344386](Redis.images/image-20240613153344386.png)
+
+     -   m 表示单位为米[默认值]。
+     -   km 表示单位为千米。
+     -   mi 表示单位为英里。
+     -   ft 表示单位为英尺。
+
+4.   georadius
+
+     ```shell
+     georadius <key> <longitude> <latitude> radius m|km|ft|mi  # 以给定的经纬度为中心，找出某一半径内的元素
+     ```
+
+     ![image-20240613153525643](Redis.images/image-20240613153525643.png)
+
+# 七、Redis_Jedis_测试
+
+## 7.1 Jedis 所需要的 jar 包
+
+```xml
+<dependency>
+	<groupId>redis.clients</groupId>
+	<artifactId>jedis</artifactId>
+	<version>3.2.0</version>
+</dependency>
+```
+
+## 7.2 连接 Redis 注意事项
+
+禁用Linux的防火墙：Linux(CentOS7)里执行命令
+
+```shell
+systemctl stop/disable firewalld.service
+```
+
+redis.conf中注释掉bind 127.0.0.1 ,然后 protected-mode no
+
+## 7.3 Jedis 常用操作
+
+### 7.3.1 **创建动态的工程**
+
+### 7.3.2 创建测试程序
+
+ ```java
+ package com.atguigu.jedis;  
+ import redis.clients.jedis.Jedis;  
+ public class Demo01 {  
+     public static void main(String[] args) {  
+         Jedis jedis = new Jedis("192.168.137.3",6379);  
+         String pong = jedis.ping();  
+         System.out.println("连接成功："+pong);  
+         jedis.close();  
+     }  
+ }
+ ```
+
+## 7.4 测试相关数据类型
+
+### 7.4.1  **Jedis-API:  Key**
+
+ ```java
+ jedis.set("k1",  "v1");  
+ jedis.set("k2",  "v2");  
+ jedis.set("k3",  "v3");  
+ Set<String> keys = jedis.keys("*");  
+ System.out.println(keys.size());  
+ for (String key : keys) {  
+ 	System.out.println(key);  
+ }  
+ System.out.println(jedis.exists("k1"));  
+ System.out.println(jedis.ttl("k1"));         
+ System.out.println(jedis.get("k1"));  
+ ```
+
+### 7.4.2 Jedis-API:  String
+
+  ```java
+  jedis.mset("str1","v1","str2","v2","str3","v3"); 
+  System.out.println(jedis.mget("str1","str2","str3"));  
+  ```
+
+### 7.4.3 Jedis-API:  List
+
+```java
+List<String> list = jedis.lrange("mylist",0,-1);  
+for (String element : list) {  
+	System.out.println(element);  
+}  
+```
+
+### 7.4.4 Jedis-API: Set
+
+```java
+jedis.sadd("orders",  "order01");  
+jedis.sadd("orders",  "order02");  
+jedis.sadd("orders",  "order03");  
+jedis.sadd("orders",  "order04");  
+Set<String> smembers = jedis.**smembers**("orders");  
+for (String order : smembers) {  
+	System.out.println(order);  
+}  
+jedis.srem("orders",  "order02");  
+```
+
+### 7.4.5 Jedis-API:  hash
+
+ ```java
+ jedis.hset("hash1","userName","lisi");  
+ System.out.println(jedis.hget("hash1","userName"));  
+ Map<String,String> map = new HashMap<String,String>(); 
+ map.put("telphone","13810169999");  
+ map.put("address","atguigu");  
+ map.put("email","abc@163.com");  
+ jedis.hmset("hash2",map);  
+ List<String> result = jedis.hmget("hash2",  "telphone","email");  
+ for (String element : result) {  
+     System.out.println(element);  
+ }  
+ ```
+
+### 7.4.6 Jedis-API:  Zset
+
+```java
+jedis.zadd("zset01",  100d, "z3");  
+jedis.zadd("zset01", 90d,  "l4");  
+jedis.zadd("zset01", 80d,  "w5");  
+jedis.zadd("zset01", 70d,  "z6");     
+Set<String> zrange = jedis.zrange("zset01", 0, -1);  
+for (String e : zrange) {  
+    System.out.println(e);  
+}  
+```
+
+# 十、Redis 事务 锁机制
+
+## 10.1 事务的定义
+
+Redis事务是一个单独的隔离操作：事务中的所有命令都会序列化、按顺序地执行。事务在执行的过程中，不会被其他客户端发送来的命令请求所打断。
+
+Redis事务的主要作用就是串联多个命令防止别的命令插队。
+
+## 10.2 multi、exec、discard 命令
+
+从输入 Multi 命令开始，输入的命令都会依次进入命令队列中，但不会执行，直到输入 exec 后，Redis会将之前的命令队列中的命令依次执行。
+
+组队的过程中可以通过 discard 来放弃组队。 
