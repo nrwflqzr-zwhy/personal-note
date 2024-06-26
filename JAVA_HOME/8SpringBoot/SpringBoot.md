@@ -65,21 +65,16 @@ https://spring.io/projects/spring-boot
 
 - Create stand-alone Spring applications
 	- 创建独立 Spring 应用
-
 - Embed Tomcat, Jetty or Undertow directly (no need to deploy WAR files)
 	- 内嵌 web 服务器
-
 - Provide opinionated 'starter' dependencies to simplify your build configuration
 	- 自动 starter 依赖，简化构建配置
-
 - Automatically configure Spring and 3rd party libraries whenever possible
 	- 自动配置 Spring 以及第三方功能
-
 - Provide production-ready features such as metrics, health checks, and externalized configuration
-- - 提供生产级别的监控、健康检查及外部化配置
-
+	- 提供生产级别的监控、健康检查及外部化配置
 - Absolutely no code generation and no requirement for XML configuration
-- - 无代码生成、无需编写 XML
+	- 无代码生成、无需编写 XML
 
 > SpringBoot 是整合 Spring 技术栈的一站式框架
 >
@@ -153,11 +148,7 @@ https://martinfowler.com/microservices/
 
 ### 4.1、官网文档架构 
 
-![image.png](SpringBoot.assets/1602654700738-b6c50c90-0649-4d62-98d3-57658caf0fdb.png)
-
-
-
-
+<img src="SpringBoot.assets/1602654700738-b6c50c90-0649-4d62-98d3-57658caf0fdb.png" alt="image.png" style="zoom:150%;" />
 
 ![image.png](SpringBoot.assets/1602654837853-48916a4f-cb5a-422c-ba7a-83b027c5bf24.png)
 
@@ -237,7 +228,7 @@ JDK 版本
 public class MainApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(MainApplication.class,args);
+        SpringApplication.run(MainApplication.class, args); 
     }
 }
 ```
@@ -257,6 +248,8 @@ public class HelloController {
 ```
 
 ### 2.5、测试
+
+直接运行main方法即可
 
 ### 2.6、简化配置
 
@@ -292,9 +285,9 @@ server.port=8888
 ```xml
 之前在 pom.xml 中配置的父项目是用来做依赖管理    
 <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.3.4.RELEASE</version>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.3.4.RELEASE</version>
 </parent>
 
 它的父项目
@@ -317,10 +310,10 @@ https://docs.spring.io/spring-boot/docs/current/reference/html/using-spring-boot
 4、见到的 *-spring-boot-starter： 第三方为我们提供的简化开发的场景启动器。
 5、所有场景启动器最底层的依赖
 <dependency>
-  <groupId>org.springframework.boot</groupId>
-  <artifactId>spring-boot-starter</artifactId>
-  <version>2.3.4.RELEASE</version>
-  <scope>compile</scope>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter</artifactId>
+    <version>2.3.4.RELEASE</version>
+    <scope>compile</scope>
 </dependency>
 ```
 
@@ -367,7 +360,7 @@ https://docs.spring.io/spring-boot/docs/current/reference/html/using-spring-boot
 
 - 默认的包结构
 
-  - **主程序所在包及其下面的所有子包**里面的组件都会被默认扫描进来
+  - **主程序所在包及其下面的所有子包**里面的组件都会被**默认**扫描进来
 
   - 无需以前的包扫描配置
 
@@ -387,7 +380,7 @@ https://docs.spring.io/spring-boot/docs/current/reference/html/using-spring-boot
 
   - 默认配置最终都是映射到某个类上，如：MultipartProperties(文件上传解析器)
 
-  - 配置文件的值最终会绑定每个类上，这个类会在容器中创建对象
+  - 配置文件的值最终会绑定类上，这个类会在容器中创建对象
 
 - 按需加载所有自动配置项
 
@@ -900,7 +893,7 @@ public CharacterEncodingFilter characterEncodingFilter() {
 
 	- 用户修改配置文件进行定制化配置
 
-**xxxAutoConfiguration ---> 组件  --->** **xxxProperties里面拿值  ----> application.properties**
+**xxxAutoConfiguration ---> 组件  --->** **xxxProperties 里面拿值  ----> application.properties**
 
 ### 3.4、最佳实践
 
