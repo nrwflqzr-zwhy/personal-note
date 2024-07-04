@@ -1407,7 +1407,7 @@ spring:
 
 ![image.png](SpringBoot.assets/1603181171918-b8acfb93-4914-4208-9943-b37610e93864.png)
 
-SpringMVC功能分析都从 org.springframework.web.servlet.DispatcherServlet->doDispatch（）
+SpringMVC功能分析都从 org.springframework.web.servlet.DispatcherServlet -> doDispatch（）
 
 ```java
 protected void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception {
@@ -1425,7 +1425,7 @@ protected void doDispatch(HttpServletRequest request, HttpServletResponse respon
 				processedRequest = checkMultipart(request);
 				multipartRequestParsed = (processedRequest != request);
 
-				// 找到当前请求使用哪个Handler（Controller的方法）处理
+				// 重要的一行：找到当前请求使用哪个Handler（Controller的方法）处理
 				mappedHandler = getHandler(processedRequest);
                 
                 //HandlerMapping：处理器映射。/xxx->>xxxx
@@ -1433,7 +1433,7 @@ protected void doDispatch(HttpServletRequest request, HttpServletResponse respon
 
 ![image.png](SpringBoot.assets/1603181460034-ba25f3c0-9cfd-4432-8949-3d1dd88d8b12.png)
 
-**RequestMappingHandlerMapping**：保存了所有 @RequestMapping 和 handler 的映射规则。
+**RequestMappingHandlerMapping**：保存了所有 @RequestMapping 注解和 handler 的映射规则。
 
 ![image.png](SpringBoot.assets/1603181662070-9e526de8-fd78-4a02-9410-728f059d6aef.png)
 
@@ -2003,7 +2003,7 @@ web场景自动引入了json场景
 
 给前端自动返回json数据；
 
-1. 返回值解析器
+1. 返回值处理器
 
 	![image.png](SpringBoot.assets/1605151359370-01cd1fbe-628a-4eea-9430-d79a78f59125.png)
 
@@ -2076,7 +2076,7 @@ DeferredResult
 ListenableFuture
 CompletionStage
 WebAsyncTask
-有 @ModelAttribute 且为对象类型的
+@ModelAttribute 且为对象类型的
 @ResponseBody 注解 ---> RequestResponseBodyMethodProcessor；
 ```
 
