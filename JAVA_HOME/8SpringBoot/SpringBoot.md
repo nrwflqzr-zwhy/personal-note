@@ -2052,8 +2052,8 @@ web场景自动引入了json场景
 	2. 返回值处理器调用 handleReturnValue 进行处理
 	3. RequestResponseBodyMethodProcessor 可以处理返回值标了 @ResponseBody 注解的。
 		1. 利用 MessageConverters 进行处理，将数据写为 json
-			- 内容协商（浏览器默认会以请求头的方式告诉服务器他能接受什么样的内容类型）
-			- 服务器最终根据自己自身的能力，决定服务器能生产出什么样内容类型的数据，
+			- 内容协商（浏览器默认会以请求头的方式告诉服务器他能接受什么样的内容类型，Accept 字段）
+			- 服务器最终根据自己自身的能力，决定服务器能生产出什么样内容类型的数据
 			- SpringMVC会挨个遍历所有容器底层的 HttpMessageConverter，找到能处理的 HttpMessageConverter
 				- 得到 MappingJackson2HttpMessageConverter 可以将对象写为 json
 				- 利用 MappingJackson2HttpMessageConverter 将对象转为 json 再写出去
@@ -2088,7 +2088,7 @@ WebAsyncTask
 
 	HttpMessageConverter: 看是否支持将此 Class 类型的对象，转为 MediaType 类型的数据。
 
-	例子：Person对象转为JSON。或者 JSON转为Person
+	例子：Person对象转为JSON。或者 JSON转为Person（Write or Read）
 
 2. 默认的 MessageConverter
 
@@ -2096,7 +2096,7 @@ WebAsyncTask
 
 	![img](SpringBoot.assets/1605163584708-e19770d6-6b35-4caa-bf21-266b73cb1ef1-170575247129513.png)
 
-	0 - 只支持Byte类型的
+	0 - 只支持 Byte 类型的
 
 	1 - String
 
@@ -2106,15 +2106,15 @@ WebAsyncTask
 
 	4 - ResourceRegion
 
-	5 - DOMSource.**class \** SAXSource.**class**) \ StAXSource.**class \**StreamSource.**class \**Source.**class**
+	5 - DOMSource.class  SAXSource.class  StAXSource.class StreamSource.class Source.class
 
-	**6 -** MultiValueMap
+	6 - MultiValueMap
 
-	7 - **true** 
+	7 - 直接返回为 true
 
-	**8 - true**
+	8 - 直接返回为 true
 
-	**9 - 支持注解方式xml处理的**
+	9 - 支持注解方式 xml 处理的
 
 	最终 MappingJackson2HttpMessageConverter 把对象转为 JSON（利用底层的 jackson 的 objectMapper 转换的）
 
