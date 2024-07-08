@@ -2120,10 +2120,6 @@ WebAsyncTask
 
 	![img](https://cdn.nlark.com/yuque/0/2020/png/1354552/1605164243168-1a31e9af-54a4-463e-b65a-c28ca7a8a2fa.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_34%2Ctext_YXRndWlndS5jb20g5bCa56GF6LC3%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
 
-
-
-
-
 #### 3.5.2 内容协商
 
 根据客户端接收能力不同，返回不同媒体类型的数据。
@@ -2167,33 +2163,48 @@ WebAsyncTask
 
 4. 内容协商原理
 
-	1. 判断当前响应头中是否已经有确定的媒体类型。MediaType
+  1. 判断当前响应头中是否已经有确定的媒体类型。MediaType
 
-	2. **获取客户端（PostMan、浏览器）支持接收的内容类型。（获取客户端Accept请求头字段）[application/xml]**
+  2. **获取客户端（PostMan、浏览器）支持接收的内容类型。（获取客户端Accept请求头字段）[application/xml]**
 
-		- **contentNegotiationManager 内容协商管理器 默认使用基于请求头的策略**
+  	- **contentNegotiationManager 内容协商管理器 默认使用基于请求头的策略**
 
-			![image.png](SpringBoot.assets/1605230462280-ef98de47-6717-4e27-b4ec-3eb0690b55d0.png)
+  		![image.png](SpringBoot.assets/1605230462280-ef98de47-6717-4e27-b4ec-3eb0690b55d0.png)
 
-		- **HeaderContentNegotiationStrategy  确定客户端可以接收的内容类型**
+  	- **HeaderContentNegotiationStrategy  确定客户端可以接收的内容类型**
 
-		- ![image.png](SpringBoot.assets/1605230546376-65dcf657-7653-4a58-837a-f5657778201a.png)
+  	- ![image.png](SpringBoot.assets/1605230546376-65dcf657-7653-4a58-837a-f5657778201a.png)
 
-	3. 遍历循环所有当前系统的 **MessageConverter**，看谁支持操作这个对象（Person）
+  3. 遍历循环所有当前系统的 **MessageConverter**，找到支持操作这个对象（Person）的 MessageConverter
 
-	4. 找到支持操作 Person 的 converter，把 converter 支持的媒体类型统计出来
+  4. 找到支持操作 Person 的 converter，把 converter 支持的媒体类型统计出来
 
-	5. 客户端需要[application/xml]。服务端能力[10种、json、xml]
+  5. 客户端需要[application/xml]。服务端能力[10种、json、xml]
 
-		![image.png](SpringBoot.assets/1605173876646-f63575e2-50c8-44d5-9603-c2d11a78adae.png)
+  	![image.png](SpringBoot.assets/1605173876646-f63575e2-50c8-44d5-9603-c2d11a78adae.png)
 
-	6. 进行内容协商的最佳匹配媒体类型
+  6. 进行内容协商的最佳匹配媒体类型
 
-	7. 用支持将对象转为最佳匹配媒体类型的 converter。调用它进行转化。
+  7. 用支持将对象转为最佳匹配媒体类型的 converter。调用它进行转化。
 
-		![image.png](SpringBoot.assets/1605173657818-73331882-6086-490c-973b-af46ccf07b32.png)
+  	![image.png](SpringBoot.assets/1605173657818-73331882-6086-490c-973b-af46ccf07b32.png)
 
-		导入了 jackson 处理 xml 的包，xml 的 converter 就会自动进来
+  	导入了 jackson 处理 xml 的包，xml 的 converter 就会自动进来
+
+  ```java
+  WebMvcConfigurationSupport
+  jackson2XmlPresent = ClassUtils.isPresent("com.fasterxml.jackson.dataformat.xml.XmlMapper", classLoader);
+  
+  if (jackson2XmlPresent) {
+  			Jackson2ObjectMapperBuilder builder = Jackson2ObjectMapperBuilder.xml();
+  			if (this.applicationContext != null) {
+  				builder.applicationContext(this.applicationContext);
+  			}
+  			messageConverters.add(new MappingJackson2XmlHttpMessageConverter(builder.build()));
+  		}
+  ```
+
+  
 
 5. 自定义 MessageConverter
 
