@@ -2124,117 +2124,165 @@ WebAsyncTask
 
 根据客户端接收能力不同，返回不同媒体类型的数据。
 
-1. 引入 xml 依赖
+##### 3.5.2.1 引入 xml 依赖
 
-	```xml
-	<dependency>
-	    <groupId>com.fasterxml.jackson.dataformat</groupId>
-	    <artifactId>jackson-dataformat-xml</artifactId>
-	</dependency>
-	```
+```xml
+<dependency>
+    <groupId>com.fasterxml.jackson.dataformat</groupId>
+    <artifactId>jackson-dataformat-xml</artifactId>
+</dependency>
+```
 
-2. postman 分别测试返回 json 和 xml
+##### 3.5.2.2 postman 分别测试返回 json 和 xml
 
-	只需要改变请求头中 Accept 字段。Http 协议中规定的，告诉服务器本客户端可以接收的数据类型
+只需要改变请求头中 Accept 字段。Http 协议中规定的，告诉服务器本客户端可以接收的数据类型
 
-	![image.png](SpringBoot.assets/1605173127653-8a06cd0f-b8e1-4e22-9728-069b942eba3f.png)
+##### ![image.png](SpringBoot.assets/1605173127653-8a06cd0f-b8e1-4e22-9728-069b942eba3f.png)3.5.2.3 开启浏览器参数方式内容协商功能
 
-3. 开启浏览器参数方式内容协商功能
+为了方便内容协商，开启基于请求参数的内容协商功能
 
-	为了方便内容协商，开启基于请求参数的内容协商功能
+```xml
+spring:
+    contentnegotiation:
+      favor-parameter: true  #开启请求参数内容协商模式
+```
 
-	```xml
-	spring:
-	    contentnegotiation:
-	      favor-parameter: true  #开启请求参数内容协商模式
-	```
+发请求： http://localhost:8080/test/person?format=json | [http://localhost:8080/test/person?format=xml](http://localhost:8080/test/person?format=xml)
 
-	发请求： http://localhost:8080/test/person?format=json | [http://localhost:8080/test/person?format=xml](http://localhost:8080/test/person?format=xml)
+![image.png](SpringBoot.assets/1605230907471-b0ed34bc-6782-40e7-84b7-615726312f01.png)
 
-	![image.png](SpringBoot.assets/1605230907471-b0ed34bc-6782-40e7-84b7-615726312f01.png)
+确定客户端接收什么样的内容类型；
 
-	确定客户端接收什么样的内容类型；
+1. Parameter 策略优先确定是要返回 json 数据（获取请求头中的 format 的值）
 
-	1. Parameter 策略优先确定是要返回 json 数据（获取请求头中的 format 的值）
+	![image.png](SpringBoot.assets/1605231074299-25f5b062-2de1-4a09-91bf-11e018d6ec0e.png)
 
-		![image.png](SpringBoot.assets/1605231074299-25f5b062-2de1-4a09-91bf-11e018d6ec0e.png)
+2. 最终进行内容协商返回给客户端 json 即可
 
-	2. 最终进行内容协商返回给客户端 json 即可
+##### 3.5.2.4 内容协商原理
 
-4. 内容协商原理
+1.   判断当前响应头中是否已经有确定的媒体类型。MediaType
 
-  1. 判断当前响应头中是否已经有确定的媒体类型。MediaType
+2.   **获取客户端（PostMan、浏览器）支持接收的内容类型。（获取客户端Accept请求头字段）[application/xml]**
 
-  2. **获取客户端（PostMan、浏览器）支持接收的内容类型。（获取客户端Accept请求头字段）[application/xml]**
+     -   **contentNegotiationManager 内容协商管理器 默认使用基于请求头的策略**
 
-  	- **contentNegotiationManager 内容协商管理器 默认使用基于请求头的策略**
+         ![image.png](SpringBoot.images/1605230462280-ef98de47-6717-4e27-b4ec-3eb0690b55d0.png)
 
-  		![image.png](SpringBoot.assets/1605230462280-ef98de47-6717-4e27-b4ec-3eb0690b55d0.png)
+     -   **HeaderContentNegotiationStrategy  确定客户端可以接收的内容类型**
 
-  	- **HeaderContentNegotiationStrategy  确定客户端可以接收的内容类型**
+         ![image.png](SpringBoot.images/1605230546376-65dcf657-7653-4a58-837a-f5657778201a.png)
 
-  	- ![image.png](SpringBoot.assets/1605230546376-65dcf657-7653-4a58-837a-f5657778201a.png)
+3.   遍历循环所有当前系统的 **MessageConverter**，找到支持操作这个对象（Person）的 MessageConverter
 
-  3. 遍历循环所有当前系统的 **MessageConverter**，找到支持操作这个对象（Person）的 MessageConverter
+4.   找到支持操作 Person 的 converter，把 converter 支持的媒体类型统计出来
 
-  4. 找到支持操作 Person 的 converter，把 converter 支持的媒体类型统计出来
+5.   客户端需要 [application/xml]。服务端能力 [10种、json、xml]
 
-  5. 客户端需要[application/xml]。服务端能力[10种、json、xml]
+     ![image.png](SpringBoot.images/1605173876646-f63575e2-50c8-44d5-9603-c2d11a78adae.png)
 
-  	![image.png](SpringBoot.assets/1605173876646-f63575e2-50c8-44d5-9603-c2d11a78adae.png)
+6.   进行内容协商的最佳匹配媒体类型
 
-  6. 进行内容协商的最佳匹配媒体类型
+7.   用支持将对象转为最佳匹配媒体类型的 converter。调用它进行转化
 
-  7. 用支持将对象转为最佳匹配媒体类型的 converter。调用它进行转化。
+     ![image.png](SpringBoot.images/1605173657818-73331882-6086-490c-973b-af46ccf07b32.png)
 
-  	![image.png](SpringBoot.assets/1605173657818-73331882-6086-490c-973b-af46ccf07b32.png)
+     导入了 jackson 处理 xml 的包，xml 的 converter 就会自动进来
 
-  	导入了 jackson 处理 xml 的包，xml 的 converter 就会自动进来
+     ```java
+     WebMvcConfigurationSupport
+     jackson2XmlPresent = ClassUtils.isPresent("com.fasterxml.jackson.dataformat.xml.XmlMapper", classLoader);
+     
+     if (jackson2XmlPresent) {
+     			Jackson2ObjectMapperBuilder builder = Jackson2ObjectMapperBuilder.xml();
+     			if (this.applicationContext != null) {
+     				builder.applicationContext(this.applicationContext);
+     			}
+     			messageConverters.add(new MappingJackson2XmlHttpMessageConverter(builder.build()));
+     		}
+     ```
 
-  ```java
-  WebMvcConfigurationSupport
-  jackson2XmlPresent = ClassUtils.isPresent("com.fasterxml.jackson.dataformat.xml.XmlMapper", classLoader);
-  
-  if (jackson2XmlPresent) {
-  			Jackson2ObjectMapperBuilder builder = Jackson2ObjectMapperBuilder.xml();
-  			if (this.applicationContext != null) {
-  				builder.applicationContext(this.applicationContext);
-  			}
-  			messageConverters.add(new MappingJackson2XmlHttpMessageConverter(builder.build()));
-  		}
-  ```
+##### 3.5.2. 自定义 MessageConverter
 
-  
+**实现多协议数据兼容。json、xml、x-guigu**
 
-5. 自定义 MessageConverter
+**0、**@ResponseBody 响应数据出去 调用 **RequestResponseBodyMethodProcessor** 处理
 
-	**实现多协议数据兼容。json、xml、x-guigu**
+1、Processor 处理方法返回值。通过 **MessageConverter** 处理
 
-	**0、**@ResponseBody 响应数据出去 调用 **RequestResponseBodyMethodProcessor** 处理
+2、所有 **MessageConverter** 合起来可以支持各种媒体类型数据的操作（读、写）
 
-	1、Processor 处理方法返回值。通过 **MessageConverter** 处理
+3、内容协商找到最终的 **messageConverter**；
 
-	2、所有 **MessageConverter** 合起来可以支持各种媒体类型数据的操作（读、写）
 
-	3、内容协商找到最终的 **messageConverter**；
 
-	SpringMVC 的什么功能。一个入口给容器中添加一个 WebMvcConfigurer
+SpringMVC 的什么功能。一个入口给容器中添加一个 WebMvcConfigurer
 
-	```java
-	 @Bean
-	public WebMvcConfigurer webMvcConfigurer(){
-	    return new WebMvcConfigurer() {
-	
-	        @Override
-	        public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
-	
-	        }
-	    }
-	}
-	```
+```java
+ @Bean
+public WebMvcConfigurer webMvcConfigurer(){
+    return new WebMvcConfigurer() {
 
-	![image.png](SpringBoot.assets/1605260623995-8b1f7cec-9713-4f94-9cf1-8dbc496bd245.png)
+        @Override
+        public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
 
-	![image.png](SpringBoot.assets/1605261062877-0a27cc41-51cb-4018-a9af-4e0338a247cd.png)
+        }
+    }
+}
+```
 
-	
+![image.png](SpringBoot.assets/1605260623995-8b1f7cec-9713-4f94-9cf1-8dbc496bd245.png)
+
+![image.png](SpringBoot.assets/1605261062877-0a27cc41-51cb-4018-a9af-4e0338a247cd.png)
+
+### 3.6 视图解析与模板引擎
+
+视图解析：**SpringBoot默认不支持 JSP，需要引入第三方模板引擎技术实现页面渲染。**
+
+#### 3.6.1 视图解析
+
+<img src="SpringBoot.images/image-20240708154134932.png" alt="image-20240708154134932" style="zoom: 50%;" />
+
+##### 3.6.1.1 视图解析原理流程
+
+1.   目标方法处理的过程中，所有数据都会被放在 **ModelAndViewContainer 里面。包括数据和视图地址**，如果**方法的参数是一个自定义类型对象（从请求参数中确定的），也会把它重新放在** **ModelAndViewContainer** 
+
+2.   任何目标方法执行完成以后都会返回 **ModelAndView**（数据和视图地址）
+
+3.   **processDispatchResult  处理派发结果（页面该如何响应）**
+
+     1.   **render**(**mv**, request, response); 进行页面渲染逻辑
+
+          ![image.png](SpringBoot.images/1605679959020-54b96fe7-f2fc-4b4d-a392-426e1d5413de.webp)
+
+          1.   根据方法的String返回值得到 **View** 对象【其中 render 方法定义了页面的渲染逻辑】
+
+               -   所有的视图解析器尝试是否能根据当前返回值得到 **View** 对象
+
+                   <div>			<!--块级封装-->
+                       <center>	<!--将图片和文字居中-->
+                       <img src="SpringBoot.images/1605679471537-7db702dc-b165-4dc6-b64a-26459ee5fd6c.webp"
+                            alt="图片无法加载"
+                            style="zoom:这里写图片的缩放百分比"/>
+                       <br>		<!--换行-->
+                       所有的视图解析器	<!--标题-->
+                       </center>
+                   </div>
+
+                   -   **redirect:** ==> Thymeleaf 会 new **RedirectView**()
+                   -   **forward:** ==> Thymeleaf 会 new **InternalResourceView(forwardUrl)**
+                   -   **普通字符串** ==> Thymeleaf 会 new **ThymeleafView()**
+
+               -   ContentNegotiationViewResolver 里面包含了下面所有的视图解析器，内部还是利用下面所有视图解析器得到视图对象
+
+                   <div>			<!--块级封装-->
+                       <center>	<!--将图片和文字居中-->
+                       <img src="SpringBoot.images/1605679913592-151a616a-c754-4da3-a2c1-91dc0230a48d.webp"
+                            alt="图片无法加载"
+                            style="zoom:这里写图片的缩放百分比"/>
+                       <br>		<!--换行-->
+                       ContentNegotiationViewResolver 里面包含了下面所有的视图解析器	<!--标题-->
+                       </center>
+                   </div>
+
+               -   view.render(mv.getModelInternal(), request, response);   视图对象调用自定义的 render 方法进行页面渲染工作
