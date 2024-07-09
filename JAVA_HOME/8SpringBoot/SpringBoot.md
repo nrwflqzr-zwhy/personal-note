@@ -2652,3 +2652,125 @@ public class AdminWebConfig implements WebMvcConfigurer {
 
 			**FileCopyUtils** 工具类实现文件流的拷贝
 
+## 8、异常处理
+
+### 8.1 默认规则
+
+- 默认情况下，Spring Boot提供`/error`处理所有错误的映射
+
+- 对于机器客户端，它将生成 JSON 响应，其中包含错误，HTTP状态和异常消息的详细信息
+
+	![image.png](SpringBoot.assets/1606024421363-77083c34-0b0e-4698-bb72-42da351d3944.webp)
+
+	对于浏览器客户端，响应一个 “whitelabel” 错误视图，以 HTML 格式呈现相同的数据
+
+	![image.png](SpringBoot.assets/1606024616835-bc491bf0-c3b1-4ac3-b886-d4ff3c9874ce.webp)
+
+- **要对其进行自定义，添加**`View`**解析为**`error`
+
+- 要完全替换默认行为，可以实现 `ErrorController `并注册该类型的Bean定义，或添加`ErrorAttributes类型的组件`以使用现有机制但替换其内容
+
+- error/下的4xx，5xx页面会被自动解析
+
+	![image.png](SpringBoot.assets/1606024592756-d4ab8a6b-ec37-426b-8b39-010463603d57.webp)
+
+### 8.2 定制错误处理逻辑
+
+- 自定义错误页
+
+	error/404.html   error/5xx.html
+
+	有精确的错误状态码页面就匹配精确，没有就找 4xx.html；如果都没有就触发白页
+
+- @ControllerAdvice + @ExceptionHandler 处理全局异常
+
+	底层是 **ExceptionHandlerExceptionResolver 支持的**
+
+- @ResponseStatus + 自定义异常
+
+	底层是 **ResponseStatusExceptionResolver，把 responsestatus 注解的调用response.sendError(statusCode, resolvedReason) 向 tomcat 发送 /error 请求，再转向处理 /error 请求的逻辑，适配到 4xx、5xx 页面**
+
+- Spring底层的异常，如 参数类型转换异常
+
+	**DefaultHandlerExceptionResolver 处理框架底层的异常**
+
+	response.sendError(HttpServletResponse.**SC_BAD_REQUEST**, ex.getMessage()); 
+
+	![image.png](SpringBoot.assets/1606114118010-f4aaf5ee-2747-4402-bc82-08321b2490ed.webp)
+
+- 自定义实现 HandlerExceptionResolver 处理异常；可以作为默认的全局异常处理规则
+
+	![image.png](SpringBoot.assets/1606114688649-e6502134-88b3-48db-a463-04c23eddedc7.webp)
+
+- **ErrorViewResolver** 实现自定义处理异常
+
+	- response.sendError，error 请求就会转给 controller
+	- 你的异常没有任何人能处理，tomcat底层也会调用 response.sendError，error 请求就会转给 controller
+	- **basicErrorController 要去的页面地址是** **ErrorViewResolver**  
+
+### 8.3 异常处理自动配置原理
+
+1. **ErrorMvcAutoConfiguration  自动配置异常处理规则**
+
+	为容器中的配置的组件
+
+	- **DefaultErrorAttributes ->** **id：errorAttributes**
+
+		```java
+		public class DefaultErrorAttributes implements ErrorAttributes, HandlerExceptionResolver
+		```
+
+	- **DefaultErrorAttributes**：定义错误页面中可以包含哪些数据
+
+		![image-20240709210119023](SpringBoot.assets/image-20240709210119023.png)
+
+		![image.png](SpringBoot.assets/1606044487738-8cb1dcda-08c5-4104-a634-b2468512e60f.webp)
+
+	- **BasicErrorController --> id：basicErrorController（json+白页 适配响应）**
+
+		- 处理默认 /error 路径的请求；页面响应 new ModelAndView("error", model)
+		- 容器中有组件 View -> id 是 error （响应默认错误页）
+		- 容器中有组件 BeanNameViewResolver (视图解析器), 按照返回的视图名作为组件的 id 去容器中找 View 对象，如此就找到了组件中的 View
+
+	- DefaultErrorViewResolver -> id: conventionErrorViewResolver
+
+		- 如果发生错误，会以 HTTP 的状态码作为视图页地址(viewName),找到真正的页面
+		- error/404、5xx.html
+
+### 8.4 异常处理步骤流程
+
+1. 执行目标方法，目标方法运行期间有任何异常都会被 catch、而且标志当前请求结束，并且用 **dispatchException** 
+
+2. 进入视图解析流程
+
+	```java
+	processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);
+	```
+
+3. **mv** = **processHandlerException**；处理 handler 发生的异常，处理完成返回 ModelAndView
+
+	遍历所有的 **handlerExceptionResolvers，找到能处理当前异常的异常解析器处理器异常解析器**
+
+	![image.png](SpringBoot.assets/1606047252166-ce71c3a1-0e0e-4499-90f4-6d80014ca19f.webp)
+
+	**系统默认的异常解析器**
+
+	![image.png](SpringBoot.assets/1606047109161-c68a46c1-202a-4db1-bbeb-23fcae49bbe9.webp)
+
+	- DefaultErrorAttributes 先来处理异常。把异常信息保存到 request域，并且返回 null，在源码的处理流程中，如果异常解析器返回为 null，则不会真正返回，而是继续寻找下一个异常解析器继续处理
+
+	- 默认没有任何人能处理异常，所以异常会被抛出
+
+		- **如果没有任何人能处理最终底层就会发送 /error 请求。会被底层的 BasicErrorController 处理**
+
+		- **解析错误视图；遍历所有的** **ErrorViewResolver 看谁能解析**
+
+			![image.png](SpringBoot.assets/1606047900473-e31c1dc3-7a5f-4f70-97de-5203429781fa.webp)
+
+		- **默认的 DefaultErrorViewResolver ,作用是把响应状态码作为错误页的地址，error/500.html**
+
+		- **模板引擎最终响应这个页面 error/500.html** 
+
+	
+
+	
