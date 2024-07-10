@@ -2932,3 +2932,353 @@ public class MyRegistConfig {
 
     -   @EnableWebMvc  导致了 WebMvcAutoConfiguration  没有生效
 
+# 06、数据访问
+
+## 6.1 SQL
+
+### 6.1.1 数据源的自动配置-HikariDataSource
+
+1. 导入 JDBC 场景
+
+  ```xml
+  <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jdbc</artifactId>
+  </dependency>
+  ```
+
+  ![image.png](SpringBoot.assets/1606366100317-5e0199fa-6709-4d32-bce3-bb262e2e5e6a.webp)
+
+  导入了 JDBC 场景，但是没有导入驱动，因为 SpringBoot 也不知道要使用什么数据库，因此需要手动导入驱动
+
+  ```xml
+  默认版本：<mysql.version>8.0.22</mysql.version>
+  想要修改版本
+  1、直接依赖引入具体版本（maven的就近依赖原则）
+  <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+      <!-- <version>5.1.49</version>-->
+  </dependency>
+  2、重新声明版本（maven的属性的就近优先原则）
+  <properties>
+      <java.version>1.8</java.version>
+      <mysql.version>5.1.49</mysql.version>
+  </properties>
+  ```
+
+2. 分析自动配置
+
+  - 自动配置类
+
+  	DataSourceAutoConfiguration：数据源的自动配置
+  	
+  	- 修改数据源相关的配置项：spring.datasource
+  	- 数据库连接池的配置，条件是没有 DataSource 才自动配置的
+  	- 底层配置好的连接池是：HikariDataSource
+  	
+  	```java
+  	@Configuration(proxyBeanMethods = false)
+  	@Conditional(PooledDataSourceCondition.class)
+  	@ConditionalOnMissingBean({ DataSource.class, XADataSource.class })
+  	@Import({DataSourceConfiguration.Hikari.class, DataSourceConfiguration.Tomcat.class,
+  	         DataSourceConfiguration.Dbcp2.class, DataSourceConfiguration.OracleUcp.class,
+  	         DataSourceConfiguration.Generic.class, DataSourceJmxConfiguration.class })
+  	protected static class PooledDataSourceConfiguration
+  	```
+  	
+  	DataSourceTransactionManagerAutoConfiguration：事务管理器的自动配置
+  	
+  	JdbcTemplateAutoConfiguration：JdbcTemplate的自动配置，可以来对数据库进行crud
+  	- 可以修改这个配置项@ConfigurationProperties(prefix = **"spring.jdbc"**) 来修改JdbcTemplate
+  	
+  		```java
+  		- @Bean
+  		- @Primary    
+  		- JdbcTemplate；容器中配置了这个组件
+  		```
+  	
+  	- JndiDataSourceAutoConfiguration：jndi的自动配置
+  	
+  	- XADataSourceAutoConfiguration：分布式事务相关的
+
+3. 修改配置项
+
+  ```yaml
+  spring:
+    datasource:
+      url: jdbc:mysql://localhost:3306/db_account
+      username: root
+      password: 123456
+      driver-class-name: com.mysql.jdbc.Driver
+  ```
+
+4. 测试
+
+  ```java
+  @Slf4j
+  @SpringBootTest
+  class Boot05WebAdminApplicationTests {
+  
+      @Autowired
+      JdbcTemplate jdbcTemplate;
+  
+  
+      @Test
+      void contextLoads() {
+  
+  //        jdbcTemplate.queryForObject("select * from account_tbl")
+  //        jdbcTemplate.queryForList("select * from account_tbl",)
+          Long aLong = jdbcTemplate.queryForObject("select count(*) from account_tbl", Long.class);
+          log.info("记录总数：{}",aLong);
+      }
+  }
+  ```
+
+### 6.1.2 Druid 数据源
+
+1. [Druid 官方地址](https://github.com/alibaba/druid)
+
+  整合第三方技术的两种方式
+
+  - 自定义
+  - 寻找 start
+
+2. 自定义方式
+
+  - 创建数据源
+
+	```xml
+	<dependency>
+	    <groupId>com.alibaba</groupId>
+	    <artifactId>druid</artifactId>
+	    <version>1.1.17</version>
+	</dependency>
+	之前的配置方式
+	<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource"
+			destroy-method="close">
+			<property name="url" value="${jdbc.url}" />
+			<property name="username" value="${jdbc.username}" />
+			<property name="password" value="${jdbc.password}" />
+			<property name="maxActive" value="20" />
+			<property name="initialSize" value="1" />
+			<property name="maxWait" value="60000" />
+			<property name="minIdle" value="1" />
+			<property name="timeBetweenEvictionRunsMillis" value="60000" />
+			<property name="minEvictableIdleTimeMillis" value="300000" />
+			<property name="testWhileIdle" value="true" />
+			<property name="testOnBorrow" value="false" />
+			<property name="testOnReturn" value="false" />
+			<property name="poolPreparedStatements" value="true" />
+			<property name="maxOpenPreparedStatements" value="20" />
+	</bean>
+
+  - StatViewServlet
+
+	> StatViewServlet 的用途包括：
+	>
+	> - 提供监控信息展示的 html 页面
+	> - 提供监控信息的 JSON API
+
+	```xml
+	<servlet>
+	    <servlet-name>DruidStatView</servlet-name>
+	    <servlet-class>com.alibaba.druid.support.http.StatViewServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+	    <servlet-name>DruidStatView</servlet-name>
+	    <url-pattern>/druid/*</url-pattern>
+	</servlet-mapping>
+	```
+
+  - StatFilter
+
+	> 用于统计监控信息；如SQL监控、URI监控
+
+	```xml
+	需要给数据源中配置如下属性；可以允许多个filter，多个用，分割；如：
+	<property name="filters" value="stat,slf4j"/>
+	```
+
+	系统中所有filter：
+
+	| 别名          | Filter类名                                              |
+	| ------------- | ------------------------------------------------------- |
+	| default       | com.alibaba.druid.filter.stat.StatFilter                |
+	| stat          | com.alibaba.druid.filter.stat.StatFilter                |
+	| mergeStat     | com.alibaba.druid.filter.stat.MergeStatFilter           |
+	| encoding      | com.alibaba.druid.filter.encoding.EncodingConvertFilter |
+	| log4j         | com.alibaba.druid.filter.logging.Log4jFilter            |
+	| log4j2        | com.alibaba.druid.filter.logging.Log4j2Filter           |
+	| slf4j         | com.alibaba.druid.filter.logging.Slf4jLogFilter         |
+	| commonlogging | com.alibaba.druid.filter.logging.CommonsLogFilter       |
+
+  - 慢 SQL 记录配置
+
+	```xml
+	<bean id="stat-filter" class="com.alibaba.druid.filter.stat.StatFilter">
+	    <property name="slowSqlMillis" value="10000" />
+	    <property name="logSlowSql" value="true" />
+	</bean>
+	使用 slowSqlMillis 定义慢SQL的时长
+	```
+
+3. 使用官方 starter 方式
+
+  - 引入 druid-starter
+
+	```xml
+	<dependency>
+	    <groupId>com.alibaba</groupId>
+	    <artifactId>druid-spring-boot-starter</artifactId>
+	    <version>1.1.17</version>
+	</dependency>
+	```
+
+  - 分析自动配置
+
+	扩展的配置项为：spring.datasource.druid
+
+	- DruidSpringAopConfiguration.class
+
+		监控SpringBean
+
+		配置项为 spring.datasource.druid.aop-patterns
+
+	- DruidStatViewServletConfiguration.class
+
+		监控页的配置 
+
+		spring.datasource.druid.stat-view-servlet
+
+		默认开启
+
+	- DruidWebStatFilterConfiguration.class
+
+		web 监控配置
+
+		spring.datasource.druid.web-stat-filter
+
+		默认开启
+
+	- DruidFilterConfiguration.class
+
+		所有 Druid 的 filter 的配置
+
+		```java
+		private static final String FILTER_CONFIG_PREFIX = "spring.datasource.druid.filter.config";
+		private static final String FILTER_ENCODING_PREFIX = "spring.datasource.druid.filter.encoding";
+		private static final String FILTER_SLF4J_PREFIX = "spring.datasource.druid.filter.slf4j";
+		private static final String FILTER_LOG4J_PREFIX = "spring.datasource.druid.filter.log4j";
+		private static final String FILTER_LOG4J2_PREFIX = "spring.datasource.druid.filter.log4j2";
+		private static final String FILTER_COMMONS_LOG_PREFIX = "spring.datasource.druid.filter.commons-log";
+		private static final String FILTER_WALL_PREFIX = "spring.datasource.druid.filter.wall";
+		```
+
+  - 配置示例
+
+	```yaml
+	spring:
+	  datasource:
+	    url: jdbc:mysql://localhost:3306/db_account
+	    username: root
+	    password: 123456
+	    driver-class-name: com.mysql.jdbc.Driver
+	
+	    druid:
+	      aop-patterns: com.atguigu.admin.*  #监控SpringBean
+	      filters: stat,wall     # 底层开启功能，stat（sql监控），wall（防火墙）
+	
+	      stat-view-servlet:   # 配置监控页功能
+	        enabled: true
+	        login-username: admin
+	        login-password: admin
+	        resetEnable: false
+	
+	      web-stat-filter:  # 监控web
+	        enabled: true
+	        urlPattern: /*
+	        exclusions: '*.js,*.gif,*.jpg,*.png,*.css,*.ico,/druid/*'
+	      filter:
+	        stat:    # 对上面filters里面的stat的详细配置
+	        	slow-sql-millis: 1000
+	        	logSlowSql: true
+	        	enabled: true
+	        wall:
+	        	enabled: true
+	        	config:
+	        	drop-table-allow: false
+
+###   6.1.3 整合 Mybatis 操作
+
+```xml
+<dependency>
+    <groupId>org.mybatis.spring.boot</groupId>
+    <artifactId>mybatis-spring-boot-starter</artifactId>
+    <version>2.1.4</version>
+</dependency>
+```
+
+![image.png](SpringBoot.assets/1606704096118-53001250-a04a-4210-80ee-6de6a370be2e.webp)
+
+1. 配置模式
+
+	Mybatis 需要
+
+	- 全局配置文件
+	- SqlSessionFactory：自动配置完成
+	- SqlSession：自动配置了 SqlSessionTemplate，其中组合了 SqlSession
+	- @Import(AutoConfiguredMapperScannerRegistrar.class）导入了这个类
+	- @Mapper 注解：只要编写的 Mapper 接口标注了 @Mapper 注解，就会被自动扫描进来
+
+	```java
+	@EnableConfigurationProperties(MybatisProperties.class) ： MyBatis 配置项绑定类。
+	@AutoConfigureAfter({ DataSourceAutoConfiguration.class, MybatisLanguageDriverAutoConfiguration.class })
+	public class MybatisAutoConfiguration{}
+	
+	@ConfigurationProperties(prefix = "mybatis")
+	public class MybatisProperties{}
+	```
+
+	可以修改配置文件中以 mybatis 开始的所有配置
+
+	```yaml
+	# 配置mybatis规则
+	mybatis:
+	  config-location: classpath:mybatis/mybatis-config.xml  #全局配置文件位置
+	  mapper-locations: classpath:mybatis/mapper/*.xml  #sql映射文件位置
+	  
+	Mapper接口--->绑定Xml
+	<?xml version="1.0" encoding="UTF-8" ?>
+	<!DOCTYPE mapper
+	        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	<mapper namespace="com.atguigu.admin.mapper.AccountMapper">
+	<!--    public Account getAcct(Long id); -->
+	    <select id="getAcct" resultType="com.atguigu.admin.bean.Account">
+	        select * from  account_tbl where  id=#{id}
+	    </select>
+	</mapper>
+	```
+
+	根据类 private Configuration configuration 可知，修改 spring 配置文件中 mybatis.configuration 的所有配置项，就是相当于改 mybatis 全局配置文件中的值
+
+	```yaml
+	# 配置mybatis规则
+	mybatis:
+	#  config-location: classpath:mybatis/mybatis-config.xml
+	  mapper-locations: classpath:mybatis/mapper/*.xml
+	  configuration:
+	    map-underscore-to-camel-case: true
+	    
+	 可以不写全局配置文件，所有全局配置文件的配置都放在 configuration 配置项中即可
+	```
+
+	- 导入 mybatis 官方 starter
+	- 编写 mapper 接口。标准 @Mapper 注解
+	- 编写 sql 映射文件并绑定 mapper 接口
+	- 在 application.yaml 中指定 Mapper 配置文件的位置，以及指定全局配置文件的信息, 但是建议**配置在mybatis.configuration** 配置项中
+
+2. 注解模式
+
+	
