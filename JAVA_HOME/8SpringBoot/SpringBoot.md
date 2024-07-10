@@ -2774,3 +2774,159 @@ public class AdminWebConfig implements WebMvcConfigurer {
 	
 
 	
+
+## 9、Web 原生组件注入
+
+### 9.1 使用 Servlet API
+
+```java
+@ServletComponentScan(basePackages = "com.atguigu.admin") :指定原生Servlet组件都放在那里, 添加在主类上
+
+@WebServlet(urlPatterns = "/my")：效果：直接响应，没有经过Spring的拦截器？原因是？
+
+@WebFilter(urlPatterns={"/css/","/images/"})
+
+@WebListener
+```
+
+>   扩展：DispatchServlet 如何注册进来
+>
+>   -   容器中自动配置了 DispatchServlet 属性绑定到 WebMvcProperties；对应的配置文件配置项是 spring.mvc
+>   -   **通过** **ServletRegistrationBean** \<DispatcherServlet> 把 DispatcherServlet  配置进来
+>   -   并且默认映射的是 / 路径
+
+![image.png](SpringBoot.images/1606284869220-8b63d54b-39c4-40f6-b226-f5f095ef9304.webp)
+
+>   而上文中定义的 WebServlet 的 urlPatterns = "/my"，比 / 更精确，因此请求发送过来自然会找到 MyServlet 而不会被 DispatcherServlet 处理，也就不会经过拦截器的拦截。
+
+### 9.2 使用 RegistrationBean
+
+`ServletRegistrationBean`, `FilterRegistrationBean`, and `ServletListenerRegistrationBean`
+
+ 分别向容器中注册 Servlet、Filter、Listener
+
+```java
+@Configuration
+public class MyRegistConfig {
+
+    @Bean
+    public ServletRegistrationBean myServlet(){
+        MyServlet myServlet = new MyServlet();
+        return new ServletRegistrationBean(myServlet,"/my","/my02");
+    }
+
+
+    @Bean
+    public FilterRegistrationBean myFilter(){
+        MyFilter myFilter = new MyFilter();
+        FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean(myFilter);
+        filterRegistrationBean.setUrlPatterns(Arrays.asList("/my","/css/*"));
+        return filterRegistrationBean;
+    }
+
+    @Bean
+    public ServletListenerRegistrationBean myListener(){
+        MyServletContextListener myServletContextListener = new MyServletContextListener();
+        return new ServletListenerRegistrationBean(myServletContextListener);
+    }
+}
+```
+
+## 10、嵌入式 Servlet 容器
+
+### 10.1 切换嵌入式 Servlet 容器
+
+默认支持的 webServer 
+
+-   `Tomcat`, `Jetty`, or `Undertow`
+
+    ![image.png](SpringBoot.images/1606280937533-504d0889-b893-4a01-af68-2fc31ffce9fc.webp)
+
+-   ServletWebServerApplicationContext 容器启动寻找 ServletWebServerFactory 并引导创建服务器。（如果 springboot 知道这是一个 web 应用，就不会创建普通的 IOC 容器 ApplicationContext，而是会创建 ServletWebServerApplicationContext。
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+    <exclusions>
+        <exclusion>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+        </exclusion>
+    </exclusions>
+</dependency>
+// web 启动器默认配置了 tomcat webServer，如果要切换需要移除 tomcat，再加入其他 webServer 的启动器
+```
+
+>   原理：
+>
+>   -   SpringBoot应用启动发现当前是 Web 应用。web 场景包会导入 tomcat
+>   -   web应用会创建一个web版的 ioc 容器 **ServletWebServerApplicationContext**
+>   -   ServletWebServerApplicationContext` 启动的时候寻找 `**ServletWebServerFactory**（Servlet 的 web 服务器工厂-> Servlet 的web 服务器）
+>   -   SpringBoot 底层默认有很多的 WebServer 工厂；`TomcatServletWebServerFactory`, `JettyServletWebServerFactory`, or `UndertowServletWebServerFactory`
+>   -   底层直接会有一个自动配置类。**ServletWebServerFactoryAutoConfiguration**
+>   -   ServletWebServerFactoryAutoConfiguration 导入了 ServletWebServerFactoryConfiguration（配置类）
+>   -   ServletWebServerFactoryConfiguration 配置类根据动态判断系统中到底导入了哪个 Web 服务器的包。（默认是 web-starter 导入tomcat 包），容器中就有 TomcatServletWebServerFactory
+>   -   TomcatServletWebServerFactory 创建出 Tomcat 服务器并启动；TomcatWebServer 的构造器拥有初始化方法 initialize -> this.tomcat.start();
+
+### 10.2 定制 Servlet 容器
+
+-   SpringBoot 实现  `WebServerFactoryCustomizer <ConfigurableServletWebServerFactory> `
+
+    -   把配置文件的值和`ServletWebServerFactory 进行绑定`
+
+-   修改配置文件 **server.xxx**
+
+-   直接自定义 **ConfigurableServletWebServerFactory**
+
+    ```java
+    import org.springframework.boot.web.server.WebServerFactoryCustomizer;
+    import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
+    import org.springframework.stereotype.Component;
+    
+    @Component
+    public class CustomizationBean implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {
+    
+        @Override
+        public void customize(ConfigurableServletWebServerFactory server) {
+            server.setPort(9000);
+        }
+    }
+    ```
+
+## 11、定制化原理
+
+### 11.1 定制化的常见方式
+
+-   修改配置文件
+
+-   xxxCustomizer
+
+-   编写自定义的配置类 xxxConfiguration + @Bean 进行替换，增加或替换容器中的默认组件
+
+-   Web 应用编写一个配置类实现 WebMvcConfigurer 即可定制化 web 功能 + @Bean 给容器中再扩展一些组件
+
+    ```java
+    @Configuration
+    public class AdminWebConfig implements WebMvcConfigurer{}
+    ```
+
+-   @EnableWebMvc + WebMvcConfigurer + @Bean  可以全面接管 SpringMVC，所有规则全部自己重新配置， 实现定制和扩展功能
+
+    -   WebMvcAutoConfiguration  默认的 SpringMVC 的自动配置功能类，e.g. 静态资源、欢迎页
+
+    -   一旦使用 @EnableWebMvc 会 @Import(DelegatingWebMvcConfiguration.class)
+
+    -   DelegatingWebMvcConfiguration 的作用，只保证 SpringMVC 最基本的使用
+
+        -   把所有系统中的 WebMvcConfigurer 拿过来。所有功能的定制都是这些 WebMvcConfigurer  合起来一起生效
+
+        -   自动配置了一些非常底层的组件。**RequestMappingHandlerMapping**，这些组件依赖的组件都是从容器中获取
+
+        -   ```java
+            public class DelegatingWebMvcConfiguration extends WebMvcConfigurationSupport
+            ```
+    -   WebMvcAutoConfiguration 里面的配置要能生效必须 @ConditionalOnMissingBean(WebMvcConfigurationSupport.class)
+
+    -   @EnableWebMvc  导致了 WebMvcAutoConfiguration  没有生效
+
