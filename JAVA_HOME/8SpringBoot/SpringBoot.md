@@ -917,6 +917,8 @@ public CharacterEncodingFilter characterEncodingFilter() {
   	- @Bean、@Component
   - 自定义器  xxxxCustomizer；
 
+------
+
 
 
 # SpringBoot2 核心技术-核心功能
