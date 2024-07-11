@@ -376,7 +376,9 @@ sudo apt install ros-noetic-desktop-full
 
 等待......(比较耗时)
 
-友情提示: 由于网络原因,导致连接超时，可能会安装失败，如下所示:![09\_安装异常](ROSnoetic.images\09_安装异常.png)可以多次重复调用 更新 和 安装命令，直至成功。
+友情提示: 由于网络原因,导致连接超时，可能会安装失败，如下所示:![09\_安装异常](ROSnoetic.images\09_安装异常.png)
+
+可以多次重复调用 更新 和 安装命令，直至成功。
 
 #### 5.配置环境变量
 
@@ -415,7 +417,7 @@ sudo apt remove ros-noetic-*
 
 在 noetic 最初发布时，和其他历史版本稍有差异的是:没有安装构建依赖这一步骤。随着 noetic 不断完善，官方补齐了这一操作。
 
-首先安装构建依赖的相关工具
+首先安装构建依赖的相关工
 
 ```
 sudo apt install python3-rosdep python3-rosinstall python3-rosinstall-generator python3-wstool build-essential
@@ -967,8 +969,6 @@ code .
 选定 src 右击 ---> create catkin package
 
 **设置包名 添加依赖**
-
-![07vscode\_新建ROS包](file://D:/ROS课程/ROS讲义_Noetic/ROS01_概述与环境搭建/img/07vscode_新建ROS包.PNG?lastModify=1594352429)
 
 ##### 4.5 C++ 实现
 
@@ -5079,7 +5079,7 @@ def wait_for_service(service, timeout=None):
     """
 ```
 
-### 3.1.3 回旋函数
+### 3.1.3 回调函数
 
 ------
 
