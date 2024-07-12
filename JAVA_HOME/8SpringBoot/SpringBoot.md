@@ -3223,62 +3223,707 @@ public class MyRegistConfig {
 
 1. 配置模式
 
-	Mybatis 需要
+  Mybatis 需要
 
-	- 全局配置文件
-	- SqlSessionFactory：自动配置完成
-	- SqlSession：自动配置了 SqlSessionTemplate，其中组合了 SqlSession
-	- @Import(AutoConfiguredMapperScannerRegistrar.class）导入了这个类
-	- @Mapper 注解：只要编写的 Mapper 接口标注了 @Mapper 注解，就会被自动扫描进来
+  - 全局配置文件
+  - SqlSessionFactory：自动配置完成
+  - SqlSession：自动配置了 SqlSessionTemplate，其中组合了 SqlSession
+  - @Import(AutoConfiguredMapperScannerRegistrar.class）导入了这个类
+  - @Mapper 注解：只要编写的 Mapper 接口标注了 @Mapper 注解，就会被自动扫描进来
 
-	```java
-	@EnableConfigurationProperties(MybatisProperties.class) ： MyBatis 配置项绑定类。
-	@AutoConfigureAfter({ DataSourceAutoConfiguration.class, MybatisLanguageDriverAutoConfiguration.class })
-	public class MybatisAutoConfiguration{}
-	
-	@ConfigurationProperties(prefix = "mybatis")
-	public class MybatisProperties{}
-	```
+  ```java
+  @EnableConfigurationProperties(MybatisProperties.class) ： MyBatis 配置项绑定类。
+  @AutoConfigureAfter({ DataSourceAutoConfiguration.class, MybatisLanguageDriverAutoConfiguration.class })
+  public class MybatisAutoConfiguration{}
+  
+  @ConfigurationProperties(prefix = "mybatis")
+  public class MybatisProperties{}
+  ```
 
-	可以修改配置文件中以 mybatis 开始的所有配置
+  可以修改配置文件中以 mybatis 开始的所有配置
 
-	```yaml
-	# 配置mybatis规则
-	mybatis:
-	  config-location: classpath:mybatis/mybatis-config.xml  #全局配置文件位置
-	  mapper-locations: classpath:mybatis/mapper/*.xml  #sql映射文件位置
-	  
-	Mapper接口--->绑定Xml
-	<?xml version="1.0" encoding="UTF-8" ?>
-	<!DOCTYPE mapper
-	        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-	        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-	<mapper namespace="com.atguigu.admin.mapper.AccountMapper">
-	<!--    public Account getAcct(Long id); -->
-	    <select id="getAcct" resultType="com.atguigu.admin.bean.Account">
-	        select * from  account_tbl where  id=#{id}
-	    </select>
-	</mapper>
-	```
+  ```yaml
+  # 配置mybatis规则
+  mybatis:
+    config-location: classpath:mybatis/mybatis-config.xml  #全局配置文件位置
+    mapper-locations: classpath:mybatis/mapper/*.xml  #sql映射文件位置
+    
+  Mapper接口--->绑定Xml
+  <?xml version="1.0" encoding="UTF-8" ?>
+  <!DOCTYPE mapper
+          PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+          "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.atguigu.admin.mapper.AccountMapper">
+  <!--    public Account getAcct(Long id); -->
+      <select id="getAcct" resultType="com.atguigu.admin.bean.Account">
+          select * from  account_tbl where  id=#{id}
+      </select>
+  </mapper>
+  ```
 
-	根据类 private Configuration configuration 可知，修改 spring 配置文件中 mybatis.configuration 的所有配置项，就是相当于改 mybatis 全局配置文件中的值
+  根据类 private Configuration configuration 可知，修改 spring 配置文件中 mybatis.configuration 的所有配置项，就是相当于改 mybatis 全局配置文件中的值
 
-	```yaml
-	# 配置mybatis规则
-	mybatis:
-	#  config-location: classpath:mybatis/mybatis-config.xml
-	  mapper-locations: classpath:mybatis/mapper/*.xml
-	  configuration:
-	    map-underscore-to-camel-case: true
-	    
-	 可以不写全局配置文件，所有全局配置文件的配置都放在 configuration 配置项中即可
-	```
+  ```yaml
+  # 配置mybatis规则
+  mybatis:
+  #  config-location: classpath:mybatis/mybatis-config.xml
+    mapper-locations: classpath:mybatis/mapper/*.xml
+    configuration:
+      map-underscore-to-camel-case: true
+      
+   可以不写全局配置文件，所有全局配置文件的配置都放在 configuration 配置项中即可
+  ```
 
-	- 导入 mybatis 官方 starter
-	- 编写 mapper 接口。标准 @Mapper 注解
-	- 编写 sql 映射文件并绑定 mapper 接口
-	- 在 application.yaml 中指定 Mapper 配置文件的位置，以及指定全局配置文件的信息, 但是建议**配置在mybatis.configuration** 配置项中
+  - 导入 mybatis 官方 starter
+  - 编写 mapper 接口。标准 @Mapper 注解
+  - 编写 sql 映射文件并绑定 mapper 接口
+  - 在 application.yaml 中指定 Mapper 配置文件的位置，以及指定全局配置文件的信息, 但是建议**配置在mybatis.configuration** 配置项中
 
 2. 注解模式
 
+	```java
+	@Mapper
+	public interface CityMapper {
 	
+	    @Select("select * from city where id=#{id}")
+	    public City getById(Long id);
+	    public void insert(City city);
+	
+	}
+	```
+
+3. 混合模式
+
+	```java
+	@Mapper
+	public interface CityMapper {
+	
+	    @Select("select * from city where id=#{id}")
+	    public City getById(Long id);
+	
+	    public void insert(City city);
+	
+	}
+	```
+
+	最佳实战：
+
+	- 引入mybatis-starter
+	- **配置application.yaml中，指定 mapper-location 位置即可**
+	- 编写 Mapper 接口并标注 @Mapper 注解
+	- 简单方法直接注解方式
+	- 复杂方法编写 mapper.xml 进行绑定映射
+	- @MapperScan("com.atguigu.admin.mapper") 指定包扫描简化，其他的接口就可以不用标注 @Mapper 注解
+
+## 6.2 NoSQL
+
+Redis 是一个开源（BSD许可）的，内存中的数据结构存储系统，它可以用作**数据库**、**缓存**和**消息中间件**。 它支持多种类型的数据结构，如 [字符串（strings）](http://www.redis.cn/topics/data-types-intro.html#strings)，[散列（hashes）](http://www.redis.cn/topics/data-types-intro.html#hashes)，[列表（lists）](http://www.redis.cn/topics/data-types-intro.html#lists)，[集合（sets）](http://www.redis.cn/topics/data-types-intro.html#sets)，[有序集合（sorted sets）](http://www.redis.cn/topics/data-types-intro.html#sorted-sets) 与范围查询， [bitmaps](http://www.redis.cn/topics/data-types-intro.html#bitmaps)， [hyperloglogs](http://www.redis.cn/topics/data-types-intro.html#hyperloglogs) 和 [地理空间（geospatial）](http://www.redis.cn/commands/geoadd.html) 索引半径查询。 Redis 内置了 [复制（replication）](http://www.redis.cn/topics/replication.html)，[LUA脚本（Lua scripting）](http://www.redis.cn/commands/eval.html)， [LRU驱动事件（LRU eviction）](http://www.redis.cn/topics/lru-cache.html)，[事务（transactions）](http://www.redis.cn/topics/transactions.html) 和不同级别的 [磁盘持久化（persistence）](http://www.redis.cn/topics/persistence.html)， 并通过 [Redis哨兵（Sentinel）](http://www.redis.cn/topics/sentinel.html)和自动 [分区（Cluster）](http://www.redis.cn/topics/cluster-tutorial.html)提供高可用性（high availability）。
+
+### 6.1.1 Redis 自动配置
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-redis</artifactId>
+</dependency>
+```
+
+![image.png](SpringBoot.assets/1606745732785-17d1227a-75b9-4f00-a3f1-7fc4137b5113.webp)
+
+- RedisAutoConfiguration 自动配置类绑定了 RedisProperties 属性类 --> **spring.redis 是对redis的配置项**
+- SpringBoot官方准备了两个链接工厂，分别为 LettuceConnectionConfiguration、JedisConnectionConfiguration。 默认使用的是 LettuceConnectionConfiguration
+- 自动注入了 RedisTemplate<Object, Object>
+- 自动注入了 StringRedisTemplate 与 RedisTemplate 不同点在于 k：v都是String
+- 底层只要我们使用 StringRedisTemplate、RedisTemplate 就可以操作 redis
+
+### 6.1.2 RedisTemplate 与 Lettuce
+
+```java
+@Test
+void testRedis(){
+    ValueOperations<String, String> operations = redisTemplate.opsForValue();
+    operations.set("hello","world");
+    String hello = operations.get("hello");
+    System.out.println(hello);
+}
+```
+
+### 6.1.3 切换连接工厂 
+
+LettuceConnectionConfiguration -> JedisConnectionConfiguration
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-redis</artifactId>
+</dependency>
+
+    <!--        导入jedis-->
+<dependency>
+    <groupId>redis.clients</groupId>
+    <artifactId>jedis</artifactId>
+</dependency>
+```
+
+```yaml
+spring:
+  redis:
+      host: r-bp1nc7reqesxisgxpipd.redis.rds.aliyuncs.com
+      port: 6379
+      password: lfy:Lfy123456
+      client-type: jedis
+      jedis:
+        pool:
+          max-active: 10
+```
+
+# 07、单元测试
+
+## 7.1 JUnit5 的变化
+
+Spring Boot 2.2.0 版本开始引入 JUnit 5 作为单元测试默认库
+
+作为最新版本的 JUnit 框架，JUnit5 与之前版本的 Junit 框架有很大的不同。由三个不同子项目的几个不同模块组成。
+
+JUnit 5 = JUnit Platform + JUnit Jupiter + JUnit Vintage
+
+- JUnit Platform: Junit Platform 是在 JVM 上启动测试框架的基础，不仅支持 Junit 自制的测试引擎，其他测试引擎也都可以接入。
+
+- JUnit Jupiter: JUnit Jupiter 提供了 JUnit5 的新的编程模型，是 JUnit5 新特性的核心。内部包含了一个测试引擎，用于在 Junit Platform上运行。
+
+- JUnit Vintage: 由于 JUint 已经发展多年，为了照顾老的项目，JUnit Vintage 提供了兼容 JUnit4.x,Junit3.x 的测试引擎。
+
+![img](SpringBoot.assets/1606796395719-eb57ab48-ae44-45e5-8d2e-c4d507aff49a.webp)
+
+
+
+注意：
+
+SpringBoot 2.4 以上版本移除了默认对 Vintage 的依赖。如果需要兼容 junit4 需要自行引入（不能使用 junit4 的功能 @Test）
+
+JUnit 5’s Vintage Engine Removed from spring-boot-starter-test ,如果需要继续兼容 junit4 需要自行引入vintage
+
+```xml
+<dependency>
+    <groupId>org.junit.vintage</groupId>
+    <artifactId>junit-vintage-engine</artifactId>
+    <scope>test</scope>
+    <exclusions>
+        <exclusion>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+        </exclusion>
+    </exclusions>
+</dependency>
+```
+
+![image.png](SpringBoot.assets/1606797616337-e73010e9-9cac-496d-a177-64b677af5a3d.webp)
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-test</artifactId>
+    <scope>test</scope>
+</dependency>
+```
+
+```java
+@SpringBootTest
+class Boot05WebAdminApplicationTests {
+    @Test
+    void contextLoads() {
+
+    }
+}
+```
+
+## 7.2 JUnit5 常用注解
+
+JUnit5 的注解与 JUnit4 的注解有所变化
+
+https://junit.org/junit5/docs/current/user-guide/#writing-tests-annotations
+
+- **@Test:**表示方法是测试方法。但是与 JUnit4 的 @Test 不同，他的职责非常单一不能声明任何属性，拓展的测试将会由Jupiter 提供额外测试
+- **@ParameterizedTest:**表示方法是参数化测试
+- **@RepeatedTest:**表示方法可重复执行
+- **@DisplayName:**为测试类或者测试方法设置展示名称
+- **@BeforeEach:**表示在每个单元测试之前执行
+- **@AfterEach:**表示在每个单元测试之后执行
+- **@BeforeAll:**表示在所有单元测试之前执行
+- **@AfterAll:**表示在所有单元测试之后执行
+- **@Tag:**表示单元测试类别，类似于 JUnit4 中的 @Categories
+- **@Disabled:**表示测试类或测试方法不执行，类似于 JUnit4 中的 @Ignore
+- **@Timeout:**表示测试方法运行如果超过了指定时间将会返回错误
+- **@ExtendWith:**为测试类或测试方法提供扩展类引用
+
+```java
+import org.junit.jupiter.api.Test; //注意这里使用的是jupiter的Test注解！！
+
+public class TestDemo {
+
+    @Test
+    @DisplayName("第一次测试")
+    public void firstTest() {
+        System.out.println("hello world");
+    }
+}
+```
+
+## 7.3 断言
+
+断言（assertions）是测试方法中的核心部分，用来验证测试需要满足的条件。**这些断言方法都是 org.junit.jupiter.api.Assertions 的静态方法**。**检查业务逻辑返回的数据是否合理。所有的测试运行结束以后，会有一个详细的测试报告；**
+
+JUnit 5 内置的断言可以分成如下几个类别
+
+### 7.3.1 简单断言
+
+| 方法            | 说明                                 |
+| --------------- | ------------------------------------ |
+| assertEquals    | 判断两个对象或两个原始类型是否相等   |
+| assertNotEquals | 判断两个对象或两个原始类型是否不相等 |
+| assertSame      | 判断两个对象引用是否指向同一个对象   |
+| assertNotSame   | 判断两个对象引用是否指向不同的对象   |
+| assertTrue      | 判断给定的布尔值是否为 true          |
+| assertFalse     | 判断给定的布尔值是否为 false         |
+| assertNull      | 判断给定的对象引用是否为 null        |
+| assertNotNull   | 判断给定的对象引用是否不为 null      |
+
+```java
+@Test
+@DisplayName("simple assertion")
+public void simple() {
+     assertEquals(3, 1 + 2, "simple math");
+     assertNotEquals(3, 1 + 1);
+
+     assertNotSame(new Object(), new Object());
+     Object obj = new Object();
+     assertSame(obj, obj);
+
+     assertFalse(1 > 2);
+     assertTrue(1 < 2);
+
+     assertNull(null);
+     assertNotNull(new Object());
+}
+```
+
+### 7.3.2 数组断言
+
+通过 assertArrayEquals 方法来判断两个对象或原始类型的数组是否相等
+
+```java
+@Test
+@DisplayName("array assertion")
+public void array() {
+     assertArrayEquals(new int[]{1, 2}, new int[] {1, 2});
+}
+```
+
+### 7.3.3 组合断言
+
+assertAll 方法接受多个 org.junit.jupiter.api.Executable 函数式接口的实例作为要验证的断言，可以通过 lambda 表达式很容易的提供这些断言
+
+```java
+@Test
+@DisplayName("assert all")
+public void all() {
+    assertAll("Math",
+              () -> assertEquals(2, 1 + 1),
+              () -> assertTrue(1 > 0)
+             );
+}
+```
+
+### 7.3.4 异常断言
+
+在 JUnit4 时期，想要测试方法的异常情况时，需要用 **@Rule** 注解的 ExpectedException 变量还是比较麻烦的。而 JUnit5 提供了一种新的断言方式 **Assertions.assertThrows()** ,配合函数式编程就可以进行使用。
+
+```java
+@Test
+@DisplayName("异常测试")
+public void exceptionTest() {
+    ArithmeticException exception = Assertions.assertThrows(
+           //扔出断言异常
+            ArithmeticException.class, () -> System.out.println(1 % 0));
+
+}
+```
+
+### 7.3.5 超时断言
+
+Junit5还提供了 **Assertions.assertTimeout()** 为测试方法设置了超时时间
+
+```java
+@Test
+@DisplayName("超时测试")
+public void timeoutTest() {
+    //如果测试方法时间超过1s将会异常
+    Assertions.assertTimeout(Duration.ofMillis(1000), () -> Thread.sleep(500));
+}
+```
+
+### 7.3.6 快速失败
+
+通过 fail 方法直接使得测试失败
+
+```java
+@Test
+@DisplayName("fail")
+public void shouldFail() {
+     fail("This should fail");
+}
+```
+
+## 7.4 前置条件（Assumptions）
+
+JUnit 5 中的前置条件（**assumptions【假设】**）类似于断言，不同之处在于**不满足的断言会使得测试方法失败**，而不满足的**前置条件只会使得测试方法的执行终止**。前置条件可以看成是测试方法执行的前提，当该前提不满足时，就没有继续执行的必要。
+
+```java
+@DisplayName("前置条件")
+public class AssumptionsTest {
+ 	private final String environment = "DEV";
+ 
+    @Test
+    @DisplayName("simple")
+    public void simpleAssume() {
+        assumeTrue(Objects.equals(this.environment, "DEV"));
+        assumeFalse(() -> Objects.equals(this.environment, "PROD"));
+    }
+ 
+    @Test
+    @DisplayName("assume then do")
+    public void assumeThenDo() {
+        assumingThat(
+            Objects.equals(this.environment, "DEV"),
+            () -> System.out.println("In DEV")
+        );
+    }
+}
+```
+
+assumeTrue 和 assumFalse 确保给定的条件为 true 或 false，不满足条件会使得测试执行终止。assumingThat 的参数是表示条件的布尔值和对应的 Executable 接口的实现对象。只有条件满足时，Executable 对象才会被执行；当条件不满足时，测试执行并不会终止。
+
+## 7.5 嵌套测试
+
+JUnit 5 可以通过 Java 中的内部类和 @Nested 注解实现嵌套测试，从而可以更好的把相关的测试方法组织在一起。在内部类中可以使用 @BeforeEach 和 @AfterEach 注解，而且嵌套的层次没有限制。
+
+```java
+@DisplayName("A stack")
+class TestingAStackDemo {
+
+    Stack<Object> stack;
+
+    @Test
+    @DisplayName("is instantiated with new Stack()")
+    void isInstantiatedWithNew() {
+        new Stack<>();
+    }
+
+    @Nested
+    @DisplayName("when new")
+    class WhenNew {
+
+        @BeforeEach
+        void createNewStack() {
+            stack = new Stack<>();
+        }
+
+        @Test
+        @DisplayName("is empty")
+        void isEmpty() {
+            assertTrue(stack.isEmpty());
+        }
+
+        @Test
+        @DisplayName("throws EmptyStackException when popped")
+        void throwsExceptionWhenPopped() {
+            assertThrows(EmptyStackException.class, stack::pop);
+        }
+
+        @Test
+        @DisplayName("throws EmptyStackException when peeked")
+        void throwsExceptionWhenPeeked() {
+            assertThrows(EmptyStackException.class, stack::peek);
+        }
+
+        @Nested
+        @DisplayName("after pushing an element")
+        class AfterPushing {
+
+            String anElement = "an element";
+
+            @BeforeEach
+            void pushAnElement() {
+                stack.push(anElement);
+            }
+
+            @Test
+            @DisplayName("it is no longer empty")
+            void isNotEmpty() {
+                assertFalse(stack.isEmpty());
+            }
+
+            @Test
+            @DisplayName("returns the element when popped and is empty")
+            void returnElementWhenPopped() {
+                assertEquals(anElement, stack.pop());
+                assertTrue(stack.isEmpty());
+            }
+
+            @Test
+            @DisplayName("returns the element when peeked but remains not empty")
+            void returnElementWhenPeeked() {
+                assertEquals(anElement, stack.peek());
+                assertFalse(stack.isEmpty());
+            }
+        }
+    }
+}
+```
+
+## 7.6 参数化测试
+
+参数化测试是 JUnit5 很重要的一个新特性，它使得用不同的参数多次运行测试成为了可能，也为我们的单元测试带来许多便利。
+
+利用 **@ValueSource** 等注解，指定入参，我们将可以使用不同的参数进行多次单元测试，而不需要每新增一个参数就新增一个单元测试，省去了很多冗余代码。
+
+**@ValueSource**: 为参数化测试指定入参来源，支持八大基础类以及 String 类型, Class类型
+
+**@NullSource**: 表示为参数化测试提供一个 null 的入参
+
+**@EnumSource**: 表示为参数化测试提供一个枚举入参
+
+**@CsvFileSource**：表示读取指定 CSV 文件内容作为参数化测试入参
+
+**@MethodSource**：表示读取指定方法的返回值作为参数化测试入参(**注意方法返回需要是一个流**)
+
+当然如果参数化测试仅仅只能做到指定普通的入参还达不到让我觉得惊艳的地步。让我真正感到他的强大之处的地方在于他可以支持外部的各类入参。如:CSV,YML,JSON 文件甚至方法的返回值也可以作为入参。只需要去实现 **ArgumentsProvider** 接口，任何外部文件都可以作为它的入参。
+
+```java
+@ParameterizedTest
+@ValueSource(strings = {"one", "two", "three"})
+@DisplayName("参数化测试1")
+public void parameterizedTest1(String string) {
+    System.out.println(string);
+    Assertions.assertTrue(StringUtils.isNotBlank(string));
+}
+
+
+@ParameterizedTest
+@MethodSource("method")    //指定方法名
+@DisplayName("方法来源参数")
+public void testWithExplicitLocalMethodSource(String name) {
+    System.out.println(name);
+    Assertions.assertNotNull(name);
+}
+
+static Stream<String> method() {
+    return Stream.of("apple", "banana");
+}
+```
+
+# 09、原理解析
+
+## 9.1 profile 功能
+
+为了方便多环境适配，springboot 简化了 profile 功能
+
+### 9.1.1 application-profile 功能
+
+- 默认配置文件  application.yaml 任何时候都会加载
+- 指定环境配置文件  application-{env}.yaml
+- 激活指定环境
+
+- - 配置文件激活
+
+		```properties
+		spring.profiles.active=prod  #prod 是 {env} 里面的 env
+		```
+
+	- 命令行激活：java -jar xxx.jar --**spring.profiles.active=prod  --person.name=haha**
+
+- - - **修改配置文件的任意值，命令行优先**
+
+- 默认配置与环境配置同时生效
+- 同名配置项，profile 配置优先
+
+### 9.1.2 @Profile 条件装配功能
+
+```java
+@Configuration(proxyBeanMethods = false)
+@Profile("production")
+public class ProductionConfiguration {
+
+    // ...
+}
+```
+
+### 9.1.3 profile 分组
+
+```properties
+spring.profiles.group.production[0]=proddb
+spring.profiles.group.production[1]=prodmq
+
+使用：--spring.profiles.active=production  激活
+```
+
+## 9.2 外部化配置
+
+### 9.2.1 外部配置源
+
+常用：**Java属性文件**、**YAML文件**、**环境变量**、**命令行参数**
+
+### 9.2.2 配置文件查找位置
+
+1. classpath 根路径
+2. classpath 根路径下config目录
+3. jar包当前目录
+4. jar包当前目录的config目录
+5. /config子目录的直接子目录
+
+### 9.2.3 配置文件加载顺序
+
+1. 当前 jar 包内部的 application.properties 和 application.yml
+2. 当前 jar 包内部的 application-{profile}.properties 和 application-{profile}.yml
+3. 引用的外部 jar 包的 application.properties 和 application.yml
+4. 引用的外部 jar 包的 application-{profile}.properties 和 application-{profile}.yml
+
+后面的后加载，因此会覆盖前面的内容，因此多个配置文件中配置了相同的值，以后加载的为主
+
+## 9.3 自定义 starter
+
+### 9.3.1 starter 启动原理
+
+starter-pom 引入 autoconfigurer 包
+
+![image-20240712222756822](SpringBoot.assets/image-20240712222756822.png)
+
+- autoconfigure 包中配置使用 **META-INF/spring.factories** 中 **EnableAutoConfiguration 的值，使得项目启动加载指定的自动配置类**
+- **编写自动配置类 xxxAutoConfiguration 绑定 xxxProperties**
+	- @Configuration
+	- @Conditional
+	- @EnableConfigurationProperties // 开启绑定 xxxProperties.class 并将该类对象放入容器中
+	- @Bean
+
+## 9.4 SpringBoot原理
+
+Spring原理【[Spring注解](https://www.bilibili.com/video/BV1gW411W7wy?p=1)】、**SpringMVC** 原理、**自动配置原理**、SpringBoot 原理
+
+### 9.4.1 SpringBoot 启动过程
+
+- 创建 SpringApplication
+
+	- 保存一些信息
+	
+	- 判定当前应用的类型是传统 Servlet 还是响应式
+	
+	- bootstrappers：初始启动引导器（List\<Bootstrapper>）：去spring.factories 文件中找org.springframework.boot.Bootstrapper
+	
+		```java
+		public interface Bootstrapper {
+			/**
+			 * Initialize the given {@link BootstrapRegistry} with any required registrations.
+			 * @param registry the registry to initialize
+			 */
+			void intitialize(BootstrapRegistry registry);
+		}
+		```
+	
+	- 找 ApplicationContextInitializer, spring.factories 找 ApplicationContextInitializer
+		- List<ApplicationContextInitializer<?>> initializers
+		
+			![image.png](SpringBoot.assets/1607005958877-bf152e3e-4d2d-42b6-a08c-ceef9870f3b6.webp)
+		
+	- ApplicationListener, 应用监听器。spring.factories 找 ApplicationListener
+		- List<ApplicationListener<?>> listeners
+		
+			![image.png](SpringBoot.assets/1607004823889-8373cea4-6305-40c1-af3b-921b071a28a8.webp)
+	
+- 运行 SpringApplication
+  - StopWatch
+  
+  - 记录应用的启动时间
+  
+  - 创建引导上下文（Context）环境，执行 createBoostrapContext()
+  	- 获取到所有之前的 bootstrappers 挨个执行其 inititialize() 来完成对引导启动器上下文环境设置
+  	
+  - 让当前应用进入 headless 模式
+  
+  - 获取所有的 RunListener
+  	- 通过 getSpringFactoriesInstances 在 spring.factories 找 SpringApplicationRunListener
+  	
+  - 遍历 SpringApplicationRunListener 调用每个监听器的 starting 方法
+  	- 通知所有监听项目启动过程的 Listener 项目正在 starting
+  	
+  - 保存命令行参数 ApplicationArguments
+  
+  - 准备环境 prepareEnvironment()
+  	- 返回或者创建基础环境信息对象 StandardServletEnvironment
+  	- 配置环境信息对象
+  		- 读取所有配置源的配置属性值
+  	- 绑定环境信息
+  	- 所有监听器调用 listener.environmentPrepared() 通知所有监听器当前环境准备完成
+  	
+  - 创建 IOC 容器 -> createApplicationContext()
+  	- 根据项目类型（Servlet 还是响应式） 创建对应的容器
+  	- Servlet 会创建 AnnotationConfigServletWebServerApplicationContext
+  	
+  - 准备 ApplicationContext IOC 容器的基本信息 prepareContext()
+  	- 保存环境信息
+  	- IOC 容器的后置处理流程
+  	- 应用初始化器 applyinitializers
+  		- 遍历所有的 ApplicationContextInitializer 调用initialize，来对 IOC 容器进行初始化扩展功能
+  		- 遍历所有的 listener 调用 contextPrepared，EventPublishRunListenr 通知所有的监听器 contextPrepared
+  	- 所有的监听器调用 contextLoaded，通知所有的监听器 contextLoaded
+  	
+  - 刷新 IOC 容器 refreshContext
+  
+    - 创建容器中的所有组件
+  
+  - 容器刷新完成后工作，afterRefresh
+  
+  - 所有监听器调用 listeners.started(context)，通知所有的监听器 started
+  
+  - 调用所有runners，callRunners()
+  
+    - 获取容器中的 ApplicationRunner
+  
+    	```java
+    	@FunctionalInterface
+    	public interface ApplicationRunner {
+    		/**
+    		 * Callback used to run the bean.
+    		 * @param args incoming application arguments
+    		 * @throws Exception on error
+    		 */
+    		void run(ApplicationArguments args) throws Exception;
+    	}
+    	```
+    
+    - 获取容器中的 CommandLineRunner
+    
+    	```java
+    	@FunctionalInterface
+    	public interface CommandLineRunner {
+    		/**
+    		 * Callback used to run the bean.
+    		 * @param args incoming main method arguments
+    		 * @throws Exception on error
+    		 */
+    		void run(String... args) throws Exception;
+    	}
+    	```
+    
+    - 合并所有 runner 并且按照 @Order 进行排序
+    
+    - 遍历所有的runner，调用 run方法
+    
+  - 如果以上过程出现异常
+  
+    调用 listener 的 failed 方法
+  
+  - 调用所有监听器的 running 方法 listeners.running(context),通知所有的监听器 running
+  
+  - running 如果有问题。继续调用所有 Listener 的failed,通知所有的监听器 failed
+  
+
