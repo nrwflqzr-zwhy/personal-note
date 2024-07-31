@@ -2458,14 +2458,14 @@ mysql> SELECT * FROM fruits WHERE f_name REGEXP 'ba{1,3}';
 - 使用 ORDER BY 子句排序
   - **ASC（ascend）: 升序**
   - **DESC（descend）:降序**
-- **ORDER BY 子句在SELECT语句的结尾。**
+- **ORDER BY 子句在 SELECT 语句的结尾。**
 
  1.2 单列排序
 
 ```mysql
 SELECT   last_name, job_id, department_id, hire_date
 FROM     employees
-ORDER BY hire_date ;
+ORDER BY hire_date;
 ```
 
  ![1554974255957](MySQL数据库.images\1554974255957.png)
@@ -2475,7 +2475,7 @@ ORDER BY hire_date ;
 ```mysql
 SELECT   last_name, job_id, department_id, hire_date
 FROM     employees
-ORDER BY hire_date DESC ;
+ORDER BY hire_date DESC;
 ```
 
  ![1554974822229](MySQL数据库.images\1554974822229.png)
@@ -2529,7 +2529,7 @@ ORDER BY department_id, salary DESC;
   LIMIT [位置偏移量,] 行数
   ```
 
-  第一个“位置偏移量”参数指示MySQL从哪一行开始显示，是一个可选参数，如果不指定“位置偏移量”，将会从表中的第一条记录开始（第一条记录的位置偏移量是0，第二条记录的位置偏移量是1，以此类推）；第二个参数“行数”指示返回的记录条数。
+  第一个“位置偏移量”参数指示 MySQL 从哪一行开始显示，是一个可选参数，如果不指定“位置偏移量”，将会从表中的第一条记录开始（第一条记录的位置偏移量是0，第二条记录的位置偏移量是1，以此类推）；第二个参数“行数”指示返回的记录条数。
 
 - 举例
 
@@ -2546,13 +2546,13 @@ SELECT * FROM 表名 LIMIT 10,10;
 SELECT * FROM 表名 LIMIT 20,10;
 ```
 
-> MySQL 8.0中可以使用“LIMIT 3 OFFSET 4”，意思是获取从第5条记录开始后面的3条记录，和“LIMIT 4,3;”返回的结果相同。
+> MySQL 8.0 中可以使用“LIMIT 3 OFFSET 4”，意思是获取从第5条记录开始后面的3条记录，和“LIMIT 4,3;”返回的结果相同
 
 - 分页显式公式**：（当前页数-1）*每页条数，每页条数**
 
 ```mysql
 SELECT * FROM table 
-LIMIT(PageNo - 1)*PageSize,PageSize;
+LIMIT (PageNo - 1) * PageSize, PageSize;
 ```
 
 - **注意：LIMIT 子句必须放在整个SELECT语句的最后！**
@@ -2596,12 +2596,6 @@ WHERE rownum < 10;
 ```
 
 得到与上述方法一致的结果。
-
-
-
-
-
-
 
 ##  第06章_多表查询
 
@@ -2677,7 +2671,7 @@ SELECT 107*27 FROM dual;
 
 <img src="MySQL数据库.images\302046364841977.jpg" alt="img" style="zoom:80%;" />
 
-SQL92中，笛卡尔积也称为`交叉连接`，英文是 `CROSS JOIN`。在 SQL99 中也是使用 CROSS JOIN表示交叉连接。它的作用就是可以把任意表进行连接，即使这两张表不相关。在MySQL中如下情况会出现笛卡尔积：
+SQL92中，笛卡尔积也称为`交叉连接`，英文是 `CROSS JOIN`。在 SQL99 中也是使用 CROSS JOIN 表示交叉连接。它的作用就是可以把任意表进行连接，即使这两张表不相关。在 MySQ L中如下情况会出现笛卡尔积：
 
 ```mysql
 查询员工姓名和所在部门名称
@@ -2695,7 +2689,7 @@ SELECT last_name,department_name FROM employees JOIN departments;
   - 连接条件（或关联条件）无效
   - 所有表中的所有行互相连接
 
-- 为了避免笛卡尔积， 可以**在 WHERE 加入有效的连接条件。**
+- 为了避免笛卡尔积，可以**在 WHERE 加入有效的连接条件。**
 
 - 加入连接条件后，查询语法：
 
@@ -2705,7 +2699,7 @@ SELECT last_name,department_name FROM employees JOIN departments;
   WHERE	table1.column1 = table2.column2;  连接条件
   ```
 
-  - **在 WHERE子句中写入连接条件。**
+  - **在 WHERE 子句中写入连接条件。**
 
 - 正确写法：
 
@@ -3014,14 +3008,14 @@ UNION ALL操作符返回两个查询的结果集的并集。对于两个结果�
 
 ```mysql
 方式1
-SELECT * FROM employees WHERE email LIKE '%a%' OR department_id>90;
+SELECT * FROM employees WHERE email LIKE '%a%' OR department_id > 90;
 ```
 
 ```mysql
 方式2
 SELECT * FROM employees  WHERE email LIKE '%a%'
 UNION
-SELECT * FROM employees  WHERE department_id>90;
+SELECT * FROM employees  WHERE department_id > 90;
 ```
 
 举例：查询中国用户中男性的信息以及美国用户中年男性的用户信息
@@ -3090,7 +3084,7 @@ ON e.`department_id` = d.`department_id`;
 
 ```mysql
 右下图
-左中图 + 右中图  A ∪B- A∩B 或者 (A -  A∩B) ∪ （B - A∩B）
+左中图 + 右中图  A ∪ B- A ∩ B 或者 (A -  A∩B) ∪ （B - A∩B）
 SELECT employee_id,last_name,department_name
 FROM employees e LEFT JOIN departments d
 ON e.`department_id` = d.`department_id`
@@ -3159,8 +3153,6 @@ from A表 right join B表
 on 关联条件
 where 从表关联字段 is null and 等其他子句
 ```
-
-
 
 ### 6. SQL99语法新特性
 
@@ -4699,7 +4691,7 @@ SELECT employee_id, last_name,
        (CASE department_id
         WHEN
              (SELECT department_id FROM departments
-	      WHERE location_id = 1800)           
+	      	  WHERE location_id = 1800)           
         THEN 'Canada' ELSE 'USA' END) location
 FROM   employees;
 ```
@@ -4742,12 +4734,12 @@ WHERE  salary =
 
  3.1 多行比较操作符
 
-| 操作符        | 含义                                                         |
-| ------------- | ------------------------------------------------------------ |
-| IN            | 等于列表中的**任意一个**                                     |
-| ANY（存在？） | 需要和单行比较操作符一起使用，和子查询返回的**某一个**值比较 |
-| ALL（任意？） | 需要和单行比较操作符一起使用，和子查询返回的**所有**值比较   |
-| SOME          | 实际上是ANY的别名，作用相同，一般常使用ANY                   |
+| 操作符 | 含义                                                         |
+| ------ | ------------------------------------------------------------ |
+| IN     | 等于列表中的**任意一个**                                     |
+| ANY    | 需要和单行比较操作符一起使用，和子查询返回的**某一个**值比较 |
+| ALL    | 需要和单行比较操作符一起使用，和子查询返回的**所有**值比较   |
+| SOME   | 实际上是ANY的别名，作用相同，一般常使用ANY                   |
 
 > 体会 ANY 和 ALL 的区别
 
@@ -4840,8 +4832,7 @@ WHERE e1.`department_id` = e2.department_id
 AND e2.dept_avg_sal < e1.`salary`;
 ```
 
-> from型的子查询：子查询是作为from的一部分，子查询要用()引起来，并且要给这个子查询取别名，
-> 把它当成一张“临时的虚拟的表”来使用。
+> from型的子查询：子查询是作为from的一部分，子查询要用()引起来，并且要给这个子查询取别名，把它当成一张“临时的虚拟的表”来使用。
 
 在ORDER BY 中使用子查询：
 
@@ -4869,7 +4860,7 @@ WHERE  2 <= (SELECT COUNT(*)
 
  4.3 EXISTS 与 NOT EXISTS关键字
 
-- 关联子查询通常也会和 EXISTS操作符一起来使用，用来检查在子查询中是否存在满足条件的行。
+- 关联子查询通常也会和 EXISTS 操作符一起来使用，用来检查在子查询中是否存在满足条件的行。
 - **如果在子查询中不存在满足条件的行：**
   - 条件返回 FALSE
   - 继续在子查询中查找
@@ -5118,7 +5109,7 @@ SHOW CREATE DATABASE 数据库名;
 SHOW CREATE DATABASE 数据库名\G
 ```
 
-- 使用/切换数据库
+- 使用 or 切换数据库
 
 ```mysql
 USE 数据库名;
@@ -5153,7 +5144,7 @@ DROP DATABASE IF EXISTS 数据库名;
  3.1 创建方式1
 
 - **必须具备：**
-  - CREATE TABLE权限
+  - CREATE TABLE 权限
   - 存储空间
 - **语法格式：**
 
@@ -5239,10 +5230,9 @@ CREATE TABLE emp2 AS SELECT * FROM employees WHERE 1=2; -- 创建的emp2是空�
 ```mysql
 CREATE TABLE dept80
 AS 
-SELECT  employee_id, last_name, salary*12 ANNSAL, hire_date
+SELECT  employee_id, last_name, salary * 12 ANNSAL, hire_date
 FROM    employees
 WHERE   department_id = 80;
-
 ```
 
 ```mysql
@@ -5341,7 +5331,7 @@ CHANGE department_name dept_name varchar(15);
 删除表中某个字段的语法格式如下：
 
 ```mysql
-ALTER TABLE 表名 DROP 【COLUMN】字段名
+ALTER TABLE 表名 DROP【COLUMN】列名
 ```
 
 举例：
@@ -5554,9 +5544,9 @@ INSERT INTO departments
 VALUES (70, 'Pub', 100, 1700);
 ```
 
-```mysql
+```sql
 INSERT INTO	departments
-VALUES		(100, 'Finance', NULL, NULL);
+VALUES (100, 'Finance', NULL, NULL);
 ```
 
 **情况2：为表的指定字段插入数据**
@@ -5605,9 +5595,9 @@ VALUES
 
 ```mysql
 mysql> INSERT INTO emp(emp_id,emp_name)
-    -> VALUES (1001,'shkstart'),
-    -> (1002,'atguigu'),
-    -> (1003,'Tom');
+    VALUES (1001,'shkstart'),
+    (1002,'atguigu'),
+    (1003,'Tom');
 Query OK, 3 rows affected (0.00 sec)
 Records: 3  Duplicates: 0  Warnings: 0
 ```
@@ -5682,26 +5672,26 @@ SET column1=value1, column2=value2, … , column=valuen
 
 - 使用 **WHERE** 子句指定需要更新的数据。
 
-```sql
-UPDATE employees
-SET    department_id = 70
-WHERE  employee_id = 113;
-```
+	```sql
+	UPDATE employees
+	SET    department_id = 70
+	WHERE  employee_id = 113;
+	```
 
 - 如果省略 WHERE 子句，则表中的所有数据都将被更新。
 
-```sql
-UPDATE 	copy_emp
-SET    	department_id = 110;
-```
+	```sql
+	UPDATE 	copy_emp
+	SET    	department_id = 110;
+	```
 
 - **更新中的数据完整性错误**
 
-```sql
-UPDATE employees
-SET    department_id = 55
-WHERE  department_id = 110;
-```
+	```sql
+	UPDATE employees
+	SET    department_id = 55
+	WHERE  department_id = 110;
+	```
 
  ![1555426069578](MySQL数据库.images\1555426069578.png)
 
@@ -7032,7 +7022,7 @@ mysql> SELECT LENGTH(f2),LENGTH(f4)
 2 rows in set (0.00 sec)
 ```
 
- BLOB类型
+BLOB类型
 
 BLOB是一个`二进制大对象`，可以容纳可变数量的数据。
 
@@ -7206,8 +7196,6 @@ table_constraints表名称（专门存储各个表的约束）
 SELECT * FROM information_schema.table_constraints 
 WHERE table_name = '表名称';
 ```
-
-
 
 ### 2. 非空约束
 
@@ -7545,7 +7533,7 @@ ERROR 1062 (23000): Duplicate entry '1-1001' for key 'sid'   违反sid-cid的复
  3.5 删除唯一约束
 
 - 添加唯一性约束的列上也会自动创建唯一索引。
-- 删除唯一约束只能通过删除唯一索引的方式删除。
+- **删除唯一约束只能通过删除唯一索引的方式删除**。
 - 删除时需要指定唯一索引名，唯一索引名就和唯一约束名一样。
 - 如果创建唯一约束时未指定名称，如果是单列，就默认和列名相同；如果是组合列，那么默认和()中排在第一个的列名相同。也可以自定义唯一性约束名。
 
@@ -9180,7 +9168,7 @@ SHOW CREATE VIEW 视图名称;
 
  5.1 一般情况
 
-MySQL支持使用INSERT、UPDATE和DELETE语句对视图中的数据进行插入、更新和删除操作。当视图中的数据发生变化时，数据表中的数据也会发生变化，反之亦然。
+MySQL支持使用INSERT、UPDATE和DELETE语句对视图中的数据进行插入、更新和删除操作。**当视图中的数据发生变化时，数据表中的数据也会发生变化，反之亦然。**
 
 举例：UPDATE操作
 
@@ -9377,8 +9365,11 @@ MySQL从5.0版本开始支持存储过程和函数。存储过程和函数能够
 **好处**：
 
 1、简化操作，提高了sql语句的重用性，减少了开发程序员的压力
+
 2、减少操作过程中的失误，提高效率
+
 3、减少网络传输量（客户端不需要把所有的 SQL 语句通过网络发给服务器）
+
 4、减少了 SQL 语句暴露在网上的风险，也提高了数据查询的安全性
 
 **和视图、函数的对比**：
@@ -9392,9 +9383,13 @@ MySQL从5.0版本开始支持存储过程和函数。存储过程和函数能够
 存储过程的参数类型可以是IN、OUT和INOUT。根据这点分类如下：
 
 1、没有参数（无参数无返回）
+
 2、仅仅带 IN 类型（有参数无返回）
+
 3、仅仅带 OUT 类型（无参数有返回）
+
 4、既带 IN 又带 OUT（有参数有返回）
+
 5、带 INOUT（有参数有返回）
 
 注意：IN、OUT、INOUT 都可以在一个存储过程中带多个。
@@ -10031,7 +10026,7 @@ DROP FUNCTION CountProc;
 
 ### 1. 变量
 
-在MySQL数据库的存储过程和函数中，可以使用变量来存储查询或计算的中间结果数据，或者输出最终的结果数据。
+在 MySQL 数据库的存储过程和函数中，可以使用变量来存储查询或计算的中间结果数据，或者输出最终的结果数据。
 
 在 MySQL 数据库中，变量分为`系统变量`以及`用户自定义变量`。
 
@@ -10083,7 +10078,7 @@ SHOW GLOBAL VARIABLES LIKE 'admin_%';
 
 - **查看指定系统变量**
 
-作为 MySQL 编码规范，MySQL 中的系统变量以`两个“@”`开头，其中“@@global”仅用于标记全局系统变量，“@@session”仅用于标记会话系统变量。“@@”首先标记会话系统变量，如果会话系统变量不存在，则标记全局系统变量。
+作为 MySQL 编码规范，**MySQL 中的系统变量以`两个“@”`开头**，其中“@@global”仅用于标记全局系统变量，“@@session”仅用于标记会话系统变量。“@@”首先标记会话系统变量，如果会话系统变量不存在，则标记全局系统变量。
 
 ```mysql
 查看指定的系统变量的值
@@ -10141,7 +10136,7 @@ SELECT @@global.max_connections;
 
  1.2.1 用户变量分类
 
-用户变量是用户自己定义的，作为 MySQL 编码规范，MySQL 中的用户变量以`一个“@”`开头。根据作用范围不同，又分为`会话用户变量`和`局部变量`。
+用户变量是用户自己定义的，作为 MySQL 编码规范，**MySQL 中的用户变量以`一个“@”`开头**。根据作用范围不同，又分为`会话用户变量`和`局部变量`。
 
 - 会话用户变量：作用域和会话变量一样，只对`当前连接`会话有效。
 
