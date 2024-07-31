@@ -796,8 +796,9 @@ System.out.println(arr2[0][0]);
 
 java.util.Arrays:操作数组的工具类
 
-|  boolean equals(int[] a,int[] b)  |         判断两个数组是否相等         |
+|               方法                |                 作用                 |
 | :-------------------------------: | :----------------------------------: |
+|  boolean equals(int[] a,int[] b)  |         判断两个数组是否相等         |
 |     String toString(int[] a)      |             输出数组信息             |
 |        void sort(int[] a)         |            对数组进行排序            |
 |   void full(int[] a,int value)    |        将指定值填充到数组之中        |
@@ -808,7 +809,7 @@ java.util.Arrays:操作数组的工具类
 一、Java面向对象学习的三条主线
 
 1. Java类及类的成员：属性、方法、构造器；代码块、内部类
-2. 面向对象的三大特征：封装性、继承性、多态性、（抽象性）
+2. 面向对象的三大特征：**封装性、继承性、多态性**、（抽象性）
 3. 其他关键字：this、super、static、final、abstract、interface、package、import
 
 ### 面向过程(POP)与面向对象(OOP)
@@ -882,7 +883,7 @@ class Person{
 
 意味着：如果我们修改一个对象的属性a，则不影响另外一个对象属性a的值。
 
-#### ==内存区域==
+#### 内存区域
 
 ==堆（Heap）==，此内存区域的唯一目的就是==存放对象实例==，几乎所有的对象实例都在这里分配内存。这一点在Java虚拟机规范中的描述是：==所有的对象实例以及数组都要在堆上分配。== 
 
@@ -892,7 +893,7 @@ class Person{
 
 <img src="Java%E5%9F%BA%E7%A1%80.images/image-20220704095222522-170313064243646.png" alt="image-20220703174910465" style="zoom: 67%;" />
 
-#### == 属性（成员变量） vs  局部变量==
+####  属性（成员变量） vs  局部变量
 
 1. 相同点：
 
@@ -934,11 +935,11 @@ class Person{
 
 ​                       引用数据类型（类、数组、接口）：null
 
-​              - 局部变量：没有默认初始化值。
+​              - 局部变量：**没有默认初始化值**。
 
-​                         意味着，我们在调用局部变量之前，一定要显式赋值。
+​                         意味着，我们在调用局部变量之前，一定要显式赋值
 
-​                         特别地：形参在调用时，我们赋值即可。
+​                         特别地：形参在调用时，我们赋值即可
 
 ​		2.4 在内存中加载的位置：
 
@@ -950,11 +951,11 @@ class Person{
 
 方法：描述类应该具有的功能
 
-比如：Math类：sqrt()、random()、。。。
+比如： Math类：sqrt()、random()、。。。
 
-​		  Scanner类：nextXxx()
+​			Scanner类：nextXxx()
 
-​         Arrays类:sort()、binarySearch()、toString()、equals()、。。。
+​			Arrays类:sort()、binarySearch()、toString()、equals()、。。。
 
 1.举例：
 
@@ -1109,6 +1110,8 @@ double add(double x,double y){return x+y;}
 
 ####  方法参数的值传递机制
 
+**java 可以讲都是值传递**
+
 形参：方法声明时的参数
 
 实参：方法调用时实际传给形参的值
@@ -1119,11 +1122,11 @@ double add(double x,double y){return x+y;}
 
 ####  递归方法
 
-一个方法内调用它自身。
+一个方法内调用它自身
 
 ==重点是停止条件==
 
-###  面向对象特征之一：==封装与隐藏==
+###  面向对象特征之一：封装与隐藏
 
 一、问题的引入：当我们创建一个类的对象以后，我们可以通过“对象.属性”的方式，对对象的属性进行赋值。这时赋值操作要受到属性的数据类型和存储范围的制约。但是除此之外没有其他制约条件。在实际问题当中我们需要给属性赋值加入额外的限制条件。这个条件就不能在属性声明时体现，我们只能通过方法进行限制条件的添加。同时我们需要避免用户再使用“对象.属性”的方式进行赋值，则需要将属性权限修改为private。这就是封装性的体现。
 
@@ -1254,26 +1257,32 @@ public class OrderTest {
 
 ###  属性的赋值过程
 
-- 默认初始化（默认值0）
-- 显式初始化（**类中声明时初始化**）
-- 构造器中赋值
-- 通过对象调方法或点属性赋值
-- 在代码块中赋值（6.3）
+①默认初始化（默认值0），排除静态常量
+
+②显式初始化（**类中声明时初始化**）
+
+```java
+public class test{
+    public int i = 0;
+}
+```
+
+③构造器中赋值
+
+④通过对象调方法或点属性赋值
+
+⑤在代码块中赋值（6.3）
 
 以上操作的先后顺序：①-②/⑤-③-④（若声明⑤在②之前则先⑤，否则先②) 
 
-> 上述的顺序不太理解（②是类声明时就已经给到的值，那么⑤如何在②之前完成呢？）
+> 上述的顺序不太理解（②是类声明时就已经给到的值，那么⑤如何在②之前完成呢？答：javac 编译的字节码文件中 ②和⑤代码块的内容都编译在 \<cinit> 方法中，因此是同时执行的，执行顺序只与声明顺序有关）
 
 ###  关键字：this
 
 1. this可以用来修饰：属性、方法、构造器
-
 2. this理解为：当前对象  或 当前正在创建的对象（构造器中）
 
-   - 在类的**方法**中，我们可以使用"this.属性"或"this.方法"的方式，调用当前对象属性或方法。但是，通常情况下，我们都选择省略"this."。特殊情况下，如果方法的形参和类的属性同名时，我们必须显式的使用"this.变量"的方式，表明此变量是属性，而非形参。
-
-   - 在类的**构造器**中，我们可以使用"this.属性"或"this.方法"的方式，调用当前对象属性或方法。但是，通常情况下，我们都选择省略"this."。特殊情况下，如果方法的形参和类的属性同名时，我们必须显式的使用"this.变量"的方式，表明此变量是属性，而非形参。
-
+   - 在类的**方法/构造器**中，我们可以使用"this.属性"或"this.方法"的方式，调用当前对象属性或方法。但是，通常情况下，我们都选择省略"this."。特殊情况下，如果方法的形参和类的属性同名时，我们必须显式的使用"this.变量"的方式，表明此变量是属性，而非形参
 3. this调用构造器
 
    - 我们在类的构造器中，可以显式的使用"this(形参列表)"方式，调用本类中指定的其他构造器
@@ -1288,7 +1297,7 @@ public class OrderTest {
 
 ###  关键字：package、import的使用
 
-==一、package关键字的使用：==
+一、package关键字的使用
 
 ```java
 package com.zwhy.java
@@ -1300,9 +1309,9 @@ package com.zwhy.java
 
 4. 每"."一次代表一层文件目录
 
-同一个包下，不能命名同名的接口、类；不同的包下是可以的
+同一个包下，不能命名同名的接口、类；不同的包下是可以的（类的全类名产生了差异）
 
-==二、import关键字的使用：==
+二、import关键字的使用：
 
 ​	import：导入（落脚点是类）
 
@@ -1314,19 +1323,19 @@ package com.zwhy.java
 
 4. 可以使用xxx.*的方式表示可以导入xxx包下的所有结构
 
-5. 如果使用的类或接口是java.lang下的，可以省略
+5. 如果**使用的类或接口是java.lang下的**，可以省略
 
-6. 使用同一个包下定义的类、接口也可以省略
+6. 使用**同一个包下定义的类、接口**也可以省略
 
 7. 如果在源文件中使用了不同包下的同名类，则必须至少有一个类需要以全类名的方式显示
 
 8. 如果使用"xxx.*"方式表明可以调用xxx包下的所有结构，如果使用的是xxx子包下的结构，仍需要导入
 
-   import static：导入指定类或接口中的静态结构（落脚点是类里面）
+9. import static：导入指定类或接口中的静态结构（落脚点是类里面）
 
 ## 面向对象编程（`OOP`）
 
-###  ==继承性==
+###  继承性
 
 一、继承性的好处
 
@@ -1356,43 +1365,43 @@ class A extends B{
 	1. 一个类只能有一个父类（单继承性）
 	1. 可以多层继承
 
-四、没有显式的声明父类，则此类的父类为java.lang.Object类；所有的java类都直接或间接的继承java.lang.Object
+四、没有显式的声明父类，则此类的父类为 java.lang.Object 类；所有的 java 类都直接或间接的继承 java.lang.Object
 
-### 方法的重写
+#### 方法的重写
 
 在子类中可以根据需要对从父类中继承来的方法进行改造，也称为方法的重置、覆盖。在程序执行时，子类的方法将覆盖父类的方法。
 
-① 重写：子类继承父类之后，可以对父类中==同名同参==的方法进行覆盖
+① 重写：子类继承父类之后，可以对父类中同名同参的方法进行覆盖
 
 ② 重写之后，通过子类对象调用同名同参方法时，实际执行的是子类的覆盖的方法
 
 ​	子类中的方法称为重写方法，父类中的为被重写的方法
 
-​	==子类中重写方法的权限修饰符不小于父类被重写方法的权限修饰符==,只能更严格不能更轻松
+​	子类中重写方法的权限修饰符不小于父类被重写方法的权限修饰符, 只能更严格不能更轻松
 
-​    \> 特殊情况：子类中不能重写父类中的private的方法
+​    特殊情况：子类中不能重写父类中的 private 的方法
 
-③ 返回值类型：
+③ 返回值类型
 
 - 父类中方法为void，子类中的重写方法也只能是void
-- 父类中方法的范围值类型为A类，则子类中重写的方法的返回值的类型可以是A类或A的子类（多态...）
-- 父类中方法的范围值类型为基本数据类型（e.g. double），则子类中重写的方法的返回值的类型必须是相同的基本数据类型（double）
+- 父类中方法的返回值类型为A类，则子类中重写的方法的返回值的类型可以是A类或A的子类（多态...）
+- 父类中方法的返回值类型为基本数据类型（e.g. double），则子类中重写的方法的返回值的类型必须是相同的基本数据类型（double）
 - 子类重写的方法抛出的异常类型不大于父类被重写的方法抛出的异常类型（7.2.2）
-- 子类和父类中同名同参的方法要么都声明为非static的（考虑重写），要么都声明为static的（不是重写）
+- 子类和父类中同名同参的方法要么都声明为非 static 的（考虑重写），要么都声明为 static 的（不是重写）
 
-###  关键字：super
+####  关键字：super
 
 1. 可以在子类的方法或构造器中，通过使用super.属性或super.方法的方式，显式调用父类中声明的属性和方法，通常情况下我们省略super
 2. 特殊情况：当子类和父类定义了同名的属性时，我们要调用父类的属性必须显式使用super
 3. 当子类重写了父类中的方法以后，我们想在子类的方法中调用父类被重写的方法时，必须显式的使用super.方法
 4. super调用构造器
-   - 可以在子类的构造器中显式的使用super(形参列表)的方式，调用父类中声明的指定的构造器
-   - super(形参列表)必须声明在==子类构造器的首行==
+   - 可以在子类的构造器中显式的使用 super(形参列表)的方式，调用父类中声明的指定的构造器
+   - super(形参列表)必须声明在子类构造器的首行
    - this(形参列表)、super(形参列表)只能二选一，不能同时出现(因为二者都需要出现在子类构造器的首行)
-   - 若没有显式的写出this、super默认调用super()
+   - 若没有显式的写出this、super，默认调用super()
    - 在类的多个构造器中**至少有一个类**的构造器中使用了super(形参列表)，调用父类中的构造器
 
-### 子类对象实例化过程
+#### 子类对象实例化过程
 
 1. 从结果上来看（继承性）：
 
@@ -1402,11 +1411,11 @@ class A extends B{
 
 2. 从过程上来看：
 
-   当我们通过子类的构造器创建子类对象时，我们一定会直接或间接的调用其父类的构造器，直到调用了java.lang.Object类的构造器，然后才能够加载所有的父类的结构，才可以在内存中看到父类的结构。
+   当我们通过子类的构造器创建子类对象时，我们一定会直接或间接的调用其父类的构造器，直到调用了java.lang.Object类的构造器，然后才能够加载所有的父类的结构，才可以在内存中看到父类的结构
 
-   虽然创建子类对象时调用了父类的构造器但是自始至终只有一个对象被创建，即子类对象。（那么java的子类部分与父类部分是否是分开存放的？）
+   虽然创建子类对象时调用了父类的构造器但是自始至终只有一个对象被创建，即子类对象
 
-###  ==多态性==
+###  多态性
 
 > 可以理解为一个事物的多种形态
 
@@ -1428,7 +1437,7 @@ class A extends B{
 
 4. 对象的多态性：只适用于方法，不适用于属性（编译和运行都看左边）
 
-==**虚拟方法调用(多态情况下)**==
+**虚拟方法调用(多态情况下)**
 
 子类中定义了与父类同名同参数的方法，在多态情况下，将此时父类的方法称为**虚拟方法**，父类根据赋给它的不同子类对象，动态调用属于子类的该方法。这样的方法调用在编译期是无法确定的。
 
@@ -1444,13 +1453,11 @@ class A extends B{
 
 2. 而对于多态，只有等到方法调用的那一刻，解释运行器才会确定所要调用的具体方法，这称为**“晚绑定”或“动态绑定”**。
 
-引用一句Bruce Eckel的话：“不要犯傻，如果它不是晚绑定，它就不是多态。”
-
 ####  向下转型
 
 ![image-20220709134625100](Java%E5%9F%BA%E7%A1%80.images/image-20220710100316829-170313066118355.png)
 
-#### 运算符：instanceof
+##### 运算符：instanceof
 
 ```java
 if(p instanceof Person){
@@ -1462,29 +1469,31 @@ if(p instanceof Person){
 
 如果a instanceof A返回true，则a instacneof B 也返回true（B是A的父类）
 
+<img src="Java%E5%9F%BA%E7%A1%80.images/image-20220709134625100-170313066699458.png" alt="image-20220709173113033" style="zoom:80%;" />
+
 ###  Object类
 
 > Object类是所有类的根父类
 
 #### Object类中定义的功能
 
-1. clone（）
+1. clone()
 
-2. equals（）
+2. equals()
 
    比较两个对象是否相等
 
-3. finalize（）
+3. finalize()
 
    回收
 
-4. getClass（）
+4. getClass()
 
-5. hashCode（）
+5. hashCode()
 
-6. notify（）
+6. notify()
 
-7. wait（）
+7. wait()
 
 ####  == 和equals()的区别
 
@@ -1492,7 +1501,7 @@ if(p instanceof Person){
 
  1. 可以使用在基本数据类型变量和引用数据类型变量中
 
- 2. 如果比较的是基本数据类型变量：比较两个变量保存的数据是否相等（不一定类型相同）
+ 2. 如果比较的是基本数据类型变量：比较两个变量保存的数据是否相等（数学意义上的）
 
     如果比较的是引用数据类型变量：比较两个变量的地址值是否相同，即两个引用是否指向同一个对象实体
 
@@ -1554,7 +1563,7 @@ public class InterviewTest {
 	public void test3() {
 		Integer i = new Integer(1);
 		Integer j = new Integer(1);
-		System.out.println(i == j);//false
+		System.out.println(i == j);//false，new 了两个对象，自然地址不同
 		
 		//Integer内部定义了IntegerCache结构，IntegerCache中定义了Integer[],
 		//保存了从-128~127范围的整数。如果我们使用自动装箱的方式，给Integer赋值的范围在
@@ -1571,7 +1580,7 @@ public class InterviewTest {
 }
 ```
 
-## ==面向对象编程（`OOP`）==
+## 面向对象编程（`OOP`）
 
 ### 关键字：`static`
 
@@ -1579,13 +1588,13 @@ public class InterviewTest {
 
 2. 可以用来修饰：属性、方法、代码块、内部类
 
-3. ==使用`static`修饰属性：==静态变量、类变量
+3. 使用`static`修饰属性：静态变量、类变量
 
    属性：按是否使用`static`修饰，又分为静态属性 vs 非静态属性（实例变量）
 
-   ==实例变量：==当我们创建了类的多个对象，每个对象都独立有一套类中的非静态属性。修改其中一个对象的非静态属性时，不会影响其他对象。
+   实例变量：当我们创建了类的多个对象，每个对象都独立有一套类中的非静态属性。修改其中一个对象的非静态属性时，不会影响其他对象。
 
-   ==静态变量：==类的多个对象共享同一个静态变量
+   静态变量：类的多个对象共享同一个静态变量
 
    `static`修饰属性的其他特点：
 
@@ -1595,9 +1604,9 @@ public class InterviewTest {
 
    ​	③由于类只会加载一次，静态变量在内存中只会存在一份，存在方法区的静态域中
 
-   <img src="Java%E5%9F%BA%E7%A1%80.images/image-20220709134625100-170313066699458.png" alt="image-20220709173113033" style="zoom:80%;" />
+   
 
-4. ==使用`static`修饰方法：==
+4. 使用`static`修饰方法：
 
    ①随着类的加载而加载"类名.方法名"来调用
 
@@ -1637,19 +1646,19 @@ class Main{
 
 1. 代码块的作用：用来初始化类、对象
 
-2. 代码块只能使用`static`修饰
+2. **代码块只能使用`static`修饰**
 
    静态代码块：
 
    - 内部可以有输出语句
-   - 随着类的加载而执行，且只执行一次
+   - 随着**类的加载而执行**，且只执行一次
    - 多个静态代码块，按照声明的先后顺序执行
    - 静态代码块内只能调用静态的属性、静态的方法
 
    非静态代码块：
 
    - 内部可以有输出语句
-   - 随着对象的创建而执行，每创建一次对象执行一次非静态代码块
+   - 随着**对象的创建而执行**，每创建一次对象执行一次非静态代码块
    - 可以在创建对象时，对对象的属性等进行初始化
    - 多个非静态代码块，按照声明的先后顺序执行
    - 非静态代码块可以调用静态的属性、静态的方法，或非静态的属性、非静态的方法
@@ -1662,7 +1671,7 @@ class Main{
 
    比如：`String`类、`System`类、`StringBuffer`类
 
-3. `final`用来修饰方法：此方法不能被重写
+3. `final`用来修饰方法：此方法不能被**重写**
 
    比如：Object类中的getClass()
 
@@ -1670,7 +1679,7 @@ class Main{
 
    可以考虑赋值的位置有：显示初始化、代码块中赋值、构造器中初始化（4.8）
 
-   `final`修饰局部变量：尤其是`final`修饰形参时，表明此形参是一个常量，在生命周期内无法被改变
+   `final`修饰局部变量：尤其是`final`修饰形参时，表明**此形参是一个常量，在生命周期内无法被改变**
 
 ###  抽象类和抽象方法
 
@@ -1678,19 +1687,19 @@ class Main{
 
 `abstract`可以用来修饰的结构：类、方法
 
-1. abstract修饰类：抽象类
+1. abstract 修饰类：抽象类
 
    - 类不能实例化
 
    - 抽象类中一定有构造器，便于子类实例化时调用
 
-   - 开放中，都会提供抽象类的子类，让子类对象实例化
+   - 开发中，都会提供抽象类的子类，让子类对象实例化
 
-2. abstract修饰方法：
+2. abstract 修饰方法：
 
    - 抽象方法只有方法的声明没有方法体
 
-   - 包含抽象方法的类一定是一个抽象类，抽象类中可以没有抽象方法
+   - **包含抽象方法的类一定是一个抽象类（有抽象方法，类也必须用 abstract 修饰），抽象类中可以没有抽象方法**
    - 若子类重写了父类的所有抽象方法后，此子类方可实例化；若子类没有重写父类的所有抽象方法，则子类是抽象类，需要使用abstract修饰
 
    ```java
@@ -1755,8 +1764,6 @@ class Worker extends Person{
 }
 ```
 
-
-
 ### 接口 
 
 一方面，有时必须从几个类中派生出一个子类，继承它们所有的属性和方法。但是，Java不支持多重继承。有了接口，就可以得到多重继承的效果。 
@@ -1767,8 +1774,6 @@ class Worker extends Person{
 
 接口的本质是契约，标准，规范，就像我们的法律一样。制定好后大家都要遵守。
 
-<img src="Java%E5%9F%BA%E7%A1%80.images/image-20220709173113033-170313067456961.png" alt="image-20220710100316829" style="zoom:67%;" />
-
 1. 使用`interface`定义结构
 
 2. Java中接口和类是并列的两个结构
@@ -1777,19 +1782,19 @@ class Worker extends Person{
 
    ​	JDK7及以前：只能够定义全局常量和抽象方法
 
-   ​			->全局常量:public static final的（可以省略不写，但是仍是public static final的）
+   ​			全局常量:public static final的（可以省略不写，但是仍是public static final的）
 
-   ​			->抽象方法 public abstract的（可以省略不写，但是仍是public abstract的）
+   ​			抽象方法 public abstract的（可以省略不写，但是仍是public abstract的）
 
-   ​	JDK8：除了定义全局常量和抽象方法之外，还可以定义静态方法、默认方法（略）
+   ​	JDK8：除了定义全局常量和抽象方法之外，还可以定义静态方法、默认方法
 
-   ​			->接口中定义的静态方法，只能通过接口来调用
+   ​			接口中定义的静态方法，只能通过接口来调用
 
-   ​			->通过实现类的对象，可以调用接口中的默认方法
+   ​			通过实现类的对象，可以调用接口中的默认方法
 
-   ​			->如果子类（实现类）继承的父类和实现的接口中声明了同名同参的方法，那么子类再没有重写此方法的情况下默认调用的是父类中的同名同参的方法。--->类优先原则
+   ​			如果子类（实现类）继承的父类和实现的接口中声明了同名同参的方法，那么子类再没有重写此方法的情况下默认调用的是父类中的同名同参的方法。--->类优先原则
 
-   ​			->如果实现类实现了多个接口，多个接口中定义了同名同参数的默认方法，那么实现类没有重写此方法的情况下，报错--->接口冲突。这就要求我们必须重写此方法。
+   ​			如果实现类实现了多个接口，多个接口中定义了同名同参数的默认方法，那么实现类没有重写此方法的情况下，报错--->接口冲突。这就要求我们必须重写此方法，重写之后调用的行为就确定了
 
    ```java
    //静态方法
@@ -1827,7 +1832,7 @@ class Worker extends Person{
 
 6. Java类可以实现多个接口---->弥补了Java单继承性的局限
 
-7. 接口和接口之间可以继承而且可以多继承（这时是使用extends）
+7. **接口和接口之间可以继承而且可以多继承**（这时是使用extends）
 
 8. 接口的具体使用能够体现多态性
 
@@ -1919,19 +1924,19 @@ class Printer implements USB{
 
    ​			一方面，作为类的成员：
 
-   ​					->调用外部类的结构
+   ​					调用外部类的结构
 
-   ​					->可以被static修饰
+   ​					可以被static修饰
 
-   ​					->可以被四种不同的权限修饰
+   ​					可以被四种不同的权限修饰
 
    ​			另一方面，作为一个类：
 
-   ​					->类可以定义属性、方法、构造器
+   ​					类可以定义属性、方法、构造器
 
-   ​					->可以被final修饰，此类不能被继承
+   ​					可以被final修饰，此类不能被继承
 
-   ​					->可以被abstract修饰，此类不能被实例化
+   ​					可以被abstract修饰，此类不能被实例化
 
    ​	局部内部类（方法内、代码块内、构造器类）
 
@@ -1961,12 +1966,12 @@ class Person{
    ①如何实例化成员内部类的对象
 
    ```java
-   		Person.Dog dog = new Person.Dog(); //静态
-   		dog.show();
-   		//创建Bird实例(非静态的成员内部类):
-   		//Person.Bird bird = new Person.Bird();//错误的
-   		Person p = new Person();
-   		Person.Bird bird = p.new Bird();//非静态
+   Person.Dog dog = new Person.Dog(); //静态
+   dog.show();
+   //创建Bird实例(非静态的成员内部类):
+   //Person.Bird bird = new Person.Bird();//错误的
+   Person p = new Person();
+   Person.Bird bird = p.new Bird();//非静态
    ```
 
    ②如何在成员内部类中区分调用外部类的结构
@@ -2033,13 +2038,13 @@ public void method(){
 
 ### 异常处理机制（一）
 
-==**抓抛模型**==
+**抓抛模型**
 
 **过程一：“抛”**：程序在正常执行的过程中，一旦出现异常，就会在异常代码处生成一个对应异常类的对象，并将此对象抛出。一旦抛出对象以后，其后的代码就不再执行。
 
 关于异常对象的产生：①系统自动生成的异常对象
 
-​								  ②手动生成的一个异常对象，并抛出（throw）
+​								    ②手动生成的一个异常对象，并抛出（throw）
 
 **过程二：”**抓“：可以理解为异常处理的方式：①try-catch-finally ②throws
 
@@ -2067,17 +2072,15 @@ finally{
 2. 一旦try中的异常对象匹配到某一个catch时，就进入catch中进行异常的处理。一旦处理完成，就跳出当前的try-catch结构（在没有写finally的情况）。继续执行其后的代码
 3. catch中的异常类型如果没有子父类关系，则谁声明在上，谁声明在下无所谓；catch中的异常类型如果满足子父类关系，则要求子类一定声明在父类的上面。否则，报错。
 4. 常用的异常对象处理的方式： ①String  getMessage()    ②printStackTrace()
-5. 在try结构中声明的变量，在出了try结构以后，就不能再被调用
-6. try-catch-finally结构可以嵌套
+5. 在 try 结构中声明的变量，在出了 try 结构以后，就不能再被调用
+6. try-catch-finally 结构可以嵌套
 7. finally是可选的
 8. finally中声明的是一定会被执行的代码。即使catch中又出现异常了，try中有return语句，catch中有return语句等情况。
 9. 像数据库连接、输入输出流、网络编程Socket等资源，JVM是不能自动的回收的，我们需要自己手动的进行资源的释放。此时的资源释放，就需要声明在finally中。
 
- 体会1：使用try-catch-finally处理编译时异常，是得程序在编译时就不再报错，但是运行时仍可能报错。相当于我们使用try-catch-finally将一个编译时可能出现的异常，延迟到运行时出现。
+体会1：使用try-catch-finally处理编译时异常，是得程序在编译时就不再报错，但是运行时仍可能报错。相当于我们使用try-catch-finally将一个编译时可能出现的异常，延迟到运行时出现。
 
-体会2：开发中，由于运行时异常比较常见，所以我们通常就不针对运行时异常编写try-catch-finally了。针对于编译时异常，我们说一定要考虑异常的处理。
-
-
+体会2：开发中，由于运行时异常比较常见，所以我们通常就不针对运行时异常编写try-catch-finally了。针对于编译时异常，一定要考虑异常的处理。
 
 ####  throws
 
@@ -2119,13 +2122,13 @@ class SubClass extends SuperClass{
 
 3. 开发中如何选择使用try-catch-finally 还是使用throws？
 
-   ->如果父类中被重写的方法没有throws方式处理异常，则子类重写的方法也不能使用throws，意味着如果子类重写的方法中有异常，必须使用try-catch-finally方式处理。
+   如果父类中被重写的方法没有throws方式处理异常，则子类重写的方法也不能使用throws，意味着如果子类重写的方法中有异常，必须使用try-catch-finally方式处理。
 
-   ->执行的方法a中，先后又调用了另外的几个方法，这几个方法是递进关系执行的。我们建议这几个方法使用throws的方式进行处理。而执行的方法a可以考虑使用try-catch-finally方式进行处理。
+   执行的方法a中，先后又调用了另外的几个方法，这几个方法是递进关系执行的。我们建议这几个方法使用throws的方式进行处理。而执行的方法a可以考虑使用try-catch-finally方式进行处理。
 
 ###  手动抛出异常-用户自定义异常类
 
-==使用throw关键字抛出异常==
+使用throw关键字抛出异常
 
 如何自定义异常类？
 
@@ -2157,26 +2160,26 @@ class SubClass extends SuperClass{
 
 - ==线程作为调度和执行的单位，每个线程拥有独立的运行栈和程序计数器(pc)==，线程切换的开销小 
 
-- 一个进程中的多个线程共享相同的内存单元/内存地址空间它们从同一堆中分配对象，可以访问相同的变量和对象。这就使得线程间通信更简便、高效。但多个线程操作共享的系统资源可能就会带来安全的隐患。
+- 一个进程中的多个线程共享相同的内存单元/内存地址空间 它们从同一堆中分配对象，可以访问相同的变量和对象。这就使得线程间通信更简便、高效。但多个线程操作共享的系统资源可能就会带来安全的隐患。
 
 <img src="Java%E5%9F%BA%E7%A1%80.images/image-20220712143405293-170313069705070.png" alt="QQ图片20220712111741" style="zoom:67%;" />
 
 > 虚拟机栈、程序计数器每一个线程一份，方法区、堆一个进程一份（线程共享）
 
-==单核CPU和多核CPU的理解==
+单核CPU和多核CPU的理解
 
 - 单核CPU，其实是一种假的多线程，因为在一个时间单元内，也只能执行一个线程的任务。例如：虽然有多车道，但是收费站只有一个工作人员在收费，只有收了费才能通过，那么CPU就好比收费人员。如果有某个人不想交钱，那么收费人员可以把他“挂起”（晾着他，等他想通了，准备好了钱，再去收费）。但是因为CPU时间单元特别短，因此感觉不出来。
 
 - 如果是多核的话，才能更好的发挥多线程的效率。（现在的服务器都是多核的）
-- 一个Java应用程序java.exe，其实至少有三个线程：**main()主线程，gc()垃圾回收线程，异常处理线程**。当然如果发生异常，会影响主线程。
+- 一个Java应用程序java.exe，其实至少有三个线程：**main()主线程，gc()垃圾回收线程，异常处理线程**。当然如果发生异常，会影响主线程
 
-==并行与并发==
+并行与并发
 
 - **并行**：多个CPU同时执行多个任务。比如：多个人同时做不同的事。
 
 - **并发**：一个CPU(采用时间片)同时执行多个任务。比如：秒杀、一个人做多件事。
 
-==多线程程序的优点：==
+多线程程序的优点：
 
 1. 提高应用程序的响应。对图形化界面更有意义，可增强用户体验。
 
@@ -2268,7 +2271,7 @@ JDK 5.0起提供了线程池相关API：**ExecutorService** 和 **Executors**
 
 ​		void execute(Runnable command) ：执行任务/命令，没有返回值，一般用来执行Runnable
 
-​		<T> Future<T> submit(Callable<T> task)：执行任务，有返回值，一般又来执行Callable
+​		<T> Future<T> submit(Callable<T> task)：执行任务，有返回值，一般用来执行Callable
 
 ​		void shutdown() ：关闭连接池
 
@@ -2344,8 +2347,6 @@ public class ThreadPool {
 9. sleep(long millitime)：睡眠指定的毫秒数
 10. isAlive()：判断线程是否还存活
 
-
-
 #### 线程的调度
 
 **调度策略**
@@ -2373,8 +2374,6 @@ public class ThreadPool {
 
 - 线程创建时继承父线程的优先级
 - 低优先级只是获得调度的概率低，并非一定是在高优先级线程之后才被调用
-
-
 
 #### 比较创建线程的两种方式
 
@@ -2428,7 +2427,7 @@ public class ThreadPool {
 
 ### 线程的同步
 
-当一个线程操作共享数据的时候，其它线程不能参与进来，知道线程操作完成共享数据，其他线程才可以操作共享数据。即使当前线程出现阻塞，也不能被改变。
+当一个线程操作共享数据的时候，其它线程不能参与进来，直到线程操作完成共享数据，其他线程才可以操作共享数据。即使当前线程出现阻塞，也不能被改变。
 
 
 
@@ -2439,7 +2438,7 @@ public class ThreadPool {
 ```java
 synchronized(同步监视器){
 		//需要被同步的代码
-	}
+}
 ```
 
 1. 操作共享数据的代码，即为需要被同步的代码。  -->不能包含代码多了，也不能包含代码少了。
@@ -2502,8 +2501,6 @@ synchronized(同步监视器){
 
    2）我们使用同步时，要避免出现死锁
 
-
-
 ### 线程的通信
 
 涉及到的三个方法：
@@ -2518,8 +2515,6 @@ synchronized(同步监视器){
 2. wait()，notify()，notifyAll()三个方法的调用者==必须是同步代码块或同步方法中的同步监视器==； 否则，会出现IllegalMonitorStateException异常
 3. wait()，notify()，notifyAll()三个方法是定义在==java.lang.Object==类中
 
-
-
 > 面试题：sleep() 和 wait()的异同？
 >
 > 1.相同点：一旦执行方法，都可以使得当前的线程进入阻塞状态。
@@ -2530,15 +2525,11 @@ synchronized(同步监视器){
 >
 > ​				3）关于是否释放同步监视器：如果两个方法都使用在同步代码块或同步方法中，sleep()不会释放锁，							wait()会释放锁
 
-
-
 ## 常用类
 
 ###  String类
 
 #### String概述
-
-
 
 String类：代表字符串。Java 程序中的所有字符串字面值（如 "abc" ）都作为此类的实例实现
 
@@ -2678,13 +2669,11 @@ char[] --> String:调用String的构造器
 
 解码：编码的逆过程，字节 --> 字符串 （看不懂的二进制数据 ---> 看得懂）
 
-
-
 ### StringBuffer、StringBuilder
 
 #### 三种类型的概述
 
-==String、StringBuffer、StringBuilder三者的异同==
+String、StringBuffer、StringBuilder三者的异同
 
 String:不可变的字符序列；底层使用char[]存储
 
@@ -2693,19 +2682,16 @@ StringBuffer:可变的字符序列；线程安全的，效率低；底层使用c
 StringBuilder:可变的字符序列；jdk5.0新增的，线程不安全的，效率高；底层使用char[]存储
 
 源码分析：
-		String str = new String();//char[] value = new char[0];
-		String str1 = new String("abc");//char[] value = new char[]{'a','b','c'};
 
- StringBuffer sb1 = new StringBuffer();//char[] value = new char[16];底层创建了一个长度是16的数组。
+```java
+String str = new String();//char[] value = new char[0];
+String str1 = new String("abc");//char[] value = new char[]{'a','b','c'};
+StringBuffer sb1 = new StringBuffer();//char[] value = new char[16];底层创建了一个长度是16的数组。
 System.out.println(sb1.length());//
-
- sb1.append('a');//value[0] = 'a';
-
- sb1.append('b');//value[1] = 'b';
-
- StringBuffer sb2 = new StringBuffer("abc");//char[] value = new char["abc".length() + 16];
-
- 
+sb1.append('a');//value[0] = 'a';
+sb1.append('b');//value[1] = 'b';
+StringBuffer sb2 = new StringBuffer("abc");//char[] value = new char["abc".length() + 16];
+```
 
 问题1. System.out.println(sb2.length());//3
 
@@ -2714,8 +2700,6 @@ System.out.println(sb1.length());//
 ​			默认情况下，扩容为原来容量的2倍 + 2，同时将原有数组中的元素复制到新的数组中
 
 ​			指导意义：开发中建议大家使用：StringBuffer(int capacity) 或 StringBuilder(int capacity)
-
-
 
 #### StringBuffer（StringBuilder）的常用方法
 
@@ -2739,8 +2723,6 @@ System.out.println(sb1.length());//
 			长度：length();
 			遍历：for() + charAt() / toString()
 
-
-
 #### StringBuffer和StringBuilder效率对比
 
 对比String、StringBuffer、StringBuilder三者的效率：从高到低排列：StringBuilder > StringBuffer > String
@@ -2748,33 +2730,33 @@ System.out.println(sb1.length());//
 ```java
  public void test3(){
         //初始设置
-        long startTime = 0L;
-        long endTime = 0L;
-        String text = "";
-        StringBuffer buffer = new StringBuffer("");
-        StringBuilder builder = new StringBuilder("");
-        //开始对比
-        startTime = System.currentTimeMillis();
-        for (int i = 0; i < 20000; i++) {
-            buffer.append(String.valueOf(i));
-        }
-        endTime = System.currentTimeMillis();
-        System.out.println("StringBuffer的执行时间：" + (endTime - startTime));
+     long startTime = 0L;
+     long endTime = 0L;
+     String text = "";
+     StringBuffer buffer = new StringBuffer("");
+     StringBuilder builder = new StringBuilder("");
+     //开始对比
+     startTime = System.currentTimeMillis();
+     for (int i = 0; i < 20000; i++) {
+         buffer.append(String.valueOf(i));
+     }
+     endTime = System.currentTimeMillis();
+     System.out.println("StringBuffer的执行时间：" + (endTime - startTime));
 
-        startTime = System.currentTimeMillis();
-        for (int i = 0; i < 20000; i++) {
-            builder.append(String.valueOf(i));
-        }
-        endTime = System.currentTimeMillis();
-        System.out.println("StringBuilder的执行时间：" + (endTime - startTime));
+     startTime = System.currentTimeMillis();
+     for (int i = 0; i < 20000; i++) {
+         builder.append(String.valueOf(i));
+     }
+     endTime = System.currentTimeMillis();
+     System.out.println("StringBuilder的执行时间：" + (endTime - startTime));
 
-        startTime = System.currentTimeMillis();
-        for (int i = 0; i < 20000; i++) {
-            text = text + i;
-        }
-        endTime = System.currentTimeMillis();
-        System.out.println("String的执行时间：" + (endTime - startTime));
-    }
+     startTime = System.currentTimeMillis();
+     for (int i = 0; i < 20000; i++) {
+         text = text + i;
+     }
+     endTime = System.currentTimeMillis();
+     System.out.println("String的执行时间：" + (endTime - startTime));
+}
 StringBuffer的执行时间：6
 StringBuilder的执行时间：5
 String的执行时间：276
