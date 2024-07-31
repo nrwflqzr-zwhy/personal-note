@@ -135,7 +135,7 @@
 
 ####  2.2 数据库与数据库管理系统的关系
 
-数据库管理系统(DBMS)可以管理多个数据库，一般开发人员会针对每一个应用创建一个数据库。为保存应用中实体的数据，一般会在数据库创建多个表，以保存程序中实体用户的数据。 
+数据库管理系统(DBMS)可以管理多个数据库，一般开发人员会针对每一个应用创建一个数据库。为保存应用中实体的数据，一般会在数据库创建多个表，以保存程序中实体用户的数据。
 
 数据库管理系统、数据库和表的关系如图所示：
 
@@ -894,7 +894,7 @@ show tables from 数据库名;
 ```mysql
 create table 表名称(
 	字段名  数据类型,
-	字段名 数据类型
+	字段名  数据类型
 );
 ```
 
@@ -925,8 +925,8 @@ select * from student;
 insert into 表名称 values(值列表);
 
 添加两条记录到student表中
-insert into student values(1,'张三');
-insert into student values(2,'李四');
+insert into student values(1, '张三');
+insert into student values(2, '李四');
 ```
 
 报错：
@@ -1156,7 +1156,7 @@ FLUSH PRIVILEGES;
 
 ### 6. MySQL目录结构与源码
 
- 6.1 主要目录结构
+####  6.1 主要目录结构
 
 | MySQL的目录结构                             | 说明                                 |
 | ------------------------------------------- | ------------------------------------ |
@@ -1166,7 +1166,7 @@ FLUSH PRIVILEGES;
 | my.ini文件                                  | MySQL的主要配置文件                  |
 | c:\ProgramData\MySQL\MySQL Server 8.0\data\ | 用户创建的数据库所在的目录           |
 
- 6.2 MySQL 源代码获取
+####  6.2 MySQL 源代码获取
 
 首先，你要进入 MySQL下载界面。 这里你不要选择用默认的“Microsoft Windows”，而是要通过下拉栏，找到“Source Code”，在下面的操作系统版本里面， 选择 Windows（Architecture Independent），然后点击下载。 
 
@@ -1194,36 +1194,46 @@ mysql-8.0.22 目录下的各个子目录，包含了 MySQL 各部分组件的源
 
 ### 7. 常见问题的解决(课外内容)
 
- 问题1：root用户密码忘记，重置的操作
+ **问题1：root用户密码忘记，重置的操作**
 
 1: 通过任务管理器或者服务管理，关掉mysqld(服务进程)
+
 2: 通过命令行+特殊参数开启mysqld
+
 mysqld --defaults-file="D:\ProgramFiles\mysql\MySQLServer5.7Data\my.ini" --skip-grant-tables
 
 3: 此时，mysqld服务进程已经打开。并且不需要权限检查
+
 4: mysql -uroot 无密码登陆服务器。另启动一个客户端进行
+
 5: 修改权限表
-（1） use mysql;
+
+（1）use mysql;
+
 （2）update user set authentication_string=password('新密码') where user='root' and Host='localhost'; 
+
 （3）flush privileges;
+
 6: 通过任务管理器，关掉mysqld服务进程。
+
 7: 再次通过服务管理，打开mysql服务。
+
 8: 即可用修改后的新密码登陆。
 
- 问题2：mysql命令报“不是内部或外部命令”
+ **问题2：**
 
 如果输入mysql命令报“不是内部或外部命令”，把mysql安装目录的bin目录配置到环境变量path中。如下：
 
 ![image-20210914093150145](MySQL数据库.images\image-20210914093150145.png)
 
- 问题3：错误ERROR ：没有选择数据库就操作表格和数据
+ **问题3：错误ERROR ：没有选择数据库就操作表格和数据**
 
 | ERROR 1046 (3D000): No database selected                     |
 | ------------------------------------------------------------ |
 | 解决方案一：就是使用“USE 数据库名;”语句，这样接下来的语句就默认针对这个数据库进行操作 |
 | 解决方案二：就是所有的表对象前面都加上“数据库.”              |
 
- 问题4：命令行客户端的字符集问题
+ **问题4：命令行客户端的字符集问题**
 
 ```mysql
 mysql> INSERT INTO t_stu VALUES(1,'张三','男');
@@ -1244,7 +1254,7 @@ ERROR 1366 (HY000): Incorrect string value: '\xD5\xC5\xC8\xFD' for column 'sname
 
 
 
- 问题5：修改数据库和表的字符编码
+ **问题5：修改数据库和表的字符编码**
 
 修改编码：
 
@@ -1391,19 +1401,19 @@ SQL语言在功能上主要分为如下3大类：
   - 必须保证所有的()、单引号、双引号是成对结束的
   - 必须使用英文状态下的半角输入方式
   - 字符串型和日期时间类型的数据可以使用单引号（' '）表示
-  - 列的别名，尽量使用双引号（" "），而且不建议省略as
+  - 列的别名，尽量使用双引号（" "），而且不建议省略 as
 
  2.2 SQL大小写规范 （建议遵守）
 
 - **MySQL 在 Windows 环境下是大小写不敏感的**
 - **MySQL 在 Linux 环境下是大小写敏感的**
   - 数据库名、表名、表的别名、变量名是严格区分大小写的
-  - 关键字、函数名、列名(或字段名)、列的别名(字段的别名) 是忽略大小写的。
+  - 关键字、函数名、列名(或字段名)、列的别名(字段的别名) 是忽略大小写的
 - **推荐采用统一的书写规范：**
   - 数据库名、表名、表别名、字段名、字段别名等都小写
   - SQL 关键字、函数名、绑定变量等都大写
 
- 2.3 注 释
+ 2.3 注释
 
 可以使用如下格式的注释结构
 
@@ -1443,8 +1453,6 @@ select id as "编号", `name` as "姓名" from t_stu; 起别名时，as都可以
 select id as 编号, `name` as 姓名 from t_stu; 如果字段别名中没有空格，那么可以省略""
 select id as 编 号, `name` as 姓 名 from t_stu; 错误，如果字段别名中有空格，那么不能省略""
 ```
-
-
 
  2.5 数据导入指令
 
@@ -1503,7 +1511,7 @@ FROM   departments;
 
 > 一般情况下，除非需要使用表中所有的字段数据，最好不要使用通配符‘*’。使用通配符虽然可以节省输入查询语句的时间，但是获取不需要的列数据通常会降低查询和所使用的应用程序的效率。通配符的优势是，当不知道所需要的列的名称时，可以通过它获取它们。
 >
-> 在生产环境下，不推荐你直接使用`SELECT *`进行查询。
+> 在生产环境下，不推荐你直接使用`SELECT *` 进行查询。
 
 - 选择特定的列：
 
@@ -1538,8 +1546,6 @@ FROM   departments;
   ![1554951616598](MySQL数据库.images\1554951616598.png)
 
   ![1554951622467](MySQL数据库.images\1554951622467.png)
-
-  
 
   ```mysql
   SELECT last_name "Name", salary*12 "Annual Salary"
@@ -1577,7 +1583,7 @@ FROM   employees;
 针对于：
 
 ```mysql
-SELECT DISTINCT department_id,salary 
+SELECT DISTINCT department_id, salary 
 FROM employees;
 ```
 
@@ -1649,8 +1655,6 @@ SQL 中的 SELECT 语法的确提供了这个功能，一般来说我们只从�
 SELECT '尚硅谷' as corporation, last_name FROM employees;
 ```
 
-
-
 ### 4. 显示表结构
 
 使用DESCRIBE 或 DESC 命令，表示表结构。
@@ -1689,8 +1693,6 @@ mysql> desc employees;
 - Key：表示该列是否已编制索引。PRI表示该列是表主键的一部分；UNI表示该列是UNIQUE索引的一部分；MUL表示在列中某个给定值允许出现多次。
 - Default：表示该列是否有默认值，如果有，那么值是多少。
 - Extra：表示可以获取的与给定列有关的附加信息，例如AUTO_INCREMENT等。
-
-
 
 ### 5. 过滤数据
 
@@ -1749,7 +1751,7 @@ mysql> SELECT 100, 100 + 0, 100 - 0, 100 + 50, 100 + 50 -30, 100 + 35.5, 100 - 3
 > - 一个整数类型的值对整数进行加法和减法操作，结果还是一个整数；
 > - 一个整数类型的值对浮点数进行加法和减法操作，结果是一个浮点数；
 > - 加法和减法的优先级相同，进行先加后减操作与进行先减后加操作的结果是一样的；
-> - 在Java中，+的左右两边如果有字符串，那么表示字符串的拼接。但是在MySQL中+只表示数值相加。如果遇到非数值类型，先尝试转成数值，如果转失败，就按0计算。（补充：MySQL中字符串拼接要使用字符串函数CONCAT()实现）
+> - 在Java中，+ 的左右两边如果有字符串，那么表示字符串的拼接。但是在MySQL中 + 只表示数值相加。如果遇到非数值类型，先尝试转成数值，如果转失败，就按0计算。（补充：MySQL中字符串拼接要使用字符串函数CONCAT()实现）
 
 **2．乘法与除法运算符**
 
@@ -1796,8 +1798,6 @@ mysql> SELECT 12 % 3, 12 MOD 5 FROM dual;
 SELECT * FROM employees
 WHERE employee_id MOD 2 = 0;
 ```
-
-可以看到，100对3求模后的结果为3，对5求模后的结果为0。
 
 ### 2. 比较运算符
 
@@ -2058,7 +2058,7 @@ WHERE  last_name LIKE '_o%';
 
 **ESCAPE**
 
-- 回避特殊符号的：**使用转义符**。例如：将[%]转为[$%]、[]转为[$]，然后再加上[ESCAPE‘$’]即可。
+- 回避特殊符号的：**使用转义符**。例如：将[%]转为[\$%]、[]转为[\$]，然后再加上[ESCAPE‘$’]即可。
 
 ```mysql
 SELECT job_id
