@@ -273,7 +273,7 @@
     }
 ```
 
-> 说明：不必显式的注册驱动了。因为在DriverManager的源码中已经存在静态代码块，实现了驱动的注册。
+> 说明：不必显式的注册驱动了。因为在 Driver 的源码中已经存在静态代码块，实现了驱动的注册。
 
 #### 2.4.5 连接方式五(最终版)
 
@@ -321,7 +321,7 @@ driverClass=com.mysql.jdbc.Driver
 
 ### 3.1 操作和访问数据库
 
-- 数据库连接被用于向数据库服务器发送命令和 SQL 语句，并接受数据库服务器返回的结果。其实一个数据库连接就是一个Socket连接。
+- 数据库连接被用于向数据库服务器发送命令和 SQL 语句，并接受数据库服务器返回的结果。其实**一个数据库连接就是一个Socket连接**
 
 - 在 java.sql 包中有 3 个接口分别定义了对数据库的调用的不同方式：
 
@@ -509,94 +509,84 @@ public class StatementTest {
 #### 3.3.4 使用PreparedStatement实现增、删、改操作
 
 ```java
-	//通用的增、删、改操作（体现一：增、删、改 ； 体现二：针对于不同的表）
-	public void update(String sql,Object ... args){
-		Connection conn = null;
-		PreparedStatement ps = null;
-		try {
-			//1.获取数据库的连接
-			conn = JDBCUtils.getConnection();
-			
-			//2.获取PreparedStatement的实例 (或：预编译sql语句)
-			ps = conn.prepareStatement(sql);
-			//3.填充占位符
-			for(int i = 0;i < args.length;i++){
-				ps.setObject(i + 1, args[i]);
-			}
-			
-			//4.执行sql语句
-			ps.execute();
-		} catch (Exception e) {
-			
-			e.printStackTrace();
-		}finally{
-			//5.关闭资源
-			JDBCUtils.closeResource(conn, ps);
-			
-		}
-	}
+//通用的增、删、改操作（体现一：增、删、改 ； 体现二：针对于不同的表）
+public void update(String sql, Object ... args){
+    Connection conn = null;
+    PreparedStatement ps = null;
+    try {
+        //1.获取数据库的连接
+        conn = JDBCUtils.getConnection();
+
+        //2.获取PreparedStatement的实例 (或：预编译sql语句)
+        ps = conn.prepareStatement(sql);
+        //3.填充占位符
+        for(int i = 0;i < args.length;i++){
+            ps.setObject(i + 1, args[i]);
+        }
+
+        //4.执行sql语句
+        ps.execute();
+    } catch (Exception e) {
+        e.printStackTrace();
+    }finally{
+        //5.关闭资源
+        JDBCUtils.closeResource(conn, ps);
+    }
+}
 ```
-
-
 
 #### 3.3.5 使用PreparedStatement实现查询操作
 
 ```java
-	// 通用的针对于不同表的查询:返回一个对象 (version 1.0)
-	public <T> T getInstance(Class<T> clazz, String sql, Object... args) {
+// 通用的针对于不同表的查询:返回一个对象 (version 1.0)
+public <T> T getInstance(Class<T> clazz, String sql, Object... args) {
 
-		Connection conn = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		try {
-			// 1.获取数据库连接
-			conn = JDBCUtils.getConnection();
+    Connection conn = null;
+    PreparedStatement ps = null;
+    ResultSet rs = null;
+    try {
+        // 1.获取数据库连接
+        conn = JDBCUtils.getConnection();
 
-			// 2.预编译sql语句，得到PreparedStatement对象
-			ps = conn.prepareStatement(sql);
+        // 2.预编译sql语句，得到PreparedStatement对象
+        ps = conn.prepareStatement(sql);
 
-			// 3.填充占位符
-			for (int i = 0; i < args.length; i++) {
-				ps.setObject(i + 1, args[i]);
-			}
+        // 3.填充占位符
+        for (int i = 0; i < args.length; i++) {
+            ps.setObject(i + 1, args[i]);
+        }
 
-			// 4.执行executeQuery(),得到结果集：ResultSet
-			rs = ps.executeQuery();
+        // 4.执行executeQuery(),得到结果集：ResultSet
+        rs = ps.executeQuery();
 
-			// 5.得到结果集的元数据：ResultSetMetaData
-			ResultSetMetaData rsmd = rs.getMetaData();
+        // 5.得到结果集的元数据：ResultSetMetaData
+        ResultSetMetaData rsmd = rs.getMetaData();
 
-			// 6.1通过ResultSetMetaData得到columnCount,columnLabel；通过ResultSet得到列值
-			int columnCount = rsmd.getColumnCount();
-			if (rs.next()) {
-				T t = clazz.newInstance();
-				for (int i = 0; i < columnCount; i++) {// 遍历每一个列
+        // 6.1通过ResultSetMetaData得到columnCount,columnLabel；通过ResultSet得到列值
+        int columnCount = rsmd.getColumnCount();
+        if (rs.next()) {
+            T t = clazz.newInstance();
+            for (int i = 0; i < columnCount; i++) {// 遍历每一个列
+                // 获取列值
+                Object columnVal = rs.getObject(i + 1);
+                // 获取列的别名:列的别名，使用类的属性名充当
+                String columnLabel = rsmd.getColumnLabel(i + 1);
+                // 6.2使用反射，给对象的相应属性赋值
+                Field field = clazz.getDeclaredField(columnLabel);
+                field.setAccessible(true);
+                field.set(t, columnVal);
+            }
+            return t;
+        }
+    } catch (Exception e) {
 
-					// 获取列值
-					Object columnVal = rs.getObject(i + 1);
-					// 获取列的别名:列的别名，使用类的属性名充当
-					String columnLabel = rsmd.getColumnLabel(i + 1);
-					// 6.2使用反射，给对象的相应属性赋值
-					Field field = clazz.getDeclaredField(columnLabel);
-					field.setAccessible(true);
-					field.set(t, columnVal);
-
-				}
-
-				return t;
-
-			}
-		} catch (Exception e) {
-
-			e.printStackTrace();
-		} finally {
-			// 7.关闭资源
-			JDBCUtils.closeResource(conn, ps, rs);
-		}
-
-		return null;
-
-	}
+        e.printStackTrace();
+    } finally {
+        // 7.关闭资源
+        JDBCUtils.closeResource(conn, ps, rs);
+    }
+    return null;
+}
 ```
 
 > 说明：使用PreparedStatement实现的查询操作可以替换Statement实现的查询操作，解决Statement拼串和SQL注入问题。
@@ -675,7 +665,7 @@ public class StatementTest {
     - 表中的一条记录对应java类的一个对象
     - 表中的一个字段对应java类的一个属性
 
-  > sql是需要结合列名和表的属性名来写。注意起别名。
+  > sql 是需要结合列名和表的属性名来写。注意起别名。
 
 - 两种技术
 
@@ -765,10 +755,7 @@ ps.execute();
 		
 fis.close();
 JDBCUtils.closeResource(conn, ps);
-
 ```
-
-
 
 ### 4.3 修改数据表中的Blob类型字段
 
@@ -788,8 +775,6 @@ ps.execute();
 fis.close();
 JDBCUtils.closeResource(conn, ps);
 ```
-
-
 
 ### 4.4 从数据表中读取大数据类型
 
@@ -829,8 +814,6 @@ if(rs.next()){
 
 ```
 
-
-
 ## 第5章 批量插入
 
 ### 5.1 批量执行SQL语句
@@ -848,8 +831,6 @@ JDBC的批量处理语句包括下面三个方法：
 - 多条SQL语句的批量处理；
 - 一个SQL语句的批量传参；
 
-
-
 ### 5.2 高效的批量插入
 
 举例：向数据表中插入20000条数据
@@ -863,8 +844,6 @@ NAME VARCHAR(20)
 );
 ```
 
-
-
 #### 5.2.1 实现层次一：使用Statement
 
 ```java
@@ -875,8 +854,6 @@ for(int i = 1;i <= 20000;i++){
 	st.executeUpdate(sql);
 }
 ```
-
-
 
 #### 5.2.2 实现层次二：使用PreparedStatement
 
@@ -904,9 +881,9 @@ JDBCUtils.closeResource(conn, ps);
 ```java
 /*
  * 修改1： 使用 addBatch() / executeBatch() / clearBatch()
- * 修改2：mysql服务器默认是关闭批处理的，我们需要通过一个参数，让mysql开启批处理的支持。
+ * 修改2： mysql 服务器默认是关闭批处理的，我们需要通过一个参数，让 mysql 开启批处理的支持。
  * 		 ?rewriteBatchedStatements=true 写在配置文件的url后面
- * 修改3：使用更新的mysql 驱动：mysql-connector-java-5.1.37-bin.jar
+ * 修改3：使用更新的 mysql 驱动：mysql-connector-java-5.1.37-bin.jar
  * 
  */
 @Test
@@ -1109,12 +1086,12 @@ public void update(Connection conn ,String sql, Object... args) {
 
 - 数据库提供的4种事务隔离级别：
 
-  ![image-20220828134845160](JDBC%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF.images/image-20220828134946617-170313163008467.png)
-
 - Oracle 支持的 2 种事务隔离级别：**READ COMMITED**, SERIALIZABLE。 Oracle 默认的事务隔离级别为: **READ COMMITED** 。
 
 
 - Mysql 支持 4 种事务隔离级别。Mysql 默认的事务隔离级别为: **REPEATABLE READ。**
+
+    ![image-20220828134903101](JDBC%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF.images/image-20220828134845160-170313163276570.png)
 
 
 #### 6.3.3 在MySql中设置隔离级别
@@ -1130,7 +1107,7 @@ public void update(Connection conn ,String sql, Object... args) {
 - 设置当前 mySQL 连接的隔离级别:  
 
   ```mysql
-  set  transaction isolation level read committed;
+  set transaction isolation level read committed;
   ```
 
 - 设置数据库系统的全局的隔离级别:
@@ -1158,7 +1135,6 @@ public void update(Connection conn ,String sql, Object... args) {
     
     ```
 
-    
 
 ## 第7章：DAO及相关实现类
 
@@ -1166,9 +1142,9 @@ public void update(Connection conn ,String sql, Object... args) {
 - 作用：为了实现功能的模块化，更有利于代码的维护和升级。
 - 下面是尚硅谷JavaWeb阶段书城项目中DAO使用的体现：
 
-![image-20220828134903101](JDBC%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF.images/image-20220828134845160-170313163276570.png)
-
 - 层次结构：
+
+    ![image-20220828134946617](JDBC%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF.images/image-20220828134916225-170313164452376.png)
 
 ![image-20220828134916225](JDBC%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF.images/image-20220828135012071-170313163420773.png)
 
@@ -1607,7 +1583,7 @@ public class User {
   - **进行sql操作**
   - **断开数据库连接**
 
-- 这种模式开发，存在的问题:
+- 这种模式开发，存在的问题
   - 普通的JDBC数据库连接使用 DriverManager 来获取，每次向数据库建立连接的时候都要将 Connection 加载到内存中，再验证用户名和密码(得花费0.05s～1s的时间)。需要数据库连接的时候，就向数据库要求一个，执行完成后再断开连接。这样的方式将会消耗大量的资源和时间。**数据库的连接资源并没有得到很好的重复利用。**若同时有几百人甚至几千人在线，频繁的进行数据库连接操作将占用很多的系统资源，严重的甚至会造成服务器的崩溃。
   - **对于每一次数据库连接，使用完后都得断开。**否则，如果程序出现异常而未能关闭，将会导致数据库系统中的内存泄漏，最终将导致重启数据库。（回忆：何为Java的内存泄漏？）
   - **这种开发不能控制被创建的连接对象数**，系统资源会被毫无顾及的分配出去，如连接过多，也可能导致内存泄漏，服务器崩溃。 
@@ -1620,7 +1596,7 @@ public class User {
 - **数据库连接池**负责分配、管理和释放数据库连接，它**允许应用程序重复使用一个现有的数据库连接，而不是重新建立一个**。
 - 数据库连接池在初始化时将创建一定数量的数据库连接放到连接池中，这些数据库连接的数量是由**最小数据库连接数来设定**的。无论这些数据库连接是否被使用，连接池都将一直保证至少拥有这么多的连接数量。连接池的**最大数据库连接数量**限定了这个连接池能占有的最大连接数，当应用程序向连接池请求的连接数超过最大连接数量时，这些请求将被加入到等待队列中。
 
-![image-20220828134946617](JDBC%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF.images/image-20220828134916225-170313164452376.png)
+
 
 - **工作原理：**
 
