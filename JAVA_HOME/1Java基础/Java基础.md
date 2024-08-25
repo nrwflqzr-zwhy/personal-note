@@ -6689,10 +6689,167 @@ var timer = new Timer(1000, System.out::println);
 
 ## 内部类
 
+在 Java 中，可以将一个类定义在另一个类里面或者一个方法里面，这样的类称为内部类。广泛意义上的内部类一般来说包括这四种：**成员内部类、局部内部类、匿名内部类和静态内部类**。
+
 内部类的两个好处：
 
 1. 内部类可以对同一个包中的其他类隐藏
 2. 内部类方法可以访问定义这个类的作用域中的数据，包括原本私有的数据
+
+### 成员内部类
+
+成员内部类看起来像是外部类的一个成员，所以内部类可以拥有 private、public 等访问权限修饰；当然，也可以用 static 来修饰。成员内部类分为：
+
+**静态成员内部类**：使用 static 修饰类；
+
+**非静态成员内部类**：未用 static 修饰类，在没有说明是静态成员内部类时，默认成员内部类指的就是非静态成员内部类
+
+#### 静态内部类
+
+使用 static 修饰的内部类我们称之为静态内部类，我们要知道只要是 static 修饰的类那它一定是内部类，不可能是外部类。**静态内部类与非静态内部类之间存在一个最大的区别，非静态内部类在编译完成之后会隐含地保存着一个引用，该引用是指向创建它的外围类的对象，但是静态内部类却没有**。没有这个引用就意味着：
+
+静态内部类的创建是不需要依赖于外围类的对象
+
+静态内部类不能使用任何外围类的非 static 成员变量和方法（因为在没有外部类的对象的情况下，可以创建静态内部类的对象，如果允许访问外部类的非 static 成员就会产生矛盾，因为外部类的非 static 成员必须依附于具体的对象）
+
+静态内部类内允许有 static 属性、方法；
+
+```java
+class OutClass {
+  //。。。
+ 
+  static class InnerClass {
+      static String test = "test";
+      int a = 1;
+      static void fun1() {}
+      void fun2() {}
+  }
+}
+```
+
+#### 非静态成员内部类
+
+```java
+public class Circle {
+  private double radius = 0.0;
+  public static int count = 1;
+  public Circle(double radius) {
+    this.radius = radius; 
+  }
+ 
+  public class Draw {//内部类
+    public void drawSahpe() {
+      System.out.println(radius);//外部类的private成员
+      System.out.prinlt(count);//外部类的静态成员
+    }
+  }
+}
+```
+
+##### 成员内部类访问外部类的信息
+
+类 Draw 像是类 Circle 的一个成员，Circle 称为外部类。成员内部类可以无条件访问外部类的所有成员属性和成员方法（包括 private 成员和静态成员）。
+
+当成员内部类拥有和外部类同名的成员变量或者方法时，会发生隐藏现象，即默认情况下访问的是成员内部类的成员。如果要访问外部类的同名成员，需要以下面的形式进行访问：
+
+```java
+外部类.this.成员变量
+外部类.this.成员方法
+```
+
+##### 创建内部类对象
+
+成员内部类是依附外部类而存在的，所以要创建成员内部类的对象，前提是必须存在一个外部类的对象。
+
+```java
+public class OutClass {
+ 
+    private InnerClass getInner() {
+        return new InnerClass();
+    }
+ 
+    public class InnerClass{}
+ 
+    public static void main(String... str) {
+        OutClass out = new OutClass();
+ 
+        InnerClass inner1 = out.getInner(); // 方式一
+        InnerClass inner2 = out.new InnerCLass(); // 方式二
+    }
+}
+```
+
+##### 外部类访问成员内部类信息
+
+外部类也可以访问内部类的所有成员变量和方法（包括 private），但外部类想访问成员内部类的成员，必须先创建一个成员内部类的对象，再通过指向这个对象的引用来访问
+
+```java
+public class OutClass {
+	public static int count = 12;
+	private double radius;
+ 
+	public OutClass(double radius) {
+		this.radius = radius;
+	}
+ 
+	public class InnerClass {//内部类
+		public String name = "test";
+		public void test() {
+			System.out.println(count);//访问外部类成员
+			System.out.println(radius);//访问外部类成员
+		}
+	}
+	public static void main() {
+		OutClass out = new OutClass(1.2);
+		
+		InnerClass inner = out.new InnerClass(); // 创建一个成员内部类对象
+		inner.test();//内部类方法
+		inner.name = "my test";//内部类属性
+	}
+}
+```
+
+##### 成员内部类中不能存在任何 static 的变量和方法
+
+对于成员内部内并不是完全不能出现 static 字段的，如果你是使用 final 和 static 同时修饰一个属性字段，并且这个字段是基本类型或者 String 类型的，那么是可以编译通过的。原因：
+
+非静态成员内部类要依赖外部类，所以不能有 static 变量；在类加载那一章我们了解到，对于 final static 的变量是存放在常量池中的，不涉及到类的加载；
+
+### 局部内部类
+
+局部内部类是定义在一个方法或者一个作用域里面的类，它和成员内部类的区别在于局部内部类的访问仅限于方法内或者该作用域内
+
+```java
+public void test() {
+    class InnerClass {
+        private String name;
+        final static String test = "1";
+        public InnerClass(String name) {
+            super();
+            this.name = name;
+        }
+        public void say(String str) {
+            System.out.println(name+":"+str);
+        }
+    }
+    new InnerClass("test").say("hello");
+}
+```
+
+局部内部类就像是方法里面的一个局部变量一样，是不能有public、protected、private以及static修饰符的
+
+### 匿名内部类
+
+```java
+public class Demo {
+    private Runnable runnable = new Runnable() {
+        @override
+        public void run() {}
+    }
+}
+```
+
+匿名内部类是唯一一种没有构造器的类。正因为其没有构造器，所以匿名内部类的使用范围非常有限，大部分匿名内部类用于接口回调。匿名内部类在编译的时候由系统自动起名为 Outter$1.class。一般来说，匿名内部类用于继承其他类或是实现接口，并不需要增加额外的方法，只是对继承方法的实现或是重写。
 
 ### 内部类的特殊语法规则
 
